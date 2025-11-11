@@ -2,10 +2,10 @@
 
 ## Current Status
 
-**Phase:** Backend Services Implementation - In Progress  
+**Phase:** Frontend Foundation Complete, Ready for Page Implementation  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), and PR #7 (Document Service - Backend). Document service is fully implemented with firm-level isolation, S3 integration, and all CRUD operations.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), and PR #15 (Frontend Foundation and Routing). Frontend foundation is complete with React Router, shadcn components, layout, utilities, types, and AuthContext. Ready to build individual page components.
 
 ## Current Work Focus
 
@@ -27,13 +27,44 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
    - All endpoints: upload, list, get, delete, download URL
    - Lambda handlers using Mangum
    - S3 integration with presigned URLs
+   - Testing scripts: seed_test_firm.py, seed_test_users.py, check_firm_table.py, check_users_table.py, test_document_api.py
+   - Fixed Docker Compose environment variable loading
+   - Fixed Pydantic Settings validation for nested configs (extra="ignore" + custom AWSConfig env source)
+   - Added database CheckConstraints for User.role and GeneratedLetter.status
 
-3. **PR #8: Template Service - Backend** (Next)
-   - Template CRUD operations
-   - Firm-level template management
-   - Default template logic
+3. ✅ **PR #15: Frontend Foundation and Routing** - COMPLETE
+   - App.jsx with React Router and all routes (/dashboard, /upload-assets, /templates, /create-letter, /letters, etc.)
+   - MainLayout with header, navigation, and main content area
+   - Navigation component with underline active states (modern design)
+   - All shadcn/ui components installed (button, input, card, dialog, checkbox, switch, select, textarea, badge, table)
+   - API client (axios) with interceptors and error handling
+   - Type definitions (Document, Template, Letter, API types)
+   - AuthContext with user state management
+   - Utility files (utils.js, api.ts, constants.ts)
+   - Neutral theme with primary color matching shadcn default
+   - All placeholder pages created (Dashboard, Documents, Templates, CreateLetter, Letters, FinalizeLetter, EditLetter, NotFound)
+
+4. **PR #16: Document Library Page - Frontend** (Next)
+   - Document listing UI
+   - Upload functionality
+   - Document management interface
 
 ## Recent Changes
+
+- ✅ PR #15: Frontend Foundation and Routing - Complete
+  - Created App.jsx with React Router and all route definitions
+  - Routes: /dashboard, /upload-assets, /templates, /create-letter, /letters, /letters/:id/finalize, /letters/:id/edit
+  - Created MainLayout.jsx with header (logo, navigation, user profile)
+  - Created Navigation.jsx with horizontal nav and underline active states
+  - Installed all shadcn/ui components (10 components total)
+  - Created API client (lib/api.ts) with axios, interceptors, and error handling
+  - Created constants file (lib/constants.ts) with API endpoints, file limits, supported types
+  - Created TypeScript type definitions (types/document.ts, types/template.ts, types/letter.ts, types/api.ts)
+  - Created AuthContext.jsx with user state, login/logout functions, and useAuth hook
+  - Created all placeholder pages (Dashboard, Documents, Templates, CreateLetter, Letters, FinalizeLetter, EditLetter, NotFound)
+  - Configured neutral theme with primary color (24 9.8% 10%) matching shadcn default
+  - Navigation uses underline style for active items (modern look)
+  - Build passes successfully
 
 - ✅ PR #1: Project Initialization - Frontend and backend setup complete
 - ✅ PR #2: Docker Configuration - Docker Compose and Dockerfiles created
@@ -89,6 +120,17 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
   - Created `services/document_service/handler.py` with Lambda handlers
   - All operations enforce firm-level isolation
   - S3 key pattern: `{firm_id}/{document_id}/{sanitized_filename}`
+  - Created testing scripts:
+    - `scripts/seed_test_firm.py` - Standalone script to seed test firm
+    - `scripts/seed_test_users.py` - Standalone script to seed test users (6 users)
+    - `scripts/check_firm_table.py` - Query and display firms
+    - `scripts/check_users_table.py` - Query and display users
+    - `scripts/test_document_api.py` - Test document upload endpoint only
+  - Fixed Docker Compose environment variable loading (removed env_file, use environment section with ${VAR} syntax)
+  - Fixed Pydantic Settings validation for nested configs (added extra="ignore" to Settings.model_config, implemented custom env source for AWSConfig to map AWS_S3_BUCKET_* variables)
+  - Added database CheckConstraints:
+    - User.role: only 'attorney' or 'paralegal'
+    - GeneratedLetter.status: only 'draft' or 'created'
 - Created test script (backend/scripts/test_db.py) for database connection and schema validation
 
 ## Active Decisions & Considerations
@@ -128,9 +170,17 @@ None identified yet - project is in initial setup phase.
 
 ### Phase 2: Core Features (In Progress)
 - [x] Document service (upload, list, delete) - PR #7 Complete
-- [ ] Template service (CRUD) - PR #8 Next
+- [ ] Template service (CRUD) - PR #8
 - [ ] Parser service (PDF extraction) - PR #9
-- [ ] Basic UI for documents and templates
+- [x] Frontend foundation (routing, components, layout) - PR #15 Complete
+
+### Phase 3: Frontend Pages (Next)
+- [ ] Document library page - PR #16 Next
+- [ ] Template management page - PR #17
+- [ ] Create letter page - PR #18
+- [ ] Finalize letter page - PR #19
+- [ ] Generated letters library page - PR #20
+- [ ] Edit letter page - PR #21
 
 ### Phase 3: AI Integration
 - [ ] AI service (letter generation)

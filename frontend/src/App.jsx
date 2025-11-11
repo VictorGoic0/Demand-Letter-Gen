@@ -1,35 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { MainLayout } from './components/Layout/MainLayout';
+import { Dashboard } from './pages/Dashboard';
+import { Documents } from './pages/Documents';
+import { Templates } from './pages/Templates';
+import { CreateLetter } from './pages/CreateLetter';
+import { Letters } from './pages/Letters';
+import { FinalizeLetter } from './pages/FinalizeLetter';
+import { EditLetter } from './pages/EditLetter';
+import { NotFound } from './pages/NotFound';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AuthProvider>
+      <BrowserRouter>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/upload-assets" element={<Documents />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/create-letter" element={<CreateLetter />} />
+            <Route path="/letters" element={<Letters />} />
+            <Route path="/letters/:id/finalize" element={<FinalizeLetter />} />
+            <Route path="/letters/:id/edit" element={<EditLetter />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MainLayout>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

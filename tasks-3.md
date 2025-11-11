@@ -266,70 +266,71 @@
 ## PR #15: Frontend Foundation and Routing
 
 ### App Structure
-- [ ] 1. Create src/App.tsx
-- [ ] 2. Set up React Router with BrowserRouter
-- [ ] 3. Define route structure:
-  - [ ] / → Dashboard (redirect to /documents)
-  - [ ] /documents → Document Library
-  - [ ] /templates → Template Management
-  - [ ] /create-letter → Letter Generation
-  - [ ] /letters → Generated Letters Library
-  - [ ] /letters/:id/finalize → Finalize Letter
-  - [ ] /letters/:id/edit → Edit Letter
-- [ ] 4. Create layout component with navigation
-- [ ] 5. Create 404 Not Found page
+- [x] 1. Create src/App.jsx
+- [x] 2. Set up React Router with BrowserRouter
+- [x] 3. Define route structure:
+  - [x] / → Dashboard (redirect to /dashboard)
+  - [x] /dashboard → Dashboard (Document Library)
+  - [x] /upload-assets → Upload Assets
+  - [x] /templates → Template Management
+  - [x] /create-letter → Letter Generation
+  - [x] /letters → Generated Letters Library
+  - [x] /letters/:id/finalize → Finalize Letter
+  - [x] /letters/:id/edit → Edit Letter
+- [x] 4. Create layout component with navigation
+- [x] 5. Create 404 Not Found page
 
 ### Base Components
-- [ ] 6. Create src/components/ui/ directory (for shadcn components)
-- [ ] 7. Install and configure shadcn button component
-- [ ] 8. Install and configure shadcn input component
-- [ ] 9. Install and configure shadcn card component
-- [ ] 10. Install and configure shadcn dialog component
-- [ ] 11. Install and configure shadcn checkbox component
-- [ ] 12. Install and configure shadcn switch component
-- [ ] 13. Install and configure shadcn select component
-- [ ] 14. Install and configure shadcn textarea component
-- [ ] 15. Install and configure shadcn badge component
-- [ ] 16. Install and configure shadcn table component
+- [x] 6. Create src/components/ui/ directory (for shadcn components)
+- [x] 7. Install and configure shadcn button component
+- [x] 8. Install and configure shadcn input component
+- [x] 9. Install and configure shadcn card component
+- [x] 10. Install and configure shadcn dialog component
+- [x] 11. Install and configure shadcn checkbox component
+- [x] 12. Install and configure shadcn switch component
+- [x] 13. Install and configure shadcn select component
+- [x] 14. Install and configure shadcn textarea component
+- [x] 15. Install and configure shadcn badge component
+- [x] 16. Install and configure shadcn table component
 
 ### Layout Components
-- [ ] 17. Create src/components/Layout/MainLayout.tsx
-- [ ] 18. Add navigation header
-- [ ] 19. Add sidebar navigation menu
-- [ ] 20. Add main content area
-- [ ] 21. Add user profile dropdown (placeholder)
-- [ ] 22. Create src/components/Layout/Navigation.tsx
-- [ ] 23. Add navigation links with active states
-- [ ] 24. Add icons from lucide-react
+- [x] 17. Create src/components/Layout/MainLayout.jsx
+- [x] 18. Add navigation header
+- [x] 19. Add navigation menu (horizontal, not sidebar)
+- [x] 20. Add main content area
+- [x] 21. Add user profile display in header
+- [x] 22. Create src/components/Layout/Navigation.jsx
+- [x] 23. Add navigation links with active states (underline style)
+- [x] 24. Add icons from lucide-react
 
 ### Utility Setup
-- [ ] 25. Create src/lib/utils.ts
-- [ ] 26. Add cn() function for className merging
-- [ ] 27. Create src/lib/api.ts for axios configuration
-- [ ] 28. Configure axios base URL from env
-- [ ] 29. Configure axios interceptors for auth tokens
-- [ ] 30. Configure axios error handling
-- [ ] 31. Create src/lib/constants.ts
-- [ ] 32. Define API endpoints as constants
-- [ ] 33. Define file size limits
-- [ ] 34. Define supported file types
+- [x] 25. Create src/lib/utils.js (already existed)
+- [x] 26. Add cn() function for className merging
+- [x] 27. Create src/lib/api.ts for axios configuration
+- [x] 28. Configure axios base URL from env
+- [x] 29. Configure axios interceptors for auth tokens
+- [x] 30. Configure axios error handling
+- [x] 31. Create src/lib/constants.ts
+- [x] 32. Define API endpoints as constants
+- [x] 33. Define file size limits
+- [x] 34. Define supported file types
 
 ### Type Definitions
-- [ ] 35. Create src/types/document.ts
-- [ ] 36. Define Document interface
-- [ ] 37. Create src/types/template.ts
-- [ ] 38. Define Template interface
-- [ ] 39. Create src/types/letter.ts
-- [ ] 40. Define Letter interface
-- [ ] 41. Define LetterStatus enum
-- [ ] 42. Create src/types/api.ts
-- [ ] 43. Define ApiResponse interface
-- [ ] 44. Define PaginatedResponse interface
+- [x] 35. Create src/types/document.ts
+- [x] 36. Define Document interface
+- [x] 37. Create src/types/template.ts
+- [x] 38. Define Template interface
+- [x] 39. Create src/types/letter.ts
+- [x] 40. Define Letter interface
+- [x] 41. Define LetterStatus enum
+- [x] 42. Create src/types/api.ts
+- [x] 43. Define ApiResponse interface
+- [x] 44. Define PaginatedResponse interface
 
 ### Context and State Management
-- [ ] 45. Create src/contexts/AuthContext.tsx
-- [ ] 46. Define AuthContext with user state
-- [ ] 47. Create login and logout functions (placeholder)
-- [ ] 48. Create useAuth custom hook
-- [ ] 49. Wrap App with AuthProvider
+- [x] 45. Create src/contexts/AuthContext.jsx
+- [x] 46. Define AuthContext with user state
+- [x] 47. Create login and logout functions (placeholder)
+- [x] 48. Create useAuth custom hook
+- [x] 49. Wrap App with AuthProvider
 

@@ -122,6 +122,23 @@
 - [x] 29. Create delete handler function using Mangum
 - [x] 30. Create download handler function using Mangum
 
+### Testing Scripts
+- [x] 31. Create scripts/seed_test_firm.py - Standalone script to seed test firm
+- [x] 32. Create scripts/seed_test_users.py - Standalone script to seed test users
+- [x] 33. Create scripts/check_firm_table.py - Standalone script to query firms table
+- [x] 34. Create scripts/check_users_table.py - Standalone script to query users table
+- [x] 35. Create scripts/test_document_api.py - Test script for document upload endpoint only
+
+### Configuration Fixes
+- [x] 36. Fix docker-compose.yml environment variable loading (removed env_file, use environment section with ${VAR} syntax)
+- [x] 37. Fix Pydantic Settings validation for nested configs (added extra="ignore" to Settings.model_config, implemented custom env source for AWSConfig)
+
+### Database Constraints
+- [x] 38. Add CheckConstraint to User.role column (only 'attorney' or 'paralegal')
+- [x] 39. Add CheckConstraint to GeneratedLetter.status column (only 'draft' or 'created')
+
+**PR #7 Status: ✅ COMPLETE**
+
 ---
 
 ## PR #8: Template Service - Backend
