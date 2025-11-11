@@ -148,8 +148,11 @@ Letter Service:
 
 ### Multi-Tenancy
 - Firm-level isolation via `firm_id` foreign keys
-- All queries filtered by `firm_id` from authenticated user
+- All queries MUST filter by `firm_id` - all users within a firm see the same documents, templates, and letters
 - No cross-firm data access
+- For MVP: `firm_id` provided via query parameter or header (authentication removed from MVP scope)
+- All create operations must include `firm_id` in database records
+- All read/update/delete operations must verify `firm_id` matches before proceeding
 
 ### Soft Relationships
 - Letter-source document relationship via junction table
@@ -200,17 +203,16 @@ App
 
 ## Security Patterns
 
-### Authentication
-- JWT tokens stored in localStorage
-- Token included in Authorization header
-- Token validation on every request
-- Automatic redirect to login on 401
+### Authentication (MVP: Removed)
+- JWT authentication removed from MVP scope
+- For MVP: `firm_id` provided via query parameter or header
+- Future: Will implement JWT-based authentication with user sessions
 
 ### Authorization
-- Firm-level access control
-- All queries filtered by user's firm_id
+- Firm-level access control enforced
+- All queries filtered by `firm_id` (provided in request)
 - No direct database access from frontend
-- API validates user access on every request
+- API validates `firm_id` matches on every request before returning/updating data
 
 ### Data Protection
 - S3 bucket encryption at rest (AES256) - Both buckets encrypted

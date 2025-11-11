@@ -146,8 +146,21 @@ VITE_API_URL=http://localhost:8000
 - Region: us-east-2 (configurable)
 - Runtime: python3.11
 - CORS enabled for all endpoints
+- Lambda layers for shared dependencies
+- Package optimization (excludes tests, docs, cache files)
 
 **Functions:** Each service endpoint as separate Lambda function
+
+**Handler Structure:**
+- `handlers/` directory with base handler utility
+- Mangum adapter for FastAPI → Lambda conversion
+- Example handlers for each service (document, template, letter)
+- Comprehensive handler pattern documentation
+
+**Local Development:**
+- `serverless-offline` plugin for local Lambda/API Gateway emulation
+- Runs on port 3000 (configurable)
+- Full request/response transformation support
 
 ### API Gateway
 

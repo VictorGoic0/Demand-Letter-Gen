@@ -1,7 +1,7 @@
 # Demand Letter Generator - PR Implementation List
 # Part 2: Backend Services
 
-## PR #6: Shared Backend Utilities and Auth
+## PR #6: Shared Backend Utilities
 
 ### Configuration Management
 - [ ] 1. Create shared/config.py
@@ -10,50 +10,36 @@
 - [ ] 4. Add AWS configuration fields
 - [ ] 5. Add OpenAI configuration fields
 - [ ] 6. Add CORS configuration fields
-- [ ] 7. Add JWT secret and expiration settings
-- [ ] 8. Create function to load settings singleton
-- [ ] 9. Add validation for required fields
-- [ ] 10. Add development vs production config handling
-
-### Authentication Middleware
-- [ ] 11. Create shared/auth.py
-- [ ] 12. Define User schema for JWT payload
-- [ ] 13. Create function to create access token
-- [ ] 14. Create function to decode and verify token
-- [ ] 15. Create get_current_user dependency
-- [ ] 16. Create get_current_active_user dependency
-- [ ] 17. Add password hashing functions
-- [ ] 18. Add password verification functions
-- [ ] 19. Create HTTPBearer security scheme
-- [ ] 20. Add error handling for invalid/expired tokens
+- [ ] 7. Create function to load settings singleton
+- [ ] 8. Add validation for required fields
+- [ ] 9. Add development vs production config handling
 
 ### Common Schemas
-- [ ] 21. Create shared/schemas/__init__.py
-- [ ] 22. Create shared/schemas/common.py with base schemas
-- [ ] 23. Define SuccessResponse schema
-- [ ] 24. Define ErrorResponse schema
-- [ ] 25. Define PaginationParams schema
-- [ ] 26. Define PaginatedResponse schema
+- [ ] 10. Create shared/schemas/__init__.py
+- [ ] 11. Create shared/schemas/common.py with base schemas
+- [ ] 12. Define SuccessResponse schema
+- [ ] 13. Define ErrorResponse schema
+- [ ] 14. Define PaginationParams schema
+- [ ] 15. Define PaginatedResponse schema
 
 ### Error Handling
-- [ ] 27. Create shared/exceptions.py
-- [ ] 28. Define custom exception classes:
+- [ ] 16. Create shared/exceptions.py
+- [ ] 17. Define custom exception classes:
   - [ ] DocumentNotFoundException
   - [ ] TemplateNotFoundException
   - [ ] LetterNotFoundException
   - [ ] S3UploadException
   - [ ] OpenAIException
-  - [ ] UnauthorizedException
-- [ ] 29. Create exception handlers for FastAPI
-- [ ] 30. Add global exception handler
+- [ ] 18. Create exception handlers for FastAPI
+- [ ] 19. Add global exception handler
 
 ### Utilities
-- [ ] 31. Create shared/utils.py
-- [ ] 32. Add function to generate UUIDs
-- [ ] 33. Add function for datetime formatting
-- [ ] 34. Add function for file size formatting
-- [ ] 35. Add function for filename sanitization
-- [ ] 36. Add function for HTML sanitization
+- [ ] 20. Create shared/utils.py
+- [ ] 21. Add function to generate UUIDs
+- [ ] 22. Add function for datetime formatting
+- [ ] 23. Add function for file size formatting
+- [ ] 24. Add function for filename sanitization
+- [ ] 25. Add function for HTML sanitization
 
 ---
 
@@ -75,26 +61,26 @@
   - [ ] Validate file type and size
   - [ ] Generate unique S3 key
   - [ ] Upload to S3
-  - [ ] Create database record
+  - [ ] Create database record with firm_id (firm-level isolation)
   - [ ] Return document metadata
 - [ ] 11. Implement get_documents function:
-  - [ ] Query documents by firm_id
+  - [ ] Query documents by firm_id (firm-level isolation)
   - [ ] Apply sorting (filename, upload date)
   - [ ] Apply pagination
   - [ ] Return list with metadata
 - [ ] 12. Implement get_document_by_id function:
   - [ ] Verify document exists
-  - [ ] Verify user has access (firm_id match)
+  - [ ] Verify document belongs to firm_id (firm-level isolation)
   - [ ] Return document metadata
 - [ ] 13. Implement delete_document function:
   - [ ] Verify document exists
-  - [ ] Verify user has access
+  - [ ] Verify document belongs to firm_id (firm-level isolation)
   - [ ] Delete from S3
   - [ ] Delete from database
   - [ ] Return success response
 - [ ] 14. Implement generate_download_url function:
   - [ ] Verify document exists
-  - [ ] Verify user has access
+  - [ ] Verify document belongs to firm_id (firm-level isolation)
   - [ ] Generate presigned S3 URL
   - [ ] Return URL with expiration
 - [ ] 15. Add error handling for all functions
@@ -104,25 +90,26 @@
 - [ ] 17. Create APIRouter with prefix "/documents"
 - [ ] 18. Implement POST /upload endpoint:
   - [ ] Accept multipart/form-data
+  - [ ] Accept firm_id (query param or header for MVP)
   - [ ] Use UploadFile from FastAPI
-  - [ ] Call upload_document logic
+  - [ ] Call upload_document logic with firm_id
   - [ ] Return 201 with document metadata
 - [ ] 19. Implement GET / endpoint:
   - [ ] Accept query params for sorting and pagination
-  - [ ] Get current user from auth
-  - [ ] Call get_documents logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call get_documents logic with firm_id
   - [ ] Return 200 with document list
 - [ ] 20. Implement GET /{document_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call get_document_by_id logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call get_document_by_id logic with firm_id
   - [ ] Return 200 with document metadata
 - [ ] 21. Implement DELETE /{document_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call delete_document logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call delete_document logic with firm_id
   - [ ] Return 204 no content
 - [ ] 22. Implement GET /{document_id}/download endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call generate_download_url logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call generate_download_url logic with firm_id
   - [ ] Return 200 with presigned URL
 - [ ] 23. Add OpenAPI documentation for all endpoints
 
@@ -160,30 +147,30 @@
 - [ ] 10. Implement create_template function:
   - [ ] Validate template data
   - [ ] If is_default=True, unset other defaults for firm
-  - [ ] Create database record
+  - [ ] Create database record with firm_id (firm-level isolation)
   - [ ] Return template data
 - [ ] 11. Implement get_templates function:
-  - [ ] Query templates by firm_id
+  - [ ] Query templates by firm_id (firm-level isolation)
   - [ ] Apply sorting (name, created date)
   - [ ] Return list of templates
 - [ ] 12. Implement get_template_by_id function:
   - [ ] Verify template exists
-  - [ ] Verify user has access (firm_id match)
+  - [ ] Verify template belongs to firm_id (firm-level isolation)
   - [ ] Return template data
 - [ ] 13. Implement update_template function:
   - [ ] Verify template exists
-  - [ ] Verify user has access
-  - [ ] If is_default=True, unset other defaults
+  - [ ] Verify template belongs to firm_id (firm-level isolation)
+  - [ ] If is_default=True, unset other defaults for firm
   - [ ] Update fields
   - [ ] Return updated template
 - [ ] 14. Implement delete_template function:
   - [ ] Verify template exists
-  - [ ] Verify user has access
+  - [ ] Verify template belongs to firm_id (firm-level isolation)
   - [ ] Check if template is in use by letters
   - [ ] Delete from database
   - [ ] Return success response
 - [ ] 15. Implement get_default_template function:
-  - [ ] Query for is_default=True for firm
+  - [ ] Query for is_default=True and firm_id (firm-level isolation)
   - [ ] Return template or None
 - [ ] 16. Add error handling for all functions
 
@@ -191,30 +178,30 @@
 - [ ] 17. Create services/template_service/router.py
 - [ ] 18. Create APIRouter with prefix "/templates"
 - [ ] 19. Implement POST / endpoint:
-  - [ ] Get current user from auth
+  - [ ] Accept firm_id (query param or header for MVP)
   - [ ] Validate request body
-  - [ ] Call create_template logic
+  - [ ] Call create_template logic with firm_id
   - [ ] Return 201 with template data
 - [ ] 20. Implement GET / endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call get_templates logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call get_templates logic with firm_id
   - [ ] Return 200 with template list
 - [ ] 21. Implement GET /default endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call get_default_template logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call get_default_template logic with firm_id
   - [ ] Return 200 with template or 404
 - [ ] 22. Implement GET /{template_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call get_template_by_id logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call get_template_by_id logic with firm_id
   - [ ] Return 200 with template data
 - [ ] 23. Implement PUT /{template_id} endpoint:
-  - [ ] Get current user from auth
+  - [ ] Accept firm_id (query param or header for MVP)
   - [ ] Validate request body
-  - [ ] Call update_template logic
+  - [ ] Call update_template logic with firm_id
   - [ ] Return 200 with updated template
 - [ ] 24. Implement DELETE /{template_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call delete_template logic
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Call delete_template logic with firm_id
   - [ ] Return 204 no content
 - [ ] 25. Add OpenAPI documentation for all endpoints
 
@@ -281,14 +268,15 @@
 - [ ] 18. Create services/parser_service/router.py
 - [ ] 19. Create APIRouter with prefix "/parse"
 - [ ] 20. Implement POST /document/{document_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Verify document access
+  - [ ] Accept firm_id (query param or header for MVP)
+  - [ ] Verify document exists
+  - [ ] Verify document belongs to firm_id (firm-level isolation)
   - [ ] Call parse_document logic
   - [ ] Return 200 with parsed text
 - [ ] 21. Implement POST /batch endpoint:
-  - [ ] Get current user from auth
+  - [ ] Accept firm_id (query param or header for MVP)
   - [ ] Validate all document IDs
-  - [ ] Verify document access for all
+  - [ ] Verify all documents exist and belong to firm_id (firm-level isolation)
   - [ ] Call parse_documents_batch logic
   - [ ] Return 200 with batch results
 - [ ] 22. Add OpenAPI documentation

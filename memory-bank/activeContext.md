@@ -2,41 +2,33 @@
 
 ## Current Status
 
-**Phase:** Foundation Setup - S3 Infrastructure Complete  
+**Phase:** Foundation Setup - Complete ✅  
 **Last Updated:** November 2025
 
-The project has completed PR #1 (Project Initialization), PR #2 (Docker Configuration), PR #3 (Database Schema and Migrations), and PR #4 (S3 Client and Bucket Setup). S3 client utilities are implemented, buckets are created and configured in AWS, and documentation is complete.
+The project has completed all foundation PRs: PR #1 (Project Initialization), PR #2 (Docker Configuration), PR #3 (Database Schema and Migrations), PR #4 (S3 Client and Bucket Setup), and PR #5 (Lambda-Optimized Application Structure). All infrastructure is in place and ready for service implementation.
 
 ## Current Work Focus
 
 ### Immediate Next Steps
 
-1. **Project Setup (PR #1)**
-   - Initialize frontend project with Vite + React
-   - Initialize backend project structure
-   - Configure dependencies and build tools
-   - Set up folder structure
+**Foundation Phase Complete** - Ready to begin service implementation:
 
-2. **Docker Configuration (PR #2)**
-   - Create docker-compose.yml
-   - Create Dockerfiles for frontend and backend
-   - Set up local development environment
+1. **PR #6: Shared Backend Utilities**
+   - Configuration management
+   - Error handling utilities
+   - Common schemas and validation functions
+   - Shared exceptions
 
-3. **Database Schema (PR #3)**
-   - Set up SQLAlchemy models
-   - Configure Alembic migrations
-   - Create initial migration
+2. **PR #7: Document Service - Backend**
+   - Document upload endpoints
+   - Document listing and retrieval
+   - Document deletion
+   - S3 integration
 
-4. **AWS Infrastructure Setup (PR #4)** ✅ COMPLETE
-   - S3 client utilities implemented
-   - S3 buckets created and configured
-   - Documentation complete
-
-5. **Lambda-Optimized Structure (PR #5)** ✅ COMPLETE
-   - Created serverless.yml with full configuration
-   - Created Lambda handler structure and base utilities
-   - Added serverless plugins (serverless-offline, serverless-python-requirements)
-   - Created comprehensive deployment documentation
+3. **PR #8: Template Service - Backend**
+   - Template CRUD operations
+   - Firm-level template management
+   - Default template logic
 
 ## Recent Changes
 
@@ -90,14 +82,14 @@ None identified yet - project is in initial setup phase.
 
 ## Next Milestones
 
-### Phase 1: Foundation (100% - 5/5 PRs Complete)
+### Phase 1: Foundation ✅ COMPLETE (100% - 5/5 PRs)
 - [x] Project initialization
 - [x] Docker setup
 - [x] Database schema
 - [x] AWS infrastructure configuration (S3)
 - [x] Lambda-optimized structure setup
 
-### Phase 2: Core Features
+### Phase 2: Core Features (Next Phase)
 - [ ] Document service (upload, list, delete)
 - [ ] Template service (CRUD)
 - [ ] Parser service (PDF extraction)
@@ -147,14 +139,14 @@ Features listed in PRD Section 6.7 (P1: Post-MVP Features)
 ## Important Notes
 
 1. **MVP Focus:** Only P0 features should be implemented initially
-2. **Firm-Level Isolation:** All data must be filtered by firm_id
-3. **Security First:** Authentication and authorization required for all endpoints
+2. **Firm-Level Isolation:** All data must be filtered by firm_id - all users within a firm see the same documents, templates, and letters. All queries filter by firm_id for multi-tenancy.
+3. **No Auth for MVP:** JWT authentication removed from MVP scope. firm_id will be provided via query parameter or header for MVP.
 4. **Error Handling:** Comprehensive error handling at all layers
 5. **Documentation:** Keep documentation updated as code is written
 
 ## Questions to Resolve
 
-1. Authentication system details (JWT implementation specifics)
+1. ~~Authentication system details (JWT implementation specifics)~~ - Deferred to post-MVP
 2. OpenAI API key management (AWS Secrets Manager vs environment variables)
 3. Frontend deployment strategy (S3 + CloudFront vs Vercel/Netlify)
 4. Database migration strategy (Alembic vs manual SQL)
