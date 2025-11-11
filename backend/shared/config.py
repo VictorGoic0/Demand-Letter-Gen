@@ -212,6 +212,9 @@ def load_openai_config() -> OpenAIConfig:
     """
     Load OpenAI configuration from environment variables.
     
+    Note: Model, temperature, and max_tokens are hardcoded for easier development.
+    These can be adjusted directly in the code as needed.
+    
     Returns:
         OpenAIConfig instance
         
@@ -220,9 +223,9 @@ def load_openai_config() -> OpenAIConfig:
     """
     return OpenAIConfig(
         api_key=get_env_var("OPENAI_API_KEY", required=True),
-        model=get_env_var("OPENAI_MODEL", "gpt-4", required=False),
-        temperature=get_env_float("OPENAI_TEMPERATURE", 0.7, required=False),
-        max_tokens=get_env_int("OPENAI_MAX_TOKENS", 2000, required=False),
+        model="gpt-4",  # Hardcoded - adjust in code as needed
+        temperature=0.7,  # Hardcoded - adjust in code as needed
+        max_tokens=2000,  # Hardcoded - adjust in code as needed
     )
 
 

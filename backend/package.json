@@ -1,0 +1,22 @@
+{
+  "name": "demand-letter-generator-backend",
+  "version": "1.0.0",
+  "description": "Backend serverless functions for Demand Letter Generator",
+  "scripts": {
+    "serverless": "serverless",
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "offline": "serverless offline",
+    "remove": "serverless remove"
+  },
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.3",
+    "serverless-python-requirements": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

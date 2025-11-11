@@ -101,8 +101,8 @@ OPENAI_API_KEY=<key>
 AWS_ACCESS_KEY_ID=<key>
 AWS_SECRET_ACCESS_KEY=<key>
 AWS_REGION=us-east-2
-S3_BUCKET_DOCUMENTS=<bucket>
-S3_BUCKET_EXPORTS=<bucket>
+S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
+S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
 ```
 
 Frontend (.env):
@@ -158,15 +158,22 @@ VITE_API_URL=http://localhost:8000
 
 ### S3 Buckets
 
-**Separate buckets for:**
-- Documents (uploaded PDFs)
-- Exports (generated .docx files)
+**Buckets Created:**
+- `goico-demand-letters-documents-dev` (us-east-2) - Uploaded PDFs
+- `goico-demand-letters-exports-dev` (us-east-2) - Generated .docx files
 
 **Configuration:**
-- Encryption at rest
-- Versioning enabled
-- Lifecycle policies (optional)
-- Presigned URLs for downloads (expiration: 1 hour)
+- Encryption at rest: AES256 (both buckets)
+- Versioning: Enabled (both buckets)
+- Public access: Blocked for documents bucket, allowed for exports bucket (presigned URLs)
+- Presigned URLs: 1 hour expiration for downloads
+- Region: us-east-2
+
+**S3 Client:**
+- Location: `backend/shared/s3_client.py`
+- Features: Upload, download, delete, presigned URL generation, bucket existence check, file listing
+- Singleton pattern: `get_s3_client()` for easy access
+- Error handling: Comprehensive exception handling for all operations
 
 ### RDS
 
@@ -217,10 +224,14 @@ serverless deploy
 ### OpenAI API
 
 **Usage:**
-- Model: GPT-4 or GPT-3.5-turbo (configurable)
+- Model: GPT-4 (hardcoded in `shared/config.py` - currently "gpt-4")
+- Temperature: 0.7 (hardcoded in `shared/config.py`)
+- Max Tokens: 2000 (hardcoded in `shared/config.py`)
 - Purpose: Generate demand letter text
-- Authentication: API key from environment
+- Authentication: API key from environment variable `OPENAI_API_KEY`
 - Error Handling: Retry logic for rate limits and transient failures
+
+**Note:** Model, temperature, and max_tokens are hardcoded in the code for easier development iteration. These can be adjusted directly in `shared/config.py` as needed.
 
 **Prompt Engineering:**
 - System prompt for legal writing style
@@ -231,10 +242,13 @@ serverless deploy
 ### AWS Services
 
 **S3:**
-- boto3 client for operations
-- Presigned URL generation
-- File upload/download
+- boto3 client for operations (via `shared/s3_client.py`)
+- Presigned URL generation (GET, PUT, DELETE methods supported)
+- File upload/download (from file path or file object)
 - Error handling for network issues
+- Bucket existence validation
+- File listing with prefix filtering
+- Metadata management
 
 **RDS:**
 - SQLAlchemy ORM

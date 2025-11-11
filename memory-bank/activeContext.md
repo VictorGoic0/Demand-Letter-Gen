@@ -2,10 +2,10 @@
 
 ## Current Status
 
-**Phase:** Project Initialization - Database Setup Complete  
+**Phase:** Foundation Setup - S3 Infrastructure Complete  
 **Last Updated:** November 2025
 
-The project has completed PR #1 (Project Initialization), PR #2 (Docker Configuration), and PR #3 (Database Schema and Migrations). The database models, migrations, and utilities are fully implemented and ready for testing.
+The project has completed PR #1 (Project Initialization), PR #2 (Docker Configuration), PR #3 (Database Schema and Migrations), and PR #4 (S3 Client and Bucket Setup). S3 client utilities are implemented, buckets are created and configured in AWS, and documentation is complete.
 
 ## Current Work Focus
 
@@ -27,15 +27,16 @@ The project has completed PR #1 (Project Initialization), PR #2 (Docker Configur
    - Configure Alembic migrations
    - Create initial migration
 
-4. **AWS Infrastructure Setup (PR #4)**
-   - Configure S3 client utilities
-   - Document IAM policies
-   - Set up environment configuration
+4. **AWS Infrastructure Setup (PR #4)** ✅ COMPLETE
+   - S3 client utilities implemented
+   - S3 buckets created and configured
+   - Documentation complete
 
-5. **Serverless Framework (PR #5)**
-   - Create serverless.yml
-   - Configure Lambda functions
-   - Set up deployment scripts
+5. **Lambda-Optimized Structure (PR #5)** ✅ COMPLETE
+   - Created serverless.yml with full configuration
+   - Created Lambda handler structure and base utilities
+   - Added serverless plugins (serverless-offline, serverless-python-requirements)
+   - Created comprehensive deployment documentation
 
 ## Recent Changes
 
@@ -47,7 +48,20 @@ The project has completed PR #1 (Project Initialization), PR #2 (Docker Configur
   - Created initial migration with all tables and indexes
   - Added database utilities for connection testing and table management
   - Added comprehensive migration documentation to README
-- Created test script (backend/test_db.py) for database connection and schema validation
+- ✅ PR #4: S3 Client and Bucket Setup - Complete
+  - Created `shared/s3_client.py` with full S3 operations (upload, download, delete, presigned URLs)
+  - Created S3 buckets in AWS: `goico-demand-letters-documents-dev` and `goico-demand-letters-exports-dev` (us-east-2)
+  - Configured buckets: versioning enabled, encryption (AES256), public access blocked for documents only
+  - Created comprehensive documentation: `docs/s3-bucket-setup.md` and `docs/s3-usage.md`
+  - Updated all references to use correct bucket naming convention
+- ✅ PR #5: Lambda-Optimized Application Structure - Complete
+  - Created `serverless.yml` with full AWS Lambda configuration
+  - Created `handlers/` directory with base handler utility and example handlers
+  - Added serverless plugins: serverless-offline and serverless-python-requirements
+  - Created `backend/package.json` for npm scripts
+  - Created comprehensive deployment documentation: `backend/docs/lambda-deployment.md`
+  - Hardcoded OpenAI model (gpt-4), temperature (0.7), and max_tokens (2000) in `shared/config.py` for easier development
+- Created test script (backend/scripts/test_db.py) for database connection and schema validation
 
 ## Active Decisions & Considerations
 
@@ -62,10 +76,13 @@ The project has completed PR #1 (Project Initialization), PR #2 (Docker Configur
 ### Pending Decisions
 
 1. **Node.js Version:** Need to confirm Node.js 18+ compatibility with all packages
-2. **OpenAI Model:** Decide between GPT-4 and GPT-3.5-turbo (cost vs quality)
-3. **Lambda Layer Strategy:** Finalize which dependencies go in common layer
-4. **Testing Strategy:** Unit test coverage targets and testing frameworks
-5. **CI/CD:** Whether to set up automated deployment pipeline
+2. **Lambda Layer Strategy:** Finalize which dependencies go in common layer
+3. **Testing Strategy:** Unit test coverage targets and testing frameworks
+4. **CI/CD:** Whether to set up automated deployment pipeline
+
+### Recent Decisions
+
+1. **OpenAI Configuration:** Model (gpt-4), temperature (0.7), and max_tokens (2000) are hardcoded in `shared/config.py` for easier development iteration. These can be adjusted directly in code as needed, avoiding environment variable friction during development.
 
 ### Current Blockers
 
@@ -73,12 +90,12 @@ None identified yet - project is in initial setup phase.
 
 ## Next Milestones
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation (100% - 5/5 PRs Complete)
 - [x] Project initialization
 - [x] Docker setup
 - [x] Database schema
-- [ ] AWS infrastructure configuration
-- [ ] Serverless framework setup
+- [x] AWS infrastructure configuration (S3)
+- [x] Lambda-optimized structure setup
 
 ### Phase 2: Core Features
 - [ ] Document service (upload, list, delete)

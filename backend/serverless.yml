@@ -1,0 +1,158 @@
+service: demand-letter-generator
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: ${opt:region, 'us-east-2'}
+  stage: ${opt:stage, 'dev'}
+  timeout: 30
+  memorySize: 512
+  environment:
+    # Database configuration
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    # AWS configuration
+    AWS_REGION: ${env:AWS_REGION, 'us-east-2'}
+    S3_BUCKET_DOCUMENTS: ${env:S3_BUCKET_DOCUMENTS}
+    S3_BUCKET_EXPORTS: ${env:S3_BUCKET_EXPORTS}
+    # OpenAI configuration
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    # Application configuration
+    ENVIRONMENT: ${self:provider.stage}
+    DEBUG: ${env:DEBUG, 'false'}
+    LOG_LEVEL: ${env:LOG_LEVEL, 'INFO'}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:DeleteObject
+        - s3:ListBucket
+      Resource:
+        # Note: Bucket names are provided via environment variables at runtime
+        # These ARNs will be resolved during deployment
+        - 'arn:aws:s3:::${env:S3_BUCKET_DOCUMENTS}/*'
+        - 'arn:aws:s3:::${env:S3_BUCKET_DOCUMENTS}'
+        - 'arn:aws:s3:::${env:S3_BUCKET_EXPORTS}/*'
+        - 'arn:aws:s3:::${env:S3_BUCKET_EXPORTS}'
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: 'arn:aws:logs:*:*:*'
+    - Effect: Allow
+      Action:
+        - rds:DescribeDBInstances
+        - rds:Connect
+      Resource: '*'
+
+package:
+  patterns:
+    - '!tests/**'
+    - '!docs/**'
+    - '!**/__pycache__/**'
+    - '!**/*.pyc'
+    - '!**/*.pyo'
+    - '!.git/**'
+    - '!.env'
+    - '!.env.*'
+    - '!README.md'
+    - '!docker-compose.yml'
+    - '!Dockerfile'
+    - '!Dockerfile.lambda'
+    - '!node_modules/**'
+    - '!venv/**'
+    - '!.venv/**'
+    - '!*.md'
+    - '!alembic.ini'
+    - '!alembic/**'
+    - '!scripts/**'
+    - '!*.mermaid'
+    - '!architecture.mermaid'
+
+plugins:
+  - serverless-python-requirements
+  - serverless-offline
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    layer: true
+    slim: true
+    strip: false
+    zip: true
+    # Exclude test dependencies and development tools
+    noDeploy:
+      - pytest
+      - pytest-cov
+      - black
+      - flake8
+      - mypy
+    # Layer configuration
+    layerName: ${self:provider.stage}-common-dependencies
+    compatibleRuntimes:
+      - python3.11
+
+  serverless-offline:
+    httpPort: 3000
+    lambdaPort: 3002
+    host: 0.0.0.0
+    noPrependStageInUrl: false
+    prefix: 'dev'
+
+# Lambda Layers
+# The serverless-python-requirements plugin automatically creates a layer
+# when layer: true is set in pythonRequirements configuration.
+# Functions reference this layer using: { Ref: PythonRequirementsLambdaLayer }
+#
+# Example layer reference in functions:
+# layers:
+#   - { Ref: PythonRequirementsLambdaLayer }
+
+# Lambda Functions
+# Note: Functions will be defined here as services are implemented
+# Example structure:
+#
+# functions:
+#   documentUpload:
+#     handler: handlers.document_handler.handler
+#     events:
+#       - http:
+#           path: documents/upload
+#           method: post
+#           cors: true
+#     layers:
+#       - { Ref: PythonRequirementsLambdaLayer }
+#     timeout: 30
+#     memorySize: 512
+#
+#   templateList:
+#     handler: handlers.template_handler.handler
+#     events:
+#       - http:
+#           path: templates
+#           method: get
+#           cors: true
+#     layers:
+#       - { Ref: PythonRequirementsLambdaLayer }
+#     timeout: 30
+#     memorySize: 512
+#
+#   letterGenerate:
+#     handler: handlers.letter_handler.handler
+#     events:
+#       - http:
+#           path: letters/generate
+#           method: post
+#           cors: true
+#     layers:
+#       - { Ref: PythonRequirementsLambdaLayer }
+#     timeout: 60  # Longer timeout for AI generation
+#     memorySize: 1024
+

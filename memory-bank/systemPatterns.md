@@ -19,7 +19,7 @@ backend/
   shared/              # Common code and dependencies
     database.py        # SQLAlchemy models, session management
     auth.py           # Authentication middleware
-    s3_client.py      # S3 operations wrapper
+    s3_client.py      # S3 operations wrapper (upload, download, delete, presigned URLs)
     config.py         # Environment variables, settings
   services/
     document_service/  # Document upload/management
@@ -35,10 +35,11 @@ backend/
 ### Service Responsibilities
 
 **Document Service**
-- Handles file uploads to S3
+- Handles file uploads to S3 (using `shared/s3_client.py`)
 - Manages document metadata in database
 - Provides document listing, retrieval, deletion
-- Generates presigned download URLs
+- Generates presigned download URLs (1 hour expiration)
+- Uses bucket: `goico-demand-letters-documents-dev`
 
 **Template Service**
 - CRUD operations for letter templates
@@ -62,6 +63,8 @@ backend/
 - Generates .docx files from HTML content
 - Handles finalize and re-export actions
 - Manages letter-document associations
+- Uploads .docx exports to S3 (using `shared/s3_client.py`)
+- Uses bucket: `goico-demand-letters-exports-dev` (presigned URLs for frontend access)
 
 ## Data Flow Patterns
 
@@ -210,9 +213,12 @@ App
 - API validates user access on every request
 
 ### Data Protection
-- S3 bucket encryption at rest
+- S3 bucket encryption at rest (AES256) - Both buckets encrypted
+- S3 versioning enabled - Both buckets have versioning
+- Documents bucket: Public access blocked (security)
+- Exports bucket: Public access allowed (for presigned URL downloads)
 - HTTPS for all API communication
-- Presigned URLs with expiration for downloads
+- Presigned URLs with expiration (1 hour default) for downloads
 - No sensitive data in frontend code
 
 ## Error Handling Patterns
@@ -257,7 +263,7 @@ App
 3. **Status-Based Workflow:** Explicit draft/created status for business logic
 4. **Firm-Level Templates:** Templates shared across firm, not per-user
 5. **Service Separation:** Clear boundaries but shared codebase for development speed
-6. **Environment Configuration:** `.env` files are source of truth for all configuration
+6. **Environment Configuration:** `.env` files are source of truth for most configuration. OpenAI model, temperature, and max_tokens are hardcoded in `shared/config.py` for easier development iteration.
 7. **Scripts Organization:** All utility scripts live in `backend/scripts/` directory
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
 
