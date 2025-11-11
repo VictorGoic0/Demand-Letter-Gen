@@ -79,192 +79,176 @@
 ## PR #2: Docker Configuration for Local Development
 
 ### Docker Compose Setup
-- [ ] 1. Create docker-compose.yml in root
-- [ ] 2. Configure PostgreSQL service:
-  - [ ] Set image to postgres:15
-  - [ ] Configure environment variables
-  - [ ] Set up port mapping (5432:5432)
-  - [ ] Configure volume for data persistence
-- [ ] 3. Configure backend service:
-  - [ ] Reference backend Dockerfile
-  - [ ] Set up volume mounts for hot reload
-  - [ ] Configure port mapping (8000:8000)
-  - [ ] Set environment variables
-  - [ ] Add depends_on for postgres
-- [ ] 4. Configure frontend service:
-  - [ ] Reference frontend Dockerfile
-  - [ ] Set up volume mounts for hot reload
-  - [ ] Configure port mapping (5173:5173)
-  - [ ] Set environment variables
-  - [ ] Add node_modules volume
+- [x] 1. Create docker-compose.yml in backend directory
+- [x] 2. Configure PostgreSQL service:
+  - [x] Set image to postgres:15
+  - [x] Configure environment variables
+  - [x] Set up port mapping (5432:5432)
+  - [x] Configure volume for data persistence
+- [x] 3. Configure backend service:
+  - [x] Reference backend Dockerfile
+  - [x] Set up volume mounts for hot reload
+  - [x] Configure port mapping (8000:8000)
+  - [x] Set environment variables
+  - [x] Add depends_on for postgres
 
 ### Backend Dockerfile (Development)
-- [ ] 5. Create backend/Dockerfile
-- [ ] 6. Use python:3.11-slim as base image
-- [ ] 7. Set working directory to /app
-- [ ] 8. Copy requirements.txt
-- [ ] 9. Install dependencies with pip
-- [ ] 10. Copy application code
-- [ ] 11. Set CMD for uvicorn with reload
-
-### Frontend Dockerfile (Development)
-- [ ] 12. Create frontend/Dockerfile
-- [ ] 13. Use node:18-alpine as base image
-- [ ] 14. Set working directory to /app
-- [ ] 15. Copy package.json and package-lock.json
-- [ ] 16. Run npm install
-- [ ] 17. Copy application code
-- [ ] 18. Expose port 5173
-- [ ] 19. Set CMD for npm run dev
+- [x] 4. Create backend/Dockerfile
+- [x] 5. Use python:3.11-slim as base image
+- [x] 6. Set working directory to /app
+- [x] 7. Copy requirements.txt
+- [x] 8. Install dependencies with pip
+- [x] 9. Copy application code
+- [x] 10. Set CMD for uvicorn with reload
 
 ### Lambda Build Dockerfile (Production)
-- [ ] 20. Create backend/Dockerfile.lambda
-- [ ] 21. Create multi-stage build with builder stage
-- [ ] 22. Use public.ecr.aws/lambda/python:3.11 as base
-- [ ] 23. Install dependencies in builder stage
-- [ ] 24. Add cleanup commands to remove tests, docs, __pycache__
-- [ ] 25. Add commands to remove .pyc, .pyo files
-- [ ] 26. Add commands to remove .dist-info directories
-- [ ] 27. Copy application code
-- [ ] 28. Create runtime stage from lambda base image
-- [ ] 29. Copy artifacts from builder stage
-- [ ] 30. Set default CMD (will be overridden per function)
+- [x] 11. Create backend/Dockerfile.lambda
+- [x] 12. Create multi-stage build with builder stage
+- [x] 13. Use public.ecr.aws/lambda/python:3.11 as base
+- [x] 14. Install dependencies in builder stage
+- [x] 15. Add cleanup commands to remove tests, docs, __pycache__
+- [x] 16. Add commands to remove .pyc, .pyo files
+- [x] 17. Add commands to remove .dist-info directories
+- [x] 18. Copy application code
+- [x] 19. Create runtime stage from lambda base image
+- [x] 20. Copy artifacts from builder stage
+- [x] 21. Set default CMD (will be overridden per function)
 
 ### Docker Documentation
-- [ ] 31. Create docker/README.md with setup instructions
-- [ ] 32. Document how to start services
-- [ ] 33. Document how to stop services
-- [ ] 34. Document how to view logs
-- [ ] 35. Document how to rebuild containers
-- [ ] 36. Add troubleshooting section
+- [x] 22. Create docker/README.md with setup instructions
+- [x] 23. Document how to start services
+- [x] 24. Document how to stop services
+- [x] 25. Document how to view logs
+- [x] 26. Document how to rebuild containers
+- [x] 27. Add troubleshooting section
 
 ---
 
 ## PR #3: Database Schema and Migrations
 
 ### Database Configuration
-- [ ] 1. Create shared/database.py
-- [ ] 2. Set up SQLAlchemy engine with connection pooling
-- [ ] 3. Create SessionLocal factory
-- [ ] 4. Create Base declarative base
-- [ ] 5. Create get_db() dependency function
-- [ ] 6. Add database URL configuration from environment
+- [x] 1. Create shared/database.py
+- [x] 2. Set up SQLAlchemy engine with connection pooling
+- [x] 3. Create SessionLocal factory
+- [x] 4. Create Base declarative base
+- [x] 5. Create get_db() dependency function
+- [x] 6. Add database URL configuration from environment
 
 ### Database Models
-- [ ] 7. Create shared/models/__init__.py
-- [ ] 8. Create shared/models/firm.py with Firm model:
-  - [ ] id (UUID, primary key)
-  - [ ] name (VARCHAR)
-  - [ ] created_at (TIMESTAMP)
-  - [ ] updated_at (TIMESTAMP)
-- [ ] 9. Create shared/models/user.py with User model:
-  - [ ] id (UUID, primary key)
-  - [ ] firm_id (UUID, foreign key)
-  - [ ] email (VARCHAR, unique)
-  - [ ] name (VARCHAR)
-  - [ ] role (VARCHAR)
-  - [ ] created_at (TIMESTAMP)
-  - [ ] updated_at (TIMESTAMP)
-- [ ] 10. Create shared/models/document.py with Document model:
-  - [ ] id (UUID, primary key)
-  - [ ] firm_id (UUID, foreign key)
-  - [ ] uploaded_by (UUID, foreign key)
-  - [ ] filename (VARCHAR)
-  - [ ] file_size (BIGINT)
-  - [ ] s3_key (VARCHAR)
-  - [ ] mime_type (VARCHAR)
-  - [ ] uploaded_at (TIMESTAMP)
-- [ ] 11. Create shared/models/template.py with LetterTemplate model:
-  - [ ] id (UUID, primary key)
-  - [ ] firm_id (UUID, foreign key)
-  - [ ] name (VARCHAR)
-  - [ ] letterhead_text (TEXT)
-  - [ ] opening_paragraph (TEXT)
-  - [ ] closing_paragraph (TEXT)
-  - [ ] sections (JSONB)
-  - [ ] is_default (BOOLEAN)
-  - [ ] created_by (UUID, foreign key)
-  - [ ] created_at (TIMESTAMP)
-  - [ ] updated_at (TIMESTAMP)
-- [ ] 12. Create shared/models/letter.py with GeneratedLetter model:
-  - [ ] id (UUID, primary key)
-  - [ ] firm_id (UUID, foreign key)
-  - [ ] created_by (UUID, foreign key)
-  - [ ] title (VARCHAR)
-  - [ ] content (TEXT)
-  - [ ] status (VARCHAR)
-  - [ ] template_id (UUID, foreign key)
-  - [ ] docx_s3_key (VARCHAR, nullable)
-  - [ ] created_at (TIMESTAMP)
-  - [ ] updated_at (TIMESTAMP)
-- [ ] 13. Create shared/models/letter_document.py with LetterSourceDocument model:
-  - [ ] letter_id (UUID, foreign key, primary key)
-  - [ ] document_id (UUID, foreign key, primary key)
+- [x] 7. Create shared/models/__init__.py
+- [x] 8. Create shared/models/firm.py with Firm model:
+  - [x] id (UUID, primary key)
+  - [x] name (VARCHAR)
+  - [x] created_at (TIMESTAMP)
+  - [x] updated_at (TIMESTAMP)
+- [x] 9. Create shared/models/user.py with User model:
+  - [x] id (UUID, primary key)
+  - [x] firm_id (UUID, foreign key)
+  - [x] email (VARCHAR, unique)
+  - [x] name (VARCHAR)
+  - [x] role (VARCHAR)
+  - [x] created_at (TIMESTAMP)
+  - [x] updated_at (TIMESTAMP)
+- [x] 10. Create shared/models/document.py with Document model:
+  - [x] id (UUID, primary key)
+  - [x] firm_id (UUID, foreign key)
+  - [x] uploaded_by (UUID, foreign key)
+  - [x] filename (VARCHAR)
+  - [x] file_size (BIGINT)
+  - [x] s3_key (VARCHAR)
+  - [x] mime_type (VARCHAR)
+  - [x] uploaded_at (TIMESTAMP)
+- [x] 11. Create shared/models/template.py with LetterTemplate model:
+  - [x] id (UUID, primary key)
+  - [x] firm_id (UUID, foreign key)
+  - [x] name (VARCHAR)
+  - [x] letterhead_text (TEXT)
+  - [x] opening_paragraph (TEXT)
+  - [x] closing_paragraph (TEXT)
+  - [x] sections (JSONB)
+  - [x] is_default (BOOLEAN)
+  - [x] created_by (UUID, foreign key)
+  - [x] created_at (TIMESTAMP)
+  - [x] updated_at (TIMESTAMP)
+- [x] 12. Create shared/models/letter.py with GeneratedLetter model:
+  - [x] id (UUID, primary key)
+  - [x] firm_id (UUID, foreign key)
+  - [x] created_by (UUID, foreign key)
+  - [x] title (VARCHAR)
+  - [x] content (TEXT)
+  - [x] status (VARCHAR)
+  - [x] template_id (UUID, foreign key)
+  - [x] docx_s3_key (VARCHAR, nullable)
+  - [x] created_at (TIMESTAMP)
+  - [x] updated_at (TIMESTAMP)
+- [x] 13. Create shared/models/letter_document.py with LetterSourceDocument model:
+  - [x] letter_id (UUID, foreign key, primary key)
+  - [x] document_id (UUID, foreign key, primary key)
 
 ### Alembic Setup
-- [ ] 14. Initialize Alembic in backend directory
-- [ ] 15. Configure alembic.ini with database URL
-- [ ] 16. Update env.py to import models
-- [ ] 17. Configure env.py for async if needed
-- [ ] 18. Create initial migration with all tables
-- [ ] 19. Add indexes in migration:
-  - [ ] idx_documents_firm_id
-  - [ ] idx_documents_uploaded_at
-  - [ ] idx_letters_firm_id
-  - [ ] idx_letters_created_at
-  - [ ] idx_letters_status
+- [x] 14. Initialize Alembic in backend directory
+- [x] 15. Configure alembic.ini with database URL
+- [x] 16. Update env.py to import models
+- [x] 17. Configure env.py for async if needed
+- [x] 18. Create initial migration with all tables
+- [x] 19. Add indexes in migration:
+  - [x] idx_documents_firm_id
+  - [x] idx_documents_uploaded_at
+  - [x] idx_letters_firm_id
+  - [x] idx_letters_created_at
+  - [x] idx_letters_status
 - [ ] 20. Test migration up
 - [ ] 21. Test migration down
-- [ ] 22. Add migration instructions to README
+- [x] 22. Add migration instructions to README
 
 ### Database Utilities
-- [ ] 23. Create shared/db_utils.py
-- [ ] 24. Add function to check database connection
-- [ ] 25. Add function to create all tables
-- [ ] 26. Add function to drop all tables (dev only)
-- [ ] 27. Create database initialization script
+- [x] 23. Create shared/db_utils.py
+- [x] 24. Add function to check database connection
+- [x] 25. Add function to create all tables
+- [x] 26. Add function to drop all tables (dev only)
+- [x] 27. Create database initialization script
 
 ---
 
 ## PR #4: AWS Infrastructure Setup
 
 ### S3 Configuration
-- [ ] 1. Create shared/s3_client.py
-- [ ] 2. Initialize boto3 S3 client with credentials from env
-- [ ] 3. Create function to upload file to S3
-- [ ] 4. Create function to download file from S3
-- [ ] 5. Create function to delete file from S3
-- [ ] 6. Create function to generate presigned URL
-- [ ] 7. Add error handling for all S3 operations
-- [ ] 8. Add function to check if bucket exists
-- [ ] 9. Add function to list files in bucket (for debugging)
-- [ ] 10. Create S3 bucket naming configuration
+- [x] 1. Create shared/s3_client.py
+- [x] 2. Initialize boto3 S3 client with credentials from env
+- [x] 3. Create function to upload file to S3
+- [x] 4. Create function to download file from S3
+- [x] 5. Create function to delete file from S3
+- [x] 6. Create function to generate presigned URL
+- [x] 7. Add error handling for all S3 operations
+- [x] 8. Add function to check if bucket exists
+- [x] 9. Add function to list files in bucket (for debugging)
+- [x] 10. Create S3 bucket naming configuration
 
 ### IAM Configuration Documentation
-- [ ] 11. Create docs/aws-setup.md
-- [ ] 12. Document IAM policy for S3 access
-- [ ] 13. Document IAM policy for Lambda execution
-- [ ] 14. Document IAM policy for RDS access
-- [ ] 15. Document IAM policy for CloudWatch logs
-- [ ] 16. Create terraform/IAM policy JSON examples
+- [x] 11. Create docs/aws-setup.md
+- [x] 12. Document IAM policy for S3 access
+- [x] 13. Document IAM policy for Lambda execution
+- [x] 14. Document IAM policy for RDS access
+- [x] 15. Document IAM policy for CloudWatch logs
+- [x] 16. Create terraform/IAM policy JSON examples
 
 ### Environment Configuration
-- [ ] 17. Update backend .env.example with AWS variables:
-  - [ ] AWS_ACCESS_KEY_ID
-  - [ ] AWS_SECRET_ACCESS_KEY
-  - [ ] AWS_REGION
-  - [ ] S3_BUCKET_DOCUMENTS
-  - [ ] S3_BUCKET_EXPORTS
-- [ ] 18. Create shared/config.py for centralized config
-- [ ] 19. Add validation for required environment variables
-- [ ] 20. Add function to load and validate config on startup
+- [x] 17. Update backend .env.example with AWS variables:
+  - [x] AWS_ACCESS_KEY_ID
+  - [x] AWS_SECRET_ACCESS_KEY
+  - [x] AWS_REGION
+  - [x] S3_BUCKET_DOCUMENTS
+  - [x] S3_BUCKET_EXPORTS
+- [x] 18. Create shared/config.py for centralized config
+- [x] 19. Add validation for required environment variables
+- [x] 20. Add function to load and validate config on startup
 
 ### RDS Setup Documentation
-- [ ] 21. Document RDS instance creation steps
-- [ ] 22. Document security group configuration
-- [ ] 23. Document connection string format
-- [ ] 24. Add RDS connection troubleshooting guide
-- [ ] 25. Document backup configuration recommendations
+- [x] 21. Document RDS instance creation steps
+- [x] 22. Document security group configuration
+- [x] 23. Document connection string format
+- [x] 24. Add RDS connection troubleshooting guide
+- [x] 25. Document backup configuration recommendations
 
 ---
 

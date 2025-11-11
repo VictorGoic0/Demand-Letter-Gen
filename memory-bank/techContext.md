@@ -84,6 +84,11 @@ alembic>=1.12.0  # Database migrations
 - Backend FastAPI (port 8000)
 - Frontend Vite dev server (port 5173)
 
+**Utility Scripts:**
+- Located in `backend/scripts/` directory
+- `test_db.py` - Database connection and schema validation
+- All scripts use `.env.local` for configuration
+
 **Environment Variables:**
 
 Backend (.env):

@@ -81,6 +81,7 @@ The Demand Letter Generator is an AI-driven solution designed to streamline the 
 
 3. **Start services with Docker Compose**
    ```bash
+   cd backend
    docker-compose up
    ```
 
@@ -90,7 +91,30 @@ The Demand Letter Generator is an AI-driven solution designed to streamline the 
    alembic upgrade head
    ```
 
-5. **Access the application**
+5. **Test database connection and schema** (optional)
+   
+   **Option A: Run from host (requires venv with dependencies):**
+   ```bash
+   cd backend
+   source venv/bin/activate  # If using venv
+   python test_db.py
+   ```
+   
+   **Option B: Run from Docker container (dependencies already installed):**
+   ```bash
+   cd backend
+   docker-compose exec backend python test_db.py
+   ```
+   
+   This script will verify:
+   - Database connection
+   - All tables exist
+   - Table columns are correct
+   - Indexes are created
+   - Foreign key constraints
+   - Basic CRUD operations
+
+6. **Access the application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
@@ -128,7 +152,8 @@ uvicorn main:app --reload
 │   │   └── utils/       # Utility functions
 │   └── package.json     # Node dependencies
 ├── memory-bank/         # Project documentation and context
-└── docker-compose.yml   # Local development setup
+└── backend/
+    └── docker-compose.yml   # Local development setup
 ```
 
 ## Architecture
@@ -152,6 +177,132 @@ The application uses PostgreSQL with the following main tables:
 - `letter_templates` - Firm-specific templates
 - `generated_letters` - Generated demand letters
 - `letter_source_documents` - Junction table linking letters to source documents
+
+## Database Migrations
+
+The project uses Alembic for database schema versioning and migrations.
+
+### Running Migrations
+
+**Apply all pending migrations:**
+```bash
+cd backend
+alembic upgrade head
+```
+
+**Apply migrations to a specific revision:**
+```bash
+alembic upgrade <revision_id>
+```
+
+**Rollback to previous migration:**
+```bash
+alembic downgrade -1
+```
+
+**Rollback to a specific revision:**
+```bash
+alembic downgrade <revision_id>
+```
+
+**View current migration status:**
+```bash
+alembic current
+```
+
+**View migration history:**
+```bash
+alembic history
+```
+
+### Creating New Migrations
+
+**Auto-generate migration from model changes:**
+```bash
+cd backend
+alembic revision --autogenerate -m "Description of changes"
+```
+
+**Create empty migration (manual):**
+```bash
+alembic revision -m "Description of changes"
+```
+
+### Migration Workflow
+
+1. Make changes to models in `backend/shared/models/`
+2. Generate migration: `alembic revision --autogenerate -m "your message"`
+3. Review the generated migration file in `backend/alembic/versions/`
+4. Apply migration: `alembic upgrade head`
+5. Test the changes
+
+### Important Notes
+
+- Always review auto-generated migrations before applying them
+- Test migrations on a development database first
+- Never edit existing migration files that have been applied to production
+- Create new migrations for schema changes instead of modifying old ones
+- The database URL is configured from environment variables (see `backend/alembic/env.py`)
+
+## AWS Infrastructure Setup
+
+### Overview
+
+The application uses several AWS services:
+- **S3:** Document storage (uploads) and exports (generated letters)
+- **RDS:** PostgreSQL database for application data
+- **Lambda:** Serverless function execution
+- **API Gateway:** HTTP API endpoints
+- **CloudWatch:** Logging and monitoring
+
+### Initial Setup
+
+For detailed AWS infrastructure setup instructions, see:
+- [AWS Setup Guide](docs/aws-setup.md) - Comprehensive guide for IAM, S3, RDS, and Lambda configuration
+- [IAM Policies](terraform/iam-policies/) - JSON policy examples for Terraform/CloudFormation
+
+### Quick Start
+
+1. **Create S3 Buckets:**
+   ```bash
+   AWS_REGION="us-east-1"
+   ENV="dev"
+   
+   # Documents bucket
+   aws s3api create-bucket \
+     --bucket demand-letters-documents-${ENV} \
+     --region ${AWS_REGION}
+   
+   # Exports bucket
+   aws s3api create-bucket \
+     --bucket demand-letters-exports-${ENV} \
+     --region ${AWS_REGION}
+   ```
+
+2. **Create RDS Instance:**
+   ```bash
+   aws rds create-db-instance \
+     --db-instance-identifier demand-letters-db-${ENV} \
+     --db-instance-class db.t3.micro \
+     --engine postgres \
+     --engine-version 15.4 \
+     --master-username demand_admin \
+     --master-user-password YOUR_PASSWORD \
+     --allocated-storage 20 \
+     --storage-encrypted
+   ```
+
+3. **Configure IAM Policies:**
+   - Create Lambda execution role with policies from `terraform/iam-policies/`
+   - Attach S3 access policy
+   - Attach RDS access policy
+   - Attach CloudWatch logs policy
+
+4. **Update Environment Variables:**
+   - Set AWS credentials and bucket names in `backend/.env`
+   - Configure database connection details
+
+For complete setup instructions, troubleshooting, and security best practices, refer to the [AWS Setup Guide](docs/aws-setup.md).
 
 ## Deployment
 

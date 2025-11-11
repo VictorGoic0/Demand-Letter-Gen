@@ -1,0 +1,33 @@
+# Build stage
+FROM public.ecr.aws/lambda/python:3.11 as builder
+
+WORKDIR /app
+
+# Copy and install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt -t /app
+
+# Remove unnecessary files to reduce bundle size
+RUN find /app -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
+RUN find /app -type d -name "docs" -exec rm -rf {} + 2>/dev/null || true
+RUN find /app -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+RUN find /app -name "*.pyc" -delete
+RUN find /app -name "*.pyo" -delete
+RUN find /app -type d -name "*.dist-info" -exec rm -rf {} + 2>/dev/null || true
+
+# Copy application code
+COPY shared /app/shared
+COPY services /app/services
+
+# Runtime stage
+FROM public.ecr.aws/lambda/python:3.11
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Copy from builder
+COPY --from=builder /app .
+
+# Handler will be specified per Lambda function
+# This is a default that will be overridden per function
+CMD ["services.document_service.handler.upload"]
+
