@@ -210,9 +210,9 @@
 
 ---
 
-## PR #4: AWS Infrastructure Setup
+## PR #4: S3 Client and Bucket Setup
 
-### S3 Configuration
+### S3 Client Implementation
 - [x] 1. Create shared/s3_client.py
 - [x] 2. Initialize boto3 S3 client with credentials from env
 - [x] 3. Create function to upload file to S3
@@ -222,39 +222,30 @@
 - [x] 7. Add error handling for all S3 operations
 - [x] 8. Add function to check if bucket exists
 - [x] 9. Add function to list files in bucket (for debugging)
-- [x] 10. Create S3 bucket naming configuration
 
-### IAM Configuration Documentation
-- [x] 11. Create docs/aws-setup.md
-- [x] 12. Document IAM policy for S3 access
-- [x] 13. Document IAM policy for Lambda execution
-- [x] 14. Document IAM policy for RDS access
-- [x] 15. Document IAM policy for CloudWatch logs
-- [x] 16. Create terraform/IAM policy JSON examples
-
-### Environment Configuration
-- [x] 17. Update backend .env.example with AWS variables:
-  - [x] AWS_ACCESS_KEY_ID
-  - [x] AWS_SECRET_ACCESS_KEY
+### S3 Bucket Setup
+- [x] 10. Document S3 bucket creation steps
+- [x] 11. Document required bucket configuration (versioning, encryption)
+- [x] 12. Add S3 bucket names to backend .env.example:
   - [x] AWS_REGION
   - [x] S3_BUCKET_DOCUMENTS
   - [x] S3_BUCKET_EXPORTS
-- [x] 18. Create shared/config.py for centralized config
-- [x] 19. Add validation for required environment variables
-- [x] 20. Add function to load and validate config on startup
-
-### RDS Setup Documentation
-- [x] 21. Document RDS instance creation steps
-- [x] 22. Document security group configuration
-- [x] 23. Document connection string format
-- [x] 24. Add RDS connection troubleshooting guide
-- [x] 25. Document backup configuration recommendations
+- [x] 13. Create simple script or instructions to create buckets manually
+- [x] 14. Create S3 buckets in AWS:
+  - [x] Created `goico-demand-letters-documents-dev` in us-east-2
+  - [x] Created `goico-demand-letters-exports-dev` in us-east-2
+- [x] 15. Configure bucket settings:
+  - [x] Enabled versioning for both buckets
+  - [x] Enabled encryption (AES256) for both buckets
+  - [x] Blocked public access for documents bucket (security)
+  - [x] Left exports bucket open for presigned URL access
+- [x] 16. Update all documentation with correct bucket names (goico-demand-letters-*)
 
 ---
 
-## PR #5: Serverless Framework Configuration
+## PR #5: Lambda-Optimized Application Structure
 
-### Serverless.yml Setup
+### Serverless.yml Configuration (Structure Only - No Deployment)
 - [ ] 1. Create serverless.yml in backend directory
 - [ ] 2. Configure service name
 - [ ] 3. Configure provider section:
@@ -262,7 +253,7 @@
   - [ ] Set runtime to python3.11
   - [ ] Set region
   - [ ] Configure stage variable
-- [ ] 4. Configure environment variables section
+- [ ] 4. Configure environment variables section (from .env)
 - [ ] 5. Configure package exclusions:
   - [ ] tests/**
   - [ ] docs/**
@@ -273,89 +264,25 @@
   - [ ] README.md
   - [ ] docker-compose.yml
   - [ ] node_modules/**
-- [ ] 6. Configure Lambda layers section
+  - [ ] venv/**
+- [ ] 6. Configure Lambda layers section (for dependencies)
 - [ ] 7. Define commonDependencies layer with path
 
-### Lambda Function Definitions
-- [ ] 8. Define documentUpload function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (POST /documents/upload)
-  - [ ] Set timeout to 30
-  - [ ] Enable CORS
-- [ ] 9. Define documentList function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (GET /documents)
-  - [ ] Enable CORS
-- [ ] 10. Define documentGet function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (GET /documents/{id})
-  - [ ] Enable CORS
-- [ ] 11. Define documentDelete function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (DELETE /documents/{id})
-  - [ ] Enable CORS
-- [ ] 12. Define templateCreate function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (POST /templates)
-  - [ ] Enable CORS
-- [ ] 13. Define templateList function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (GET /templates)
-  - [ ] Enable CORS
-- [ ] 14. Define templateGet function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (GET /templates/{id})
-  - [ ] Enable CORS
-- [ ] 15. Define templateUpdate function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (PUT /templates/{id})
-  - [ ] Enable CORS
-- [ ] 16. Define templateDelete function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (DELETE /templates/{id})
-  - [ ] Enable CORS
-- [ ] 17. Define generateLetter function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (POST /letters/generate)
-  - [ ] Set timeout to 60
-  - [ ] Enable CORS
-- [ ] 18. Define letterList function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (GET /letters)
-  - [ ] Enable CORS
-- [ ] 19. Define letterGet function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (GET /letters/{id})
-  - [ ] Enable CORS
-- [ ] 20. Define letterUpdate function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (PUT /letters/{id})
-  - [ ] Enable CORS
-- [ ] 21. Define letterFinalize function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (POST /letters/{id}/finalize)
-  - [ ] Set timeout to 30
-  - [ ] Enable CORS
-- [ ] 22. Define letterExport function:
-  - [ ] Set handler path
-  - [ ] Configure HTTP event (POST /letters/{id}/export)
-  - [ ] Set timeout to 30
-  - [ ] Enable CORS
+### Lambda Handler Structure
+- [ ] 8. Create handlers/ directory structure
+- [ ] 9. Create base handler utility (Mangum adapter for FastAPI)
+- [ ] 10. Document handler pattern for each service:
+  - [ ] Document handlers pattern
+  - [ ] Template handler example
+  - [ ] Show how to wrap FastAPI routers as Lambda handlers
 
-### Deployment Scripts
-- [ ] 23. Create deploy.sh script for deployment
-- [ ] 24. Add commands to build Lambda layers
-- [ ] 25. Add commands to run serverless deploy
-- [ ] 26. Add error checking and rollback steps
-- [ ] 27. Create deploy-dev.sh for development deployment
-- [ ] 28. Create deploy-prod.sh for production deployment
-- [ ] 29. Add deployment documentation to README
+### Local Development Tools
+- [ ] 11. Add serverless-offline plugin configuration (for local Lambda testing)
+- [ ] 12. Document how to run locally with serverless-offline
+- [ ] 13. Configure API Gateway settings (for local testing)
 
-### Plugins and Additional Config
-- [ ] 30. Add serverless-python-requirements plugin
-- [ ] 31. Configure plugin for Lambda layer building
-- [ ] 32. Add serverless-offline plugin for local testing
-- [ ] 33. Configure API Gateway settings
-- [ ] 34. Configure CloudWatch log retention
-- [ ] 35. Add custom domain configuration (optional)
+### Package Configuration
+- [ ] 14. Add serverless-python-requirements plugin (for dependency management)
+- [ ] 15. Configure plugin for Lambda layer building
+- [ ] 16. Document package structure for Lambda optimization
 

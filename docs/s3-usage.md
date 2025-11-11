@@ -16,9 +16,9 @@ The S3 client reads configuration from environment variables:
 ```bash
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_REGION=us-east-1
-S3_BUCKET_DOCUMENTS=demand-letters-documents-dev
-S3_BUCKET_EXPORTS=demand-letters-exports-dev
+AWS_REGION=us-east-2
+S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
+S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
 ```
 
 ## Basic Usage

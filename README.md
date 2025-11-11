@@ -244,65 +244,37 @@ alembic revision -m "Description of changes"
 - Create new migrations for schema changes instead of modifying old ones
 - The database URL is configured from environment variables (see `backend/alembic/env.py`)
 
-## AWS Infrastructure Setup
+## S3 Bucket Setup
 
-### Overview
+The application uses AWS S3 for document storage. You need to create two S3 buckets before using the S3 client.
 
-The application uses several AWS services:
-- **S3:** Document storage (uploads) and exports (generated letters)
-- **RDS:** PostgreSQL database for application data
-- **Lambda:** Serverless function execution
-- **API Gateway:** HTTP API endpoints
-- **CloudWatch:** Logging and monitoring
-
-### Initial Setup
-
-For detailed AWS infrastructure setup instructions, see:
-- [AWS Setup Guide](docs/aws-setup.md) - Comprehensive guide for IAM, S3, RDS, and Lambda configuration
-- [IAM Policies](terraform/iam-policies/) - JSON policy examples for Terraform/CloudFormation
-
-### Quick Start
+### Quick Setup
 
 1. **Create S3 Buckets:**
    ```bash
-   AWS_REGION="us-east-1"
+   AWS_REGION="us-east-2"
    ENV="dev"
    
    # Documents bucket
    aws s3api create-bucket \
-     --bucket demand-letters-documents-${ENV} \
+     --bucket goico-demand-letters-documents-${ENV} \
      --region ${AWS_REGION}
    
    # Exports bucket
    aws s3api create-bucket \
-     --bucket demand-letters-exports-${ENV} \
+     --bucket goico-demand-letters-exports-${ENV} \
      --region ${AWS_REGION}
    ```
 
-2. **Create RDS Instance:**
-   ```bash
-   aws rds create-db-instance \
-     --db-instance-identifier demand-letters-db-${ENV} \
-     --db-instance-class db.t3.micro \
-     --engine postgres \
-     --engine-version 15.4 \
-     --master-username demand_admin \
-     --master-user-password YOUR_PASSWORD \
-     --allocated-storage 20 \
-     --storage-encrypted
+2. **Update Environment Variables:**
+   Add to your `backend/.env` file:
+   ```env
+   AWS_REGION=us-east-2
+   S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
+   S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
    ```
 
-3. **Configure IAM Policies:**
-   - Create Lambda execution role with policies from `terraform/iam-policies/`
-   - Attach S3 access policy
-   - Attach RDS access policy
-   - Attach CloudWatch logs policy
-
-4. **Update Environment Variables:**
-   - Set AWS credentials and bucket names in `backend/.env`
-   - Configure database connection details
-
-For complete setup instructions, troubleshooting, and security best practices, refer to the [AWS Setup Guide](docs/aws-setup.md).
+For detailed S3 bucket setup instructions, including bucket configuration (versioning, encryption), see [S3 Bucket Setup Guide](docs/s3-bucket-setup.md).
 
 ## Deployment
 

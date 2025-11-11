@@ -202,7 +202,7 @@ def load_aws_config() -> AWSConfig:
     return AWSConfig(
         access_key_id=access_key_id,
         secret_access_key=secret_access_key,
-        region=get_env_var("AWS_REGION", "us-east-1", required=False),
+        region=get_env_var("AWS_REGION", "us-east-2", required=False),
         s3_bucket_documents=get_env_var("S3_BUCKET_DOCUMENTS", required=True),
         s3_bucket_exports=get_env_var("S3_BUCKET_EXPORTS", required=True),
     )

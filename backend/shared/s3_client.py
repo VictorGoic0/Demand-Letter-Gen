@@ -32,7 +32,7 @@ class S3Client:
         """
         self.aws_access_key_id = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret_access_key = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
-        self.region_name = region_name or os.getenv("AWS_REGION", "us-east-1")
+        self.region_name = region_name or os.getenv("AWS_REGION", "us-east-2")
         
         # Initialize boto3 client
         try:
