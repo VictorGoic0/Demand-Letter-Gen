@@ -1,0 +1,59 @@
+graph TB
+    subgraph "Frontend"
+        React["React 18 + Vite<br/>Tailwind + shadcn/ui"]
+    end
+
+    subgraph "API Gateway"
+        APIGW["AWS API Gateway<br/>HTTPS Endpoints"]
+    end
+
+    subgraph "Lambda Functions"
+        DocLambda["Document Service<br/>Upload/List/Delete"]
+        TempLambda["Template Service<br/>CRUD Operations"]
+        ParseLambda["Parser Service<br/>PDF Text Extraction"]
+        AILambda["AI Service<br/>Letter Generation"]
+        LetterLambda["Letter Service<br/>CRUD/Finalize/Export"]
+    end
+
+    subgraph "Storage"
+        S3["AWS S3<br/>PDFs + DOCX Files"]
+        RDS["PostgreSQL RDS<br/>Metadata + Templates + Letters"]
+    end
+
+    subgraph "External APIs"
+        OpenAI["OpenAI API<br/>GPT-4/3.5-turbo"]
+    end
+
+    React -->|HTTP/REST| APIGW
+    
+    APIGW --> DocLambda
+    APIGW --> TempLambda
+    APIGW --> AILambda
+    APIGW --> LetterLambda
+    
+    DocLambda -->|Upload/Download| S3
+    DocLambda -->|Metadata| RDS
+    
+    TempLambda -->|CRUD| RDS
+    
+    AILambda -->|Fetch Docs| RDS
+    AILambda -->|Call Parse| ParseLambda
+    AILambda -->|Generate| OpenAI
+    AILambda -->|Save Letter| RDS
+    
+    ParseLambda -->|Read PDFs| S3
+    
+    LetterLambda -->|CRUD| RDS
+    LetterLambda -->|Generate DOCX| S3
+    LetterLambda -->|Read Content| RDS
+
+    style React fill:#61dafb,stroke:#333,stroke-width:2px
+    style APIGW fill:#ff9900,stroke:#333,stroke-width:2px
+    style DocLambda fill:#ff9900,stroke:#333,stroke-width:2px
+    style TempLambda fill:#ff9900,stroke:#333,stroke-width:2px
+    style ParseLambda fill:#ff9900,stroke:#333,stroke-width:2px
+    style AILambda fill:#ff9900,stroke:#333,stroke-width:2px
+    style LetterLambda fill:#ff9900,stroke:#333,stroke-width:2px
+    style S3 fill:#569a31,stroke:#333,stroke-width:2px
+    style RDS fill:#527fff,stroke:#333,stroke-width:2px
+    style OpenAI fill:#10a37f,stroke:#333,stroke-width:2px
