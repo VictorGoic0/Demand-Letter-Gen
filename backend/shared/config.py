@@ -1,67 +1,203 @@
 """
-Centralized configuration management with environment variable validation.
+Centralized configuration management with environment variable validation using Pydantic.
 """
 import os
-from typing import Optional, Dict, Any
-from dataclasses import dataclass
+from typing import Optional, Dict, Any, List
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class DatabaseConfig:
+class DatabaseConfig(BaseSettings):
     """Database configuration."""
-    host: str
-    port: int
-    name: str
-    user: str
-    password: str
+    host: str = Field(default="localhost", env="DB_HOST")
+    port: int = Field(default=5432, env="DB_PORT")
+    name: str = Field(default="demand_letters", env="DB_NAME")
+    user: str = Field(default="dev_user", env="DB_USER")
+    password: str = Field(default="dev_password", env="DB_PASSWORD")
     
     @property
     def url(self) -> str:
         """Get database connection URL."""
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
+    
+    class Config:
+        env_prefix = "DB_"
+        case_sensitive = False
 
 
-@dataclass
-class AWSConfig:
+class AWSConfig(BaseSettings):
     """AWS configuration."""
-    access_key_id: Optional[str]
-    secret_access_key: Optional[str]
-    region: str
-    s3_bucket_documents: str
-    s3_bucket_exports: str
+    access_key_id: Optional[str] = Field(default=None, env="AWS_ACCESS_KEY_ID")
+    secret_access_key: Optional[str] = Field(default=None, env="AWS_SECRET_ACCESS_KEY")
+    region: str = Field(default="us-east-2", env="AWS_REGION")
+    s3_bucket_documents: str = Field(..., env="S3_BUCKET_DOCUMENTS")
+    s3_bucket_exports: str = Field(..., env="S3_BUCKET_EXPORTS")
+    
+    @field_validator("s3_bucket_documents", "s3_bucket_exports")
+    @classmethod
+    def validate_bucket_names(cls, v):
+        """Validate S3 bucket names are not empty."""
+        if not v or not v.strip():
+            raise ValueError("S3 bucket name cannot be empty")
+        return v.strip()
+    
+    class Config:
+        env_prefix = "AWS_"
+        case_sensitive = False
 
 
-@dataclass
-class OpenAIConfig:
+class OpenAIConfig(BaseSettings):
     """OpenAI configuration."""
-    api_key: str
-    model: str = "gpt-4"
-    temperature: float = 0.7
-    max_tokens: int = 2000
+    api_key: str = Field(..., env="OPENAI_API_KEY")
+    model: str = Field(default="gpt-4", env="OPENAI_MODEL")
+    temperature: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
+    max_tokens: int = Field(default=2000, env="OPENAI_MAX_TOKENS")
+    
+    @field_validator("temperature")
+    @classmethod
+    def validate_temperature(cls, v):
+        """Validate temperature is between 0 and 2."""
+        if not 0 <= v <= 2:
+            raise ValueError("Temperature must be between 0 and 2")
+        return v
+    
+    @field_validator("max_tokens")
+    @classmethod
+    def validate_max_tokens(cls, v):
+        """Validate max_tokens is positive."""
+        if v < 1:
+            raise ValueError("max_tokens must be at least 1")
+        return v
+    
+    class Config:
+        env_prefix = "OPENAI_"
+        case_sensitive = False
 
 
-@dataclass
-class AppConfig:
-    """Application configuration."""
-    environment: str
-    debug: bool
-    log_level: str
-    database: DatabaseConfig
-    aws: AWSConfig
-    openai: OpenAIConfig
+class CORSConfig(BaseSettings):
+    """CORS configuration."""
+    allow_origins: List[str] = Field(
+        default=["*"],
+        env="CORS_ALLOW_ORIGINS",
+        description="List of allowed CORS origins. Use '*' for all origins."
+    )
+    allow_credentials: bool = Field(
+        default=True,
+        env="CORS_ALLOW_CREDENTIALS",
+        description="Whether to allow credentials in CORS requests."
+    )
+    allow_methods: List[str] = Field(
+        default=["*"],
+        env="CORS_ALLOW_METHODS",
+        description="List of allowed HTTP methods. Use '*' for all methods."
+    )
+    allow_headers: List[str] = Field(
+        default=["*"],
+        env="CORS_ALLOW_HEADERS",
+        description="List of allowed headers. Use '*' for all headers."
+    )
+    
+    @field_validator("allow_origins", mode="before")
+    @classmethod
+    def parse_origins(cls, v):
+        """Parse comma-separated origins string or return list."""
+        if isinstance(v, str):
+            if v == "*":
+                return ["*"]
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+    
+    @field_validator("allow_methods", mode="before")
+    @classmethod
+    def parse_methods(cls, v):
+        """Parse comma-separated methods string or return list."""
+        if isinstance(v, str):
+            if v == "*":
+                return ["*"]
+            return [method.strip().upper() for method in v.split(",") if method.strip()]
+        return v
+    
+    @field_validator("allow_headers", mode="before")
+    @classmethod
+    def parse_headers(cls, v):
+        """Parse comma-separated headers string or return list."""
+        if isinstance(v, str):
+            if v == "*":
+                return ["*"]
+            return [header.strip() for header in v.split(",") if header.strip()]
+        return v
+    
+    class Config:
+        env_prefix = "CORS_"
+        case_sensitive = False
+
+
+class Settings(BaseSettings):
+    """Application settings with all configuration."""
+    environment: str = Field(default="development", env="ENVIRONMENT")
+    debug: bool = Field(default=False, env="DEBUG")
+    log_level: str = Field(default="INFO", env="LOG_LEVEL")
+    
+    # Note: Nested BaseSettings models are instantiated in __init__
+    database: Optional[DatabaseConfig] = None
+    aws: Optional[AWSConfig] = None
+    openai: Optional[OpenAIConfig] = None
+    cors: Optional[CORSConfig] = None
+    
+    @field_validator("environment")
+    @classmethod
+    def validate_environment(cls, v):
+        """Validate environment is one of the allowed values."""
+        valid_environments = ["development", "staging", "production"]
+        if v.lower() not in valid_environments:
+            raise ValueError(
+                f"Invalid environment: {v}. Must be one of: {', '.join(valid_environments)}"
+            )
+        return v.lower()
+    
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, v):
+        """Validate log level is one of the allowed values."""
+        valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if v.upper() not in valid_log_levels:
+            raise ValueError(
+                f"Invalid log level: {v}. Must be one of: {', '.join(valid_log_levels)}"
+            )
+        return v.upper()
+    
+    def __init__(self, **kwargs):
+        """Initialize Settings and load nested configurations."""
+        super().__init__(**kwargs)
+        # Load nested BaseSettings models
+        if self.database is None:
+            self.database = DatabaseConfig()
+        if self.aws is None:
+            self.aws = AWSConfig()
+        if self.openai is None:
+            self.openai = OpenAIConfig()
+        if self.cors is None:
+            self.cors = CORSConfig()
     
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
-        return self.environment.lower() == "production"
+        return self.environment == "production"
     
     @property
     def is_development(self) -> bool:
         """Check if running in development environment."""
-        return self.environment.lower() == "development"
+        return self.environment == "development"
+    
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+        # Allow nested models to be instantiated
+        arbitrary_types_allowed = True
 
 
 class ConfigError(Exception):
@@ -69,317 +205,91 @@ class ConfigError(Exception):
     pass
 
 
-def get_env_var(key: str, default: Optional[str] = None, required: bool = False) -> Optional[str]:
+# Global settings instance
+_settings_instance: Optional[Settings] = None
+
+
+def get_settings() -> Settings:
     """
-    Get environment variable with validation.
+    Get or create the global settings instance (singleton).
+    
+    Returns:
+        Settings instance
+        
+    Raises:
+        ConfigError: If settings cannot be loaded
+    """
+    global _settings_instance
+    if _settings_instance is None:
+        try:
+            _settings_instance = Settings()
+            logger.info(f"Settings loaded successfully for environment: {_settings_instance.environment}")
+        except Exception as e:
+            logger.error(f"Failed to load settings: {str(e)}")
+            raise ConfigError(f"Failed to load settings: {str(e)}")
+    return _settings_instance
+
+
+def reload_settings() -> Settings:
+    """
+    Reload settings from environment variables.
+    Useful for testing or when environment changes.
+    
+    Returns:
+        New Settings instance
+    """
+    global _settings_instance
+    _settings_instance = None
+    return get_settings()
+
+
+def get_config_summary(settings: Settings) -> Dict[str, Any]:
+    """
+    Get a summary of the settings (safe for logging, excludes secrets).
     
     Args:
-        key: Environment variable name
-        default: Default value if not found
-        required: Whether the variable is required
+        settings: Settings instance
         
     Returns:
-        Environment variable value or default
-        
-    Raises:
-        ConfigError: If required variable is missing
-    """
-    value = os.getenv(key, default)
-    
-    if required and not value:
-        raise ConfigError(f"Required environment variable '{key}' is not set")
-    
-    return value
-
-
-def get_env_int(key: str, default: int, required: bool = False) -> int:
-    """
-    Get integer environment variable.
-    
-    Args:
-        key: Environment variable name
-        default: Default value if not found
-        required: Whether the variable is required
-        
-    Returns:
-        Integer value
-        
-    Raises:
-        ConfigError: If value cannot be converted to int
-    """
-    value = get_env_var(key, str(default), required)
-    try:
-        return int(value)
-    except (ValueError, TypeError) as e:
-        raise ConfigError(f"Environment variable '{key}' must be an integer: {value}")
-
-
-def get_env_float(key: str, default: float, required: bool = False) -> float:
-    """
-    Get float environment variable.
-    
-    Args:
-        key: Environment variable name
-        default: Default value if not found
-        required: Whether the variable is required
-        
-    Returns:
-        Float value
-        
-    Raises:
-        ConfigError: If value cannot be converted to float
-    """
-    value = get_env_var(key, str(default), required)
-    try:
-        return float(value)
-    except (ValueError, TypeError) as e:
-        raise ConfigError(f"Environment variable '{key}' must be a float: {value}")
-
-
-def get_env_bool(key: str, default: bool = False, required: bool = False) -> bool:
-    """
-    Get boolean environment variable.
-    
-    Args:
-        key: Environment variable name
-        default: Default value if not found
-        required: Whether the variable is required
-        
-    Returns:
-        Boolean value
-        
-    Raises:
-        ConfigError: If value cannot be converted to bool
-    """
-    value = get_env_var(key, str(default), required)
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.lower() in ("true", "1", "yes", "on")
-    return bool(value)
-
-
-def load_database_config() -> DatabaseConfig:
-    """
-    Load database configuration from environment variables.
-    
-    Returns:
-        DatabaseConfig instance
-        
-    Raises:
-        ConfigError: If required variables are missing
-    """
-    return DatabaseConfig(
-        host=get_env_var("DB_HOST", "localhost", required=False),
-        port=get_env_int("DB_PORT", 5432, required=False),
-        name=get_env_var("DB_NAME", "demand_letters", required=False),
-        user=get_env_var("DB_USER", "dev_user", required=False),
-        password=get_env_var("DB_PASSWORD", "dev_password", required=False),
-    )
-
-
-def load_aws_config() -> AWSConfig:
-    """
-    Load AWS configuration from environment variables.
-    
-    Returns:
-        AWSConfig instance
-        
-    Raises:
-        ConfigError: If required variables are missing
-    """
-    # AWS credentials can be optional if using IAM roles
-    access_key_id = get_env_var("AWS_ACCESS_KEY_ID", required=False)
-    secret_access_key = get_env_var("AWS_SECRET_ACCESS_KEY", required=False)
-    
-    # Warn if only one credential is provided
-    if bool(access_key_id) != bool(secret_access_key):
-        logger.warning(
-            "Only one of AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is set. "
-            "Both should be provided or both should be omitted (for IAM roles)."
-        )
-    
-    return AWSConfig(
-        access_key_id=access_key_id,
-        secret_access_key=secret_access_key,
-        region=get_env_var("AWS_REGION", "us-east-2", required=False),
-        s3_bucket_documents=get_env_var("S3_BUCKET_DOCUMENTS", required=True),
-        s3_bucket_exports=get_env_var("S3_BUCKET_EXPORTS", required=True),
-    )
-
-
-def load_openai_config() -> OpenAIConfig:
-    """
-    Load OpenAI configuration from environment variables.
-    
-    Note: Model, temperature, and max_tokens are hardcoded for easier development.
-    These can be adjusted directly in the code as needed.
-    
-    Returns:
-        OpenAIConfig instance
-        
-    Raises:
-        ConfigError: If required variables are missing
-    """
-    return OpenAIConfig(
-        api_key=get_env_var("OPENAI_API_KEY", required=True),
-        model="gpt-4",  # Hardcoded - adjust in code as needed
-        temperature=0.7,  # Hardcoded - adjust in code as needed
-        max_tokens=2000,  # Hardcoded - adjust in code as needed
-    )
-
-
-def load_config() -> AppConfig:
-    """
-    Load and validate all configuration from environment variables.
-    
-    Returns:
-        AppConfig instance with all configuration
-        
-    Raises:
-        ConfigError: If required variables are missing or invalid
-    """
-    try:
-        config = AppConfig(
-            environment=get_env_var("ENVIRONMENT", "development", required=False),
-            debug=get_env_bool("DEBUG", default=False, required=False),
-            log_level=get_env_var("LOG_LEVEL", "INFO", required=False),
-            database=load_database_config(),
-            aws=load_aws_config(),
-            openai=load_openai_config(),
-        )
-        
-        # Validate configuration
-        validate_config(config)
-        
-        logger.info(f"Configuration loaded successfully for environment: {config.environment}")
-        return config
-        
-    except ConfigError as e:
-        logger.error(f"Configuration error: {str(e)}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error loading configuration: {str(e)}")
-        raise ConfigError(f"Failed to load configuration: {str(e)}")
-
-
-def validate_config(config: AppConfig) -> None:
-    """
-    Validate configuration values.
-    
-    Args:
-        config: AppConfig instance to validate
-        
-    Raises:
-        ConfigError: If configuration is invalid
-    """
-    # Validate environment
-    valid_environments = ["development", "staging", "production"]
-    if config.environment.lower() not in valid_environments:
-        raise ConfigError(
-            f"Invalid environment: {config.environment}. "
-            f"Must be one of: {', '.join(valid_environments)}"
-        )
-    
-    # Validate log level
-    valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-    if config.log_level.upper() not in valid_log_levels:
-        raise ConfigError(
-            f"Invalid log level: {config.log_level}. "
-            f"Must be one of: {', '.join(valid_log_levels)}"
-        )
-    
-    # Validate database configuration
-    if not config.database.host:
-        raise ConfigError("Database host cannot be empty")
-    
-    if config.database.port < 1 or config.database.port > 65535:
-        raise ConfigError(f"Invalid database port: {config.database.port}")
-    
-    # Validate AWS configuration
-    if not config.aws.s3_bucket_documents:
-        raise ConfigError("S3 documents bucket name is required")
-    
-    if not config.aws.s3_bucket_exports:
-        raise ConfigError("S3 exports bucket name is required")
-    
-    # Validate OpenAI configuration
-    if not config.openai.api_key:
-        raise ConfigError("OpenAI API key is required")
-    
-    if config.openai.temperature < 0 or config.openai.temperature > 2:
-        raise ConfigError(f"Invalid OpenAI temperature: {config.openai.temperature}. Must be between 0 and 2")
-    
-    if config.openai.max_tokens < 1:
-        raise ConfigError(f"Invalid OpenAI max_tokens: {config.openai.max_tokens}")
-    
-    logger.info("Configuration validation passed")
-
-
-def get_config_summary(config: AppConfig) -> Dict[str, Any]:
-    """
-    Get a summary of the configuration (safe for logging, excludes secrets).
-    
-    Args:
-        config: AppConfig instance
-        
-    Returns:
-        Dictionary with configuration summary
+        Dictionary with settings summary
     """
     return {
-        "environment": config.environment,
-        "debug": config.debug,
-        "log_level": config.log_level,
+        "environment": settings.environment,
+        "debug": settings.debug,
+        "log_level": settings.log_level,
         "database": {
-            "host": config.database.host,
-            "port": config.database.port,
-            "name": config.database.name,
-            "user": config.database.user,
+            "host": settings.database.host,
+            "port": settings.database.port,
+            "name": settings.database.name,
+            "user": settings.database.user,
         },
         "aws": {
-            "region": config.aws.region,
-            "s3_bucket_documents": config.aws.s3_bucket_documents,
-            "s3_bucket_exports": config.aws.s3_bucket_exports,
-            "credentials_configured": bool(config.aws.access_key_id and config.aws.secret_access_key),
+            "region": settings.aws.region,
+            "s3_bucket_documents": settings.aws.s3_bucket_documents,
+            "s3_bucket_exports": settings.aws.s3_bucket_exports,
+            "credentials_configured": bool(settings.aws.access_key_id and settings.aws.secret_access_key),
         },
         "openai": {
-            "model": config.openai.model,
-            "temperature": config.openai.temperature,
-            "max_tokens": config.openai.max_tokens,
-            "api_key_configured": bool(config.openai.api_key),
+            "model": settings.openai.model,
+            "temperature": settings.openai.temperature,
+            "max_tokens": settings.openai.max_tokens,
+            "api_key_configured": bool(settings.openai.api_key),
+        },
+        "cors": {
+            "allow_origins": settings.cors.allow_origins,
+            "allow_credentials": settings.cors.allow_credentials,
+            "allow_methods": settings.cors.allow_methods,
+            "allow_headers": settings.cors.allow_headers,
         },
     }
 
 
-# Global configuration instance
-_config_instance: Optional[AppConfig] = None
+# Backward compatibility aliases
+def get_config() -> Settings:
+    """Alias for get_settings() for backward compatibility."""
+    return get_settings()
 
 
-def get_config() -> AppConfig:
-    """
-    Get or create the global configuration instance.
-    
-    Returns:
-        AppConfig instance
-        
-    Raises:
-        ConfigError: If configuration cannot be loaded
-    """
-    global _config_instance
-    if _config_instance is None:
-        _config_instance = load_config()
-    return _config_instance
-
-
-def reload_config() -> AppConfig:
-    """
-    Reload configuration from environment variables.
-    Useful for testing or when environment changes.
-    
-    Returns:
-        New AppConfig instance
-    """
-    global _config_instance
-    _config_instance = load_config()
-    return _config_instance
-
+def load_config() -> Settings:
+    """Alias for get_settings() for backward compatibility."""
+    return get_settings()
