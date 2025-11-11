@@ -1,6 +1,6 @@
 # Demand Letter Generator
 
-**Organization:** Steno  
+**Organization:** Gauntlet  
 **Project ID:** DLG_2025_001  
 **Document Version:** 1.0  
 **Last Updated:** November 11, 2025
@@ -11,7 +11,7 @@
 
 ## 1. Executive Summary
 
-The Demand Letter Generator is an AI-driven solution designed by Steno to streamline the creation of demand letters for law firms. By leveraging OpenAI's models to automate the drafting of these documents, this tool aims to significantly reduce the time attorneys spend on this task, increasing efficiency and productivity. The tool will allow for the uploading of source materials (medical records, police reports, etc.) and the creation of firm-specific templates, ultimately enhancing client satisfaction and retention.
+The Demand Letter Generator is an AI-driven solution designed by Gauntlet to streamline the creation of demand letters for law firms. By leveraging OpenAI's models to automate the drafting of these documents, this tool aims to significantly reduce the time attorneys spend on this task, increasing efficiency and productivity. The tool will allow for the uploading of source materials (medical records, police reports, etc.) and the creation of firm-specific templates, ultimately enhancing client satisfaction and retention.
 
 This MVP focuses on core P0 features only, with a pragmatic technical architecture designed for rapid development and deployment.
 
@@ -19,7 +19,7 @@ This MVP focuses on core P0 features only, with a pragmatic technical architectu
 
 ## 2. Problem Statement
 
-Lawyers spend considerable time reviewing source documents to draft demand letters, an essential step in litigation. This manual process is time-consuming and can delay the litigation process. By utilizing AI to generate draft demand letters from uploaded source materials, Steno can offer a solution that saves time and enhances the efficiency of legal practices.
+Lawyers spend considerable time reviewing source documents to draft demand letters, an essential step in litigation. This manual process is time-consuming and can delay the litigation process. By utilizing AI to generate draft demand letters from uploaded source materials, Gauntlet can offer a solution that saves time and enhances the efficiency of legal practices.
 
 ---
 
@@ -440,7 +440,7 @@ service: demand-letter-generator
 provider:
   name: aws
   runtime: python3.11
-  region: us-east-1
+  region: us-east-2
   environment:
     DB_HOST: ${env:DB_HOST}
     DB_NAME: ${env:DB_NAME}

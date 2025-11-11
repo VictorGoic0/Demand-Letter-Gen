@@ -95,7 +95,7 @@ DB_PASSWORD=dev_password
 OPENAI_API_KEY=<key>
 AWS_ACCESS_KEY_ID=<key>
 AWS_SECRET_ACCESS_KEY=<key>
-AWS_REGION=us-east-1
+AWS_REGION=us-east-2
 S3_BUCKET_DOCUMENTS=<bucket>
 S3_BUCKET_EXPORTS=<bucket>
 ```
@@ -138,7 +138,7 @@ VITE_API_URL=http://localhost:8000
 **Key Settings:**
 - Service name: demand-letter-generator
 - Provider: AWS
-- Region: us-east-1 (configurable)
+- Region: us-east-2 (configurable)
 - Runtime: python3.11
 - CORS enabled for all endpoints
 

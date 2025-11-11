@@ -1,6 +1,6 @@
 # Project Brief: Demand Letter Generator
 
-**Organization:** Steno  
+**Organization:** Gauntlet 
 **Project ID:** DLG_2025_001  
 **Status:** MVP Development  
 **Last Updated:** November 2025
