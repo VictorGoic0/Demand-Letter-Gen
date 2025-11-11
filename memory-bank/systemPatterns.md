@@ -20,7 +20,11 @@ backend/
     database.py        # SQLAlchemy models, session management
     auth.py           # Authentication middleware
     s3_client.py      # S3 operations wrapper (upload, download, delete, presigned URLs)
-    config.py         # Environment variables, settings
+    config.py         # Environment variables, settings (Pydantic BaseSettings)
+    exceptions.py     # Custom exception classes and FastAPI handlers
+    utils.py          # Utility functions (UUID, datetime, file size, sanitization)
+    schemas/          # Common Pydantic schemas
+      common.py       # SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse
   services/
     document_service/  # Document upload/management
     template_service/ # Template CRUD operations
@@ -132,7 +136,8 @@ Letter Service:
 ### Dependency Injection
 - FastAPI dependency system for database sessions
 - Auth dependencies for user verification
-- Config singleton for environment variables
+- Config singleton pattern via `get_settings()` function
+- Settings class with nested BaseSettings models (Database, AWS, OpenAI, CORS)
 
 ### Service Layer Pattern
 - Each service has clear boundaries
@@ -226,9 +231,18 @@ App
 ## Error Handling Patterns
 
 ### Backend
-- Custom exception classes in `shared/exceptions.py`
-- Global exception handlers in FastAPI
-- Structured error responses
+- Custom exception classes in `shared/exceptions.py`:
+  - BaseAppException (base class with status_code, message, detail, code)
+  - Resource-specific exceptions (DocumentNotFoundException, TemplateNotFoundException, LetterNotFoundException)
+  - Service-specific exceptions (S3UploadException, S3DownloadException, OpenAIException)
+  - HTTP exceptions (ValidationException, UnauthorizedException, ForbiddenException)
+- Global exception handlers in FastAPI:
+  - `app_exception_handler` for custom application exceptions
+  - `http_exception_handler` for HTTP exceptions
+  - `validation_exception_handler` for request validation errors
+  - `general_exception_handler` for unhandled exceptions
+- `register_exception_handlers(app)` function to register all handlers at once
+- Structured error responses using ErrorResponse schema
 - Logging to CloudWatch
 
 ### Frontend

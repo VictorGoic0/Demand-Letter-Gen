@@ -48,6 +48,7 @@ uvicorn[standard]>=0.24.0  # Local development only
 mangum>=0.17.0  # FastAPI to Lambda adapter
 sqlalchemy>=2.0.23
 pydantic>=2.5.0
+pydantic-settings>=2.1.0  # BaseSettings for configuration management
 python-dotenv>=1.0.0
 boto3>=1.29.7  # AWS SDK
 openai>=1.0.0  # OpenAI API client
@@ -93,16 +94,36 @@ alembic>=1.12.0  # Database migrations
 
 Backend (.env):
 ```
+# Application
+ENVIRONMENT=development
+DEBUG=false
+LOG_LEVEL=INFO
+
+# Database
 DB_HOST=postgres
+DB_PORT=5432
 DB_NAME=demand_letters
 DB_USER=dev_user
 DB_PASSWORD=dev_password
-OPENAI_API_KEY=<key>
+
+# AWS
 AWS_ACCESS_KEY_ID=<key>
 AWS_SECRET_ACCESS_KEY=<key>
 AWS_REGION=us-east-2
 S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
 S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
+
+# OpenAI
+OPENAI_API_KEY=<key>
+OPENAI_MODEL=gpt-4
+OPENAI_TEMPERATURE=0.7
+OPENAI_MAX_TOKENS=2000
+
+# CORS (optional, defaults to allow all)
+CORS_ALLOW_ORIGINS=*
+CORS_ALLOW_CREDENTIALS=true
+CORS_ALLOW_METHODS=*
+CORS_ALLOW_HEADERS=*
 ```
 
 Frontend (.env):
@@ -187,6 +208,13 @@ VITE_API_URL=http://localhost:8000
 - Features: Upload, download, delete, presigned URL generation, bucket existence check, file listing
 - Singleton pattern: `get_s3_client()` for easy access
 - Error handling: Comprehensive exception handling for all operations
+
+**Shared Utilities:**
+- Location: `backend/shared/`
+- `config.py`: Pydantic BaseSettings with nested configs (Database, AWS, OpenAI, CORS)
+- `exceptions.py`: Custom exception classes and FastAPI exception handlers
+- `schemas/common.py`: Common API response schemas (SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse)
+- `utils.py`: Utility functions (UUID generation, datetime formatting, file size formatting, filename/HTML sanitization)
 
 ### RDS
 
@@ -300,9 +328,12 @@ serverless deploy
 
 **Backend:**
 - Type hints (Python)
-- Pydantic models for validation
+- Pydantic v2 models for validation (field_validator, json_schema_extra)
+- Pydantic BaseSettings (from pydantic-settings) for configuration
 - SQLAlchemy models for database
-- Error handling with custom exceptions
+- Error handling with custom exceptions and FastAPI handlers
+- Common schemas for API responses (SuccessResponse, ErrorResponse, PaginatedResponse)
+- Utility functions for common operations (UUID generation, datetime formatting, file size, sanitization)
 
 **Frontend:**
 - TypeScript (optional but recommended)

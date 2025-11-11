@@ -2,30 +2,33 @@
 
 ## Current Status
 
-**Phase:** Foundation Setup - Complete ✅  
+**Phase:** Backend Services Implementation - In Progress  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs: PR #1 (Project Initialization), PR #2 (Docker Configuration), PR #3 (Database Schema and Migrations), PR #4 (S3 Client and Bucket Setup), and PR #5 (Lambda-Optimized Application Structure). All infrastructure is in place and ready for service implementation.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), and PR #7 (Document Service - Backend). Document service is fully implemented with firm-level isolation, S3 integration, and all CRUD operations.
 
 ## Current Work Focus
 
 ### Immediate Next Steps
 
-**Foundation Phase Complete** - Ready to begin service implementation:
+**PR #6 Complete** - Shared utilities ready for use:
 
-1. **PR #6: Shared Backend Utilities**
-   - Configuration management
-   - Error handling utilities
-   - Common schemas and validation functions
-   - Shared exceptions
+1. ✅ **PR #6: Shared Backend Utilities** - COMPLETE
+   - Configuration management with Pydantic BaseSettings
+   - Error handling utilities and exception classes
+   - Common schemas (SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse)
+   - Shared exceptions with FastAPI handlers
+   - Utility functions (UUID, datetime, file size, filename/HTML sanitization)
 
-2. **PR #7: Document Service - Backend**
-   - Document upload endpoints
-   - Document listing and retrieval
-   - Document deletion
-   - S3 integration
+2. ✅ **PR #7: Document Service - Backend** - COMPLETE
+   - Document schemas with validation (file type, size)
+   - Business logic with firm-level isolation
+   - Router with firm_id in path: `/{firm_id}/documents`
+   - All endpoints: upload, list, get, delete, download URL
+   - Lambda handlers using Mangum
+   - S3 integration with presigned URLs
 
-3. **PR #8: Template Service - Backend**
+3. **PR #8: Template Service - Backend** (Next)
    - Template CRUD operations
    - Firm-level template management
    - Default template logic
@@ -53,6 +56,39 @@ The project has completed all foundation PRs: PR #1 (Project Initialization), PR
   - Created `backend/package.json` for npm scripts
   - Created comprehensive deployment documentation: `backend/docs/lambda-deployment.md`
   - Hardcoded OpenAI model (gpt-4), temperature (0.7), and max_tokens (2000) in `shared/config.py` for easier development
+- ✅ PR #6: Shared Backend Utilities - Complete
+  - Updated `shared/config.py` to use Pydantic BaseSettings (from pydantic-settings package)
+  - Created Settings class with nested configuration models (Database, AWS, OpenAI, CORS)
+  - Added CORS configuration fields (allow_origins, allow_credentials, allow_methods, allow_headers)
+  - Created `shared/schemas/` directory with common schemas:
+    - SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse
+  - Created `shared/exceptions.py` with custom exception classes:
+    - BaseAppException, DocumentNotFoundException, TemplateNotFoundException, LetterNotFoundException
+    - S3UploadException, S3DownloadException, OpenAIException
+    - ValidationException, UnauthorizedException, ForbiddenException
+  - Created FastAPI exception handlers (app_exception_handler, http_exception_handler, validation_exception_handler, general_exception_handler)
+  - Added `register_exception_handlers()` function for easy setup
+  - Created `shared/utils.py` with utility functions:
+    - generate_uuid(), format_datetime(), format_file_size(), sanitize_filename(), sanitize_html(), parse_file_size()
+  - Updated all validators to use Pydantic v2 API (field_validator)
+  - Added pydantic-settings>=2.1.0 to requirements.txt
+- ✅ PR #7: Document Service - Backend - Complete
+  - Created `services/document_service/schemas.py` with all document schemas (DocumentBase, DocumentCreate, DocumentResponse, DocumentListResponse, UploadResponse, DownloadUrlResponse)
+  - Created `services/document_service/logic.py` with business logic:
+    - upload_document(): Validates, uploads to S3, creates DB record
+    - get_documents(): Paginated listing with sorting
+    - get_document_by_id(): Retrieval with firm-level isolation
+    - delete_document(): Deletes from S3 and database
+    - generate_download_url(): Presigned URLs (1 hour expiration)
+  - Created `services/document_service/router.py` with router prefix `/{firm_id}/documents`:
+    - POST /{firm_id}/documents/ - Upload document
+    - GET /{firm_id}/documents/ - List documents (pagination & sorting)
+    - GET /{firm_id}/documents/{document_id} - Get document by ID
+    - DELETE /{firm_id}/documents/{document_id} - Delete document
+    - GET /{firm_id}/documents/{document_id}/download - Get download URL
+  - Created `services/document_service/handler.py` with Lambda handlers
+  - All operations enforce firm-level isolation
+  - S3 key pattern: `{firm_id}/{document_id}/{sanitized_filename}`
 - Created test script (backend/scripts/test_db.py) for database connection and schema validation
 
 ## Active Decisions & Considerations
@@ -82,17 +118,18 @@ None identified yet - project is in initial setup phase.
 
 ## Next Milestones
 
-### Phase 1: Foundation ✅ COMPLETE (100% - 5/5 PRs)
+### Phase 1: Foundation ✅ COMPLETE (100% - 6/6 PRs)
 - [x] Project initialization
 - [x] Docker setup
 - [x] Database schema
 - [x] AWS infrastructure configuration (S3)
 - [x] Lambda-optimized structure setup
+- [x] Shared backend utilities
 
-### Phase 2: Core Features (Next Phase)
-- [ ] Document service (upload, list, delete)
-- [ ] Template service (CRUD)
-- [ ] Parser service (PDF extraction)
+### Phase 2: Core Features (In Progress)
+- [x] Document service (upload, list, delete) - PR #7 Complete
+- [ ] Template service (CRUD) - PR #8 Next
+- [ ] Parser service (PDF extraction) - PR #9
 - [ ] Basic UI for documents and templates
 
 ### Phase 3: AI Integration
@@ -139,8 +176,8 @@ Features listed in PRD Section 6.7 (P1: Post-MVP Features)
 ## Important Notes
 
 1. **MVP Focus:** Only P0 features should be implemented initially
-2. **Firm-Level Isolation:** All data must be filtered by firm_id - all users within a firm see the same documents, templates, and letters. All queries filter by firm_id for multi-tenancy.
-3. **No Auth for MVP:** JWT authentication removed from MVP scope. firm_id will be provided via query parameter or header for MVP.
+2. **Firm-Level Isolation:** All data must be filtered by firm_id - all users within a firm see the same documents, templates, and letters. All queries filter by firm_id for multi-tenancy. Document service uses firm_id as path parameter: `/{firm_id}/documents`.
+3. **No Auth for MVP:** JWT authentication removed from MVP scope. firm_id is provided as path parameter in URL (e.g., `/{firm_id}/documents`).
 4. **Error Handling:** Comprehensive error handling at all layers
 5. **Documentation:** Keep documentation updated as code is written
 

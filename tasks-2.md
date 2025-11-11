@@ -4,123 +4,123 @@
 ## PR #6: Shared Backend Utilities
 
 ### Configuration Management
-- [ ] 1. Create shared/config.py
-- [ ] 2. Define Settings class with pydantic BaseSettings
-- [ ] 3. Add database configuration fields
-- [ ] 4. Add AWS configuration fields
-- [ ] 5. Add OpenAI configuration fields
-- [ ] 6. Add CORS configuration fields
-- [ ] 7. Create function to load settings singleton
-- [ ] 8. Add validation for required fields
-- [ ] 9. Add development vs production config handling
+- [x] 1. Create shared/config.py
+- [x] 2. Define Settings class with pydantic BaseSettings
+- [x] 3. Add database configuration fields
+- [x] 4. Add AWS configuration fields
+- [x] 5. Add OpenAI configuration fields
+- [x] 6. Add CORS configuration fields
+- [x] 7. Create function to load settings singleton
+- [x] 8. Add validation for required fields
+- [x] 9. Add development vs production config handling
 
 ### Common Schemas
-- [ ] 10. Create shared/schemas/__init__.py
-- [ ] 11. Create shared/schemas/common.py with base schemas
-- [ ] 12. Define SuccessResponse schema
-- [ ] 13. Define ErrorResponse schema
-- [ ] 14. Define PaginationParams schema
-- [ ] 15. Define PaginatedResponse schema
+- [x] 10. Create shared/schemas/__init__.py
+- [x] 11. Create shared/schemas/common.py with base schemas
+- [x] 12. Define SuccessResponse schema
+- [x] 13. Define ErrorResponse schema
+- [x] 14. Define PaginationParams schema
+- [x] 15. Define PaginatedResponse schema
 
 ### Error Handling
-- [ ] 16. Create shared/exceptions.py
-- [ ] 17. Define custom exception classes:
-  - [ ] DocumentNotFoundException
-  - [ ] TemplateNotFoundException
-  - [ ] LetterNotFoundException
-  - [ ] S3UploadException
-  - [ ] OpenAIException
-- [ ] 18. Create exception handlers for FastAPI
-- [ ] 19. Add global exception handler
+- [x] 16. Create shared/exceptions.py
+- [x] 17. Define custom exception classes:
+  - [x] DocumentNotFoundException
+  - [x] TemplateNotFoundException
+  - [x] LetterNotFoundException
+  - [x] S3UploadException
+  - [x] OpenAIException
+- [x] 18. Create exception handlers for FastAPI
+- [x] 19. Add global exception handler
 
 ### Utilities
-- [ ] 20. Create shared/utils.py
-- [ ] 21. Add function to generate UUIDs
-- [ ] 22. Add function for datetime formatting
-- [ ] 23. Add function for file size formatting
-- [ ] 24. Add function for filename sanitization
-- [ ] 25. Add function for HTML sanitization
+- [x] 20. Create shared/utils.py
+- [x] 21. Add function to generate UUIDs
+- [x] 22. Add function for datetime formatting
+- [x] 23. Add function for file size formatting
+- [x] 24. Add function for filename sanitization
+- [x] 25. Add function for HTML sanitization
 
 ---
 
 ## PR #7: Document Service - Backend
 
 ### Document Schemas
-- [ ] 1. Create services/document_service/schemas.py
-- [ ] 2. Define DocumentBase schema
-- [ ] 3. Define DocumentCreate schema
-- [ ] 4. Define DocumentResponse schema
-- [ ] 5. Define DocumentListResponse schema
-- [ ] 6. Define UploadResponse schema
-- [ ] 7. Add validation for file types
-- [ ] 8. Add validation for file size
+- [x] 1. Create services/document_service/schemas.py
+- [x] 2. Define DocumentBase schema
+- [x] 3. Define DocumentCreate schema
+- [x] 4. Define DocumentResponse schema
+- [x] 5. Define DocumentListResponse schema
+- [x] 6. Define UploadResponse schema
+- [x] 7. Add validation for file types
+- [x] 8. Add validation for file size
 
 ### Document Business Logic
-- [ ] 9. Create services/document_service/logic.py
-- [ ] 10. Implement upload_document function:
-  - [ ] Validate file type and size
-  - [ ] Generate unique S3 key
-  - [ ] Upload to S3
-  - [ ] Create database record with firm_id (firm-level isolation)
-  - [ ] Return document metadata
-- [ ] 11. Implement get_documents function:
-  - [ ] Query documents by firm_id (firm-level isolation)
-  - [ ] Apply sorting (filename, upload date)
-  - [ ] Apply pagination
-  - [ ] Return list with metadata
-- [ ] 12. Implement get_document_by_id function:
-  - [ ] Verify document exists
-  - [ ] Verify document belongs to firm_id (firm-level isolation)
-  - [ ] Return document metadata
-- [ ] 13. Implement delete_document function:
-  - [ ] Verify document exists
-  - [ ] Verify document belongs to firm_id (firm-level isolation)
-  - [ ] Delete from S3
-  - [ ] Delete from database
-  - [ ] Return success response
-- [ ] 14. Implement generate_download_url function:
-  - [ ] Verify document exists
-  - [ ] Verify document belongs to firm_id (firm-level isolation)
-  - [ ] Generate presigned S3 URL
-  - [ ] Return URL with expiration
-- [ ] 15. Add error handling for all functions
+- [x] 9. Create services/document_service/logic.py
+- [x] 10. Implement upload_document function:
+  - [x] Validate file type and size
+  - [x] Generate unique S3 key
+  - [x] Upload to S3
+  - [x] Create database record with firm_id (firm-level isolation)
+  - [x] Return document metadata
+- [x] 11. Implement get_documents function:
+  - [x] Query documents by firm_id (firm-level isolation)
+  - [x] Apply sorting (filename, upload date)
+  - [x] Apply pagination
+  - [x] Return list with metadata
+- [x] 12. Implement get_document_by_id function:
+  - [x] Verify document exists
+  - [x] Verify document belongs to firm_id (firm-level isolation)
+  - [x] Return document metadata
+- [x] 13. Implement delete_document function:
+  - [x] Verify document exists
+  - [x] Verify document belongs to firm_id (firm-level isolation)
+  - [x] Delete from S3
+  - [x] Delete from database
+  - [x] Return success response
+- [x] 14. Implement generate_download_url function:
+  - [x] Verify document exists
+  - [x] Verify document belongs to firm_id (firm-level isolation)
+  - [x] Generate presigned S3 URL
+  - [x] Return URL with expiration
+- [x] 15. Add error handling for all functions
 
 ### Document Router
-- [ ] 16. Create services/document_service/router.py
-- [ ] 17. Create APIRouter with prefix "/documents"
-- [ ] 18. Implement POST /upload endpoint:
-  - [ ] Accept multipart/form-data
-  - [ ] Accept firm_id (query param or header for MVP)
-  - [ ] Use UploadFile from FastAPI
-  - [ ] Call upload_document logic with firm_id
-  - [ ] Return 201 with document metadata
-- [ ] 19. Implement GET / endpoint:
-  - [ ] Accept query params for sorting and pagination
-  - [ ] Accept firm_id (query param or header for MVP)
-  - [ ] Call get_documents logic with firm_id
-  - [ ] Return 200 with document list
-- [ ] 20. Implement GET /{document_id} endpoint:
-  - [ ] Accept firm_id (query param or header for MVP)
-  - [ ] Call get_document_by_id logic with firm_id
-  - [ ] Return 200 with document metadata
-- [ ] 21. Implement DELETE /{document_id} endpoint:
-  - [ ] Accept firm_id (query param or header for MVP)
-  - [ ] Call delete_document logic with firm_id
-  - [ ] Return 204 no content
-- [ ] 22. Implement GET /{document_id}/download endpoint:
-  - [ ] Accept firm_id (query param or header for MVP)
-  - [ ] Call generate_download_url logic with firm_id
-  - [ ] Return 200 with presigned URL
-- [ ] 23. Add OpenAPI documentation for all endpoints
+- [x] 16. Create services/document_service/router.py
+- [x] 17. Create APIRouter with prefix "/{firm_id}/documents"
+- [x] 18. Implement POST / endpoint:
+  - [x] Accept multipart/form-data
+  - [x] Accept firm_id (path parameter)
+  - [x] Use UploadFile from FastAPI
+  - [x] Call upload_document logic with firm_id
+  - [x] Return 201 with document metadata
+- [x] 19. Implement GET / endpoint:
+  - [x] Accept query params for sorting and pagination
+  - [x] Accept firm_id (path parameter)
+  - [x] Call get_documents logic with firm_id
+  - [x] Return 200 with document list
+- [x] 20. Implement GET /{document_id} endpoint:
+  - [x] Accept firm_id (path parameter)
+  - [x] Call get_document_by_id logic with firm_id
+  - [x] Return 200 with document metadata
+- [x] 21. Implement DELETE /{document_id} endpoint:
+  - [x] Accept firm_id (path parameter)
+  - [x] Call delete_document logic with firm_id
+  - [x] Return 204 no content
+- [x] 22. Implement GET /{document_id}/download endpoint:
+  - [x] Accept firm_id (path parameter)
+  - [x] Call generate_download_url logic with firm_id
+  - [x] Return 200 with presigned URL
+- [x] 23. Add OpenAPI documentation for all endpoints
 
 ### Lambda Handler
-- [ ] 24. Create services/document_service/handler.py
-- [ ] 25. Import router and create FastAPI app
-- [ ] 26. Create upload handler function using Mangum
-- [ ] 27. Create list handler function using Mangum
-- [ ] 28. Create get handler function using Mangum
-- [ ] 29. Create delete handler function using Mangum
-- [ ] 30. Create download handler function using Mangum
+- [x] 24. Create services/document_service/handler.py
+- [x] 25. Import router and create FastAPI app
+- [x] 26. Create upload handler function using Mangum
+- [x] 27. Create list handler function using Mangum
+- [x] 28. Create get handler function using Mangum
+- [x] 29. Create delete handler function using Mangum
+- [x] 30. Create download handler function using Mangum
 
 ---
 

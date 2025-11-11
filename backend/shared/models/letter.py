@@ -3,7 +3,7 @@ GeneratedLetter model for AI-generated demand letters.
 """
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from shared.base import Base
@@ -65,6 +65,10 @@ class GeneratedLetter(Base):
         secondary="letter_source_documents",
         backref="letters",
         lazy="dynamic",
+    )
+    
+    __table_args__ = (
+        CheckConstraint("status IN ('draft', 'created')", name='check_letter_status'),
     )
 
     def __repr__(self):

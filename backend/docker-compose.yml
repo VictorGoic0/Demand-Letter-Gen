@@ -21,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app
     volumes:
       - .:/app
     ports:
@@ -31,12 +31,14 @@ services:
       DB_NAME: demand_letters
       DB_USER: dev_user
       DB_PASSWORD: dev_password
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_REGION: ${AWS_REGION:-us-east-2}
-      S3_BUCKET_DOCUMENTS: ${S3_BUCKET_DOCUMENTS:-}
-      S3_BUCKET_EXPORTS: ${S3_BUCKET_EXPORTS:-}
+      # These will be read from .env file (auto-loaded by Docker Compose) or host environment
+      # No fallbacks - will fail if not set (so you know if env vars are working)
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET_DOCUMENTS: ${AWS_S3_BUCKET_DOCUMENTS}
+      AWS_S3_BUCKET_EXPORTS: ${AWS_S3_BUCKET_EXPORTS}
     depends_on:
       postgres:
         condition: service_healthy

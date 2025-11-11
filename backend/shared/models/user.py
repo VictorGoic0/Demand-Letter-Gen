@@ -3,7 +3,7 @@ User model for authentication and authorization.
 """
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey
+from sqlalchemy import Column, String, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from shared.base import Base
@@ -30,8 +30,12 @@ class User(Base):
     )
     email = Column(String(255), unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=False)
-    role = Column(String(50), nullable=False)  # e.g., 'attorney', 'paralegal', 'admin'
+    role = Column(String(50), nullable=False)  # 'attorney' or 'paralegal'
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    __table_args__ = (
+        CheckConstraint("role IN ('attorney', 'paralegal')", name='check_user_role'),
+    )
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,

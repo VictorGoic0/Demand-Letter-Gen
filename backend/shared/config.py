@@ -3,8 +3,8 @@ Centralized configuration management with environment variable validation using 
 """
 import os
 from typing import Optional, Dict, Any, List
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator, ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,29 +12,30 @@ logger = logging.getLogger(__name__)
 
 class DatabaseConfig(BaseSettings):
     """Database configuration."""
-    host: str = Field(default="localhost", env="DB_HOST")
-    port: int = Field(default=5432, env="DB_PORT")
-    name: str = Field(default="demand_letters", env="DB_NAME")
-    user: str = Field(default="dev_user", env="DB_USER")
-    password: str = Field(default="dev_password", env="DB_PASSWORD")
+    host: str = Field(default="localhost")
+    port: int = Field(default=5432)
+    name: str = Field(default="demand_letters")
+    user: str = Field(default="dev_user")
+    password: str = Field(default="dev_password")
     
     @property
     def url(self) -> str:
         """Get database connection URL."""
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
     
-    class Config:
-        env_prefix = "DB_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix="DB_",
+        case_sensitive=False,
+    )
 
 
 class AWSConfig(BaseSettings):
     """AWS configuration."""
-    access_key_id: Optional[str] = Field(default=None, env="AWS_ACCESS_KEY_ID")
-    secret_access_key: Optional[str] = Field(default=None, env="AWS_SECRET_ACCESS_KEY")
-    region: str = Field(default="us-east-2", env="AWS_REGION")
-    s3_bucket_documents: str = Field(..., env="S3_BUCKET_DOCUMENTS")
-    s3_bucket_exports: str = Field(..., env="S3_BUCKET_EXPORTS")
+    access_key_id: Optional[str] = Field(default=None)
+    secret_access_key: Optional[str] = Field(default=None)
+    region: str = Field(default="us-east-2")
+    s3_bucket_documents: str
+    s3_bucket_exports: str
     
     @field_validator("s3_bucket_documents", "s3_bucket_exports")
     @classmethod
@@ -44,17 +45,53 @@ class AWSConfig(BaseSettings):
             raise ValueError("S3 bucket name cannot be empty")
         return v.strip()
     
-    class Config:
-        env_prefix = "AWS_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        case_sensitive=False,
+        # Use custom source to read AWS_S3_BUCKET_* variables
+        env_prefix="AWS_",
+        # Override env var names for S3 buckets
+        env_nested_delimiter="__",
+    )
+    
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls,
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        """Customize settings sources to map AWS_S3_BUCKET_* env vars."""
+        import os
+        
+        def custom_env_source() -> Dict[str, Any]:
+            """Map AWS_* environment variables to field names."""
+            result = {}
+            # Read all AWS_ prefixed vars
+            for key, value in os.environ.items():
+                if key.startswith("AWS_"):
+                    # Convert AWS_ACCESS_KEY_ID -> access_key_id
+                    # Convert AWS_S3_BUCKET_DOCUMENTS -> s3_bucket_documents
+                    field_name = key[4:].lower()  # Remove AWS_ prefix and lowercase
+                    result[field_name] = value
+            return result
+        
+        # Use custom source before dotenv (so .env file can override)
+        return (
+            init_settings,
+            custom_env_source,
+            dotenv_settings,
+            file_secret_settings,
+        )
 
 
 class OpenAIConfig(BaseSettings):
     """OpenAI configuration."""
-    api_key: str = Field(..., env="OPENAI_API_KEY")
-    model: str = Field(default="gpt-4", env="OPENAI_MODEL")
-    temperature: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
-    max_tokens: int = Field(default=2000, env="OPENAI_MAX_TOKENS")
+    api_key: str = Field(...)
+    model: str = Field(default="gpt-4")
+    temperature: float = Field(default=0.7)
+    max_tokens: int = Field(default=2000)
     
     @field_validator("temperature")
     @classmethod
@@ -72,31 +109,28 @@ class OpenAIConfig(BaseSettings):
             raise ValueError("max_tokens must be at least 1")
         return v
     
-    class Config:
-        env_prefix = "OPENAI_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix="OPENAI_",
+        case_sensitive=False,
+    )
 
 
 class CORSConfig(BaseSettings):
     """CORS configuration."""
     allow_origins: List[str] = Field(
         default=["*"],
-        env="CORS_ALLOW_ORIGINS",
         description="List of allowed CORS origins. Use '*' for all origins."
     )
     allow_credentials: bool = Field(
         default=True,
-        env="CORS_ALLOW_CREDENTIALS",
         description="Whether to allow credentials in CORS requests."
     )
     allow_methods: List[str] = Field(
         default=["*"],
-        env="CORS_ALLOW_METHODS",
         description="List of allowed HTTP methods. Use '*' for all methods."
     )
     allow_headers: List[str] = Field(
         default=["*"],
-        env="CORS_ALLOW_HEADERS",
         description="List of allowed headers. Use '*' for all headers."
     )
     
@@ -130,9 +164,10 @@ class CORSConfig(BaseSettings):
             return [header.strip() for header in v.split(",") if header.strip()]
         return v
     
-    class Config:
-        env_prefix = "CORS_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix="CORS_",
+        case_sensitive=False,
+    )
 
 
 class Settings(BaseSettings):
@@ -192,12 +227,13 @@ class Settings(BaseSettings):
         """Check if running in development environment."""
         return self.environment == "development"
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        # Allow nested models to be instantiated
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        arbitrary_types_allowed=True,
+        extra="ignore",  # Ignore extra fields - they're handled by nested configs
+    )
 
 
 class ConfigError(Exception):
