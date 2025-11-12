@@ -61,10 +61,10 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
     - Startup: Detailed S3 bucket health checks (checks both documents and exports buckets)
     - Shutdown: Proper database connection cleanup (engine.dispose())
     - Enhanced `/health` endpoint with detailed status (database and S3 connection states)
-  - Created Docker management scripts in `/backend`:
-    - `server_start.sh` - Start docker-compose services
-    - `server_end.sh` - Stop docker-compose services
-    - `server_restart.sh` - Restart docker-compose services
+  - Added Docker management scripts to `package.json`:
+    - `npm run start` - Start docker-compose services
+    - `npm run end` - Stop docker-compose services
+    - `npm run restart` - Restart docker-compose services
   - Created migration scripts in `/backend/migration_scripts/`:
     - `migrate-up.sh` - Run `alembic upgrade head`
     - `migrate-down.sh` - Run `alembic downgrade -1`

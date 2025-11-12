@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend serverless functions for Demand Letter Generator",
   "scripts": {
+    "start": "docker-compose up -d",
+    "restart": "docker-compose restart",
+    "end": "docker-compose down",
     "serverless": "serverless",
     "deploy": "serverless deploy",
     "deploy:dev": "serverless deploy --stage dev",

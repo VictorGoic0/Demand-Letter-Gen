@@ -39,7 +39,7 @@ backend/
     migrate-up.sh     # Upgrade to latest migration
     migrate-down.sh   # Rollback one migration
     migrate-create.sh # Create new migration
-  server_*.sh         # Docker management scripts (start, end, restart)
+  package.json        # npm scripts (start, restart, end, serverless commands)
   main.py             # Local dev: combines all routers with health checks
 ```
 
@@ -306,7 +306,7 @@ App
 - Hot reload for both frontend and backend
 - Local PostgreSQL database
 - Direct service imports (no API calls between services)
-- Docker management scripts: `server_start.sh`, `server_end.sh`, `server_restart.sh`
+- Docker management via npm scripts: `npm run start`, `npm run end`, `npm run restart`
 - Migration scripts: `migration_scripts/migrate-up.sh`, `migrate-down.sh`, `migrate-create.sh`
 - Check scripts: `scripts/check_*.py` for all database tables (first 5 results)
 - Main application with startup/shutdown events and detailed health checks
@@ -335,7 +335,7 @@ App
 7. **Scripts Organization:** 
    - Utility scripts in `backend/scripts/` directory (check, seed, test scripts)
    - Migration scripts in `backend/migration_scripts/` directory (alembic commands)
-   - Docker management scripts in `backend/` root (server_start.sh, server_end.sh, server_restart.sh)
+   - Docker management via npm scripts in `package.json` (npm run start, end, restart)
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
 9. **HTML to DOCX Conversion:** Custom HTML parser built using Python's `html.parser` module, converting to python-docx Document objects. Supports common tags with nested formatting support. Filename generation with sanitization (50 char limit).
 10. **DOCX Export Strategy:** S3 key format `{firmId}/letters/{filename}.docx` (no letter_id in path). Old files cleaned up when filenames change. Finalize always generates new DOCX (overwrites existing). Export returns existing URL if available, generates if not.

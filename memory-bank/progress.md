@@ -266,7 +266,7 @@
 - [x] Hot reload configured
 - [x] Environment variables documented and working
 - [x] Development scripts created (seed, check, test scripts)
-- [x] Docker management scripts (server_start.sh, server_end.sh, server_restart.sh)
+- [x] Docker management via npm scripts (npm run start, end, restart)
 - [x] Migration scripts (migrate-up.sh, migrate-down.sh, migrate-create.sh)
 - [x] Check scripts for all database tables
 

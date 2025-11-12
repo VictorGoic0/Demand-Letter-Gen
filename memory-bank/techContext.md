@@ -94,10 +94,10 @@ alembic>=1.12.0  # Database migrations
   - `migrate-up.sh` - Run `alembic upgrade head`
   - `migrate-down.sh` - Run `alembic downgrade -1`
   - `migrate-create.sh` - Create new migration with message
-- Docker management scripts in `backend/` root:
-  - `server_start.sh` - Start docker-compose services
-  - `server_end.sh` - Stop docker-compose services
-  - `server_restart.sh` - Restart docker-compose services
+- Docker management via npm scripts in `package.json`:
+  - `npm run start` - Start docker-compose services
+  - `npm run end` - Stop docker-compose services
+  - `npm run restart` - Restart docker-compose services
 - All scripts use `.env` for configuration
 
 **Environment Variables:**
@@ -252,7 +252,7 @@ npm run build
 ```bash
 # Start Docker services
 cd backend
-./server_start.sh
+npm run start
 
 # Run migrations (if needed)
 ./migration_scripts/migrate-up.sh
@@ -317,7 +317,7 @@ serverless deploy
 
 ### Local Development
 
-1. Start Docker Compose: `./server_start.sh` (or `docker-compose up`)
+1. Start Docker Compose: `npm run start` (or `docker-compose up -d`)
 2. Run migrations: `./migration_scripts/migrate-up.sh` (or `alembic upgrade head`)
 3. Backend auto-reloads on code changes (via docker-compose uvicorn --reload)
 4. Frontend hot-reloads on code changes
@@ -327,8 +327,8 @@ serverless deploy
    - API Docs: http://localhost:8000/docs
    - Health Check: http://localhost:8000/health (returns database and S3 status)
 6. Check database tables: `python scripts/check_*.py` (returns first 5 results)
-7. Stop services: `./server_end.sh` (or `docker-compose down`)
-8. Restart services: `./server_restart.sh` (or `docker-compose restart`)
+7. Stop services: `npm run end` (or `docker-compose down`)
+8. Restart services: `npm run restart` (or `docker-compose restart`)
 
 ### Testing
 
