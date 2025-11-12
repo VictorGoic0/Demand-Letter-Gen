@@ -58,23 +58,7 @@ export function LetterCard({ letter, onView, onEdit, onDownload, onDelete }) {
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex items-center justify-end gap-2 pt-4 border-t">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onView(letter)}
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          View
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(letter)}
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Edit
-        </Button>
+      <CardFooter className="flex items-center justify-between gap-2 pt-4 border-t">
         {hasDocx && (
           <Button
             variant="outline"
@@ -85,15 +69,33 @@ export function LetterCard({ letter, onView, onEdit, onDownload, onDelete }) {
             Download
           </Button>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDelete(letter)}
-          className="text-destructive hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
-        </Button>
+        <div className="flex items-center gap-2 ml-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onView(letter)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(letter)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(letter)}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

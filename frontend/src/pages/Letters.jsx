@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { LetterList } from '@/components/Letters/LetterList';
-import { useLetters, useDeleteLetter, useExportLetter } from '@/hooks/useLetters';
+import { useLetters, useDeleteLetter } from '@/hooks/useLetters';
 
 export function Letters() {
   const navigate = useNavigate();
@@ -24,7 +24,6 @@ export function Letters() {
 
   const { letters, loading, error, refetch } = useLetters(sortBy, sortOrder, statusFilter, searchQuery);
   const { deleteLetter, deleting } = useDeleteLetter();
-  const { exportLetter } = useExportLetter();
 
   const handleCreateClick = () => {
     navigate('/letters/new');
@@ -38,20 +37,20 @@ export function Letters() {
     navigate(`/letters/${letter.id}/edit`);
   };
 
-  const handleDownloadClick = async (letter) => {
+  const handleDownloadClick = (letter) => {
+    // Only download if docx_url exists (letter must be finalized)
+    if (!letter.docx_url) {
+      console.warn('No download URL available for letter:', letter.id);
+      return;
+    }
+    
     try {
-      // If letter has docx_url, use it directly
-      if (letter.docx_url) {
-        const link = document.createElement('a');
-        link.href = letter.docx_url;
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // Otherwise, call export endpoint with auto-download
-        await exportLetter(letter.id, true);
-      }
+      const link = document.createElement('a');
+      link.href = letter.docx_url;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Failed to download letter:', error);
     }

@@ -80,6 +80,8 @@ def get_letters(
         letters = query.offset(offset).limit(page_size).all()
         
         # Convert to response models
+        settings = get_settings()
+        s3_client = get_s3_client()
         letter_responses = []
         for letter in letters:
             # Build source documents metadata
@@ -94,6 +96,20 @@ def get_letters(
                 for doc in letter.source_documents.all()
             ]
             
+            # Generate presigned URL if docx exists (for finalized letters)
+            docx_url = None
+            if letter.docx_s3_key:
+                try:
+                    docx_url = s3_client.generate_presigned_url(
+                        bucket_name=settings.aws.s3_bucket_exports,
+                        s3_key=letter.docx_s3_key,
+                        expiration=3600,  # 1 hour
+                        http_method="GET",
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to generate presigned URL for letter {letter.id} in list view: {str(e)}")
+                    # Don't fail the request if URL generation fails, just leave it as None
+            
             # Build response
             letter_response = LetterResponse(
                 id=letter.id,
@@ -103,7 +119,7 @@ def get_letters(
                 template_id=letter.template_id,
                 template_name=letter.template.name if letter.template else None,
                 source_documents=source_docs,
-                docx_url=None,  # Don't generate presigned URLs in list view
+                docx_url=docx_url,
                 created_at=letter.created_at,
                 updated_at=letter.updated_at,
             )
