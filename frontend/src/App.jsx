@@ -6,6 +6,8 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Documents } from './pages/Documents';
 import { Templates } from './pages/Templates';
+import { TemplateView } from './pages/TemplateView';
+import { TemplateEdit } from './pages/TemplateEdit';
 import { CreateLetter } from './pages/CreateLetter';
 import { Letters } from './pages/Letters';
 import { FinalizeLetter } from './pages/FinalizeLetter';
@@ -71,6 +73,36 @@ function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <Templates />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/templates/new"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TemplateEdit />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/templates/:templateId/view"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TemplateView />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/templates/:templateId/edit"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TemplateEdit />
             </MainLayout>
           </ProtectedRoute>
         }

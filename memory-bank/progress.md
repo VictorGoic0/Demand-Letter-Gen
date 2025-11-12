@@ -2,7 +2,7 @@
 
 ## Project Status
 
-**Overall Progress:** ~59% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Authentication Flow Complete (17/29 PRs Complete)  
+**Overall Progress:** ~62% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete (with route-based navigation and enhanced drag-and-drop), Authentication Flow Complete (18/29 PRs Complete)  
 **Last Updated:** November 2025
 
 ## What Works
@@ -29,6 +29,13 @@
 - ✅ PR #14: Local Development Main Application (FastAPI App with All Routers, Health Checks, Startup/Shutdown Events, Docker Scripts, Migration Scripts, Check Scripts)
 - ✅ PR #15: Frontend Foundation and Routing (App Structure, shadcn Components, Layout, Utilities, Types, AuthContext)
 - ✅ PR #16: Document Library Page - Frontend (Hooks, Components, Multi-file Upload, Progress Tracking, Document Management)
+- ✅ PR #17: Template Management Page - Frontend (Complete)
+  - Route-based navigation: `/templates`, `/templates/new`, `/templates/:id/view`, `/templates/:id/edit`
+  - TemplateView page (read-only) and TemplateEdit page (full-page form)
+  - Enhanced drag-and-drop: opening/closing paragraph areas as drop zones
+  - Success banners on save with auto-scroll to top
+  - TemplateCard with View, Edit, Delete buttons
+  - Full CRUD UI with card grid layout
 - ✅ PR #23: Authentication Flow - Frontend and Backend (Complete)
   - Login page with email/password fields
   - Protected routes with redirect to login
@@ -136,10 +143,23 @@
   - Exception handlers registered
   - OpenAPI documentation configured
 
-### Phase 3: Frontend (29% - 2/7 PRs Complete)
+### Phase 3: Frontend (43% - 3/7 PRs Complete)
 - [x] PR #15: Frontend Foundation and Routing - COMPLETE
 - [x] PR #16: Document Library Page - Frontend - COMPLETE
-- [ ] PR #17: Template Management Page - Frontend
+- [x] PR #17: Template Management Page - Frontend - COMPLETE
+  - Template API hooks (useTemplates, useDefaultTemplate, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useTemplate)
+  - Route-based navigation: `/templates`, `/templates/new`, `/templates/:id/view`, `/templates/:id/edit`
+  - TemplateView page: Read-only view with edit button
+  - TemplateEdit page: Full-page form with success banners and auto-scroll
+  - TemplateForm component with full-page form
+  - Enhanced drag-and-drop section reordering:
+    - Opening paragraph area drops at index 0
+    - Closing paragraph area drops at last index
+    - Works when dragging outside individual section bounds
+  - TemplateCard and TemplateList components with card grid layout
+  - Templates page: List view with navigation to routes
+  - Success messages: "{TemplateName} edit successful!" using returned API data
+  - All components use JSX (types folder preserved for future integration)
 - [ ] PR #18: Create Letter Page - Frontend
 - [ ] PR #19: Finalize Letter Page - Frontend
 - [ ] PR #20: Generated Letters Library Page - Frontend
@@ -176,13 +196,16 @@
   - Parallel uploads with progress tracking
   - Document list with sorting and actions
 
-### Template Management (100% - Backend Complete, Frontend Pending)
-- [x] Template creation - Backend complete
-- [x] Template listing - Backend complete
-- [x] Template editing - Backend complete
-- [x] Template deletion - Backend complete (with usage check)
-- [x] Default template setting - Backend complete
-- [ ] Frontend UI for template management - Pending (PR #17)
+### Template Management (100% - Complete)
+- [x] Template creation - Backend and Frontend complete
+- [x] Template listing - Backend and Frontend complete
+- [x] Template editing - Backend and Frontend complete
+- [x] Template deletion - Backend and Frontend complete (with usage check)
+- [x] Default template setting - Backend and Frontend complete
+- [x] Frontend UI for template management - Complete (PR #17)
+  - Full-page form with drag-and-drop section reordering
+  - Card grid layout for template list
+  - Create, edit, delete with confirmation dialogs
 
 ### Letter Generation (80% - Backend Complete, Frontend Pending)
 - [ ] Document selection (up to 5) - Frontend pending
@@ -249,6 +272,8 @@
 - [x] Layout components (MainLayout, Navigation with underline active states)
 - [x] Utility files (utils.js, api.ts, constants.ts)
 - [x] Document Library page with hooks and components
+- [x] Template Management page with hooks and components (route-based navigation, view/edit pages, enhanced drag-and-drop)
+- [x] Label component (shadcn/ui) installed and configured
 
 ### AWS Infrastructure (25% - S3 Complete)
 - [x] S3 buckets configured - `goico-demand-letters-documents-dev` and `goico-demand-letters-exports-dev` (us-east-2)
@@ -335,15 +360,16 @@ None currently identified.
 ## Metrics
 
 ### Development Metrics
-- **PRs Completed:** 17/29 (59%)
-- **Features Completed:** 3/5 major features (Document Management - Complete, Template Management - Backend Complete, Letter Management - Backend Complete)
+- **PRs Completed:** 18/29 (62%)
+- **Features Completed:** 3/5 major features (Document Management - Complete, Template Management - Complete, Letter Management - Backend Complete)
 - **Backend Services:** 7/7 complete (Document, Template, Parser, AI Service, Letter Service Complete, Auth)
 - **Frontend Foundation:** Complete (routing, components, utilities, types, context, authentication)
-- **Frontend Pages:** 1/7 complete (Document Library)
+- **Frontend Pages:** 2/7 complete (Document Library, Template Management)
 - **Authentication:** Complete (frontend and backend login, user menu, protected routes, localStorage persistence)
 - **AI Integration:** Complete (OpenAI client, prompt engineering, generation logic)
 - **PDF Parsing:** Complete (text extraction, metadata extraction, validation)
 - **Letter Generation:** Backend complete (can generate draft letters from templates and documents)
+- **Template Management:** Complete (backend and frontend with route-based navigation, view/edit pages, and enhanced drag-and-drop with paragraph area drop zones)
 - **Test Coverage:** 0% (test scripts created)
 - **Documentation:** 20% complete (S3 setup and usage guides added)
 

@@ -1,24 +1,32 @@
 export interface Template {
   id: string;
+  firm_id: string;
   name: string;
-  content: string;
-  description?: string;
-  is_active: boolean;
+  letterhead_text?: string;
+  opening_paragraph?: string;
+  closing_paragraph?: string;
+  sections?: string[];
+  is_default: boolean;
+  created_by?: string;
   created_at: string;
   updated_at: string;
-  firm_id: string;
 }
 
 export interface TemplateCreate {
   name: string;
-  content: string;
-  description?: string;
+  letterhead_text?: string;
+  opening_paragraph?: string;
+  closing_paragraph?: string;
+  sections?: string[];
+  is_default?: boolean;
 }
 
 export interface TemplateUpdate {
   name?: string;
-  content?: string;
-  description?: string;
-  is_active?: boolean;
+  letterhead_text?: string;
+  opening_paragraph?: string;
+  closing_paragraph?: string;
+  sections?: string[];
+  is_default?: boolean;
 }
 
