@@ -331,42 +331,42 @@
 ## PR #21: Edit Letter Page - Frontend
 
 ### Edit Letter Page
-- [ ] 1. Create src/pages/EditLetter.tsx
-- [ ] 2. Fetch letter by ID from URL params
-- [ ] 3. Verify letter exists
-- [ ] 4. Add page header with letter title
-- [ ] 5. Add back button to return to letters library
-- [ ] 6. Add "Edit" button (top right)
-- [ ] 7. Add "Save" button (top right, visible in edit mode)
-- [ ] 8. Add "Re-export" button (if letter is finalized)
-- [ ] 9. Add "Download" button (if docx exists)
-- [ ] 10. Implement view mode:
-  - [ ] Show LetterViewer component (reuse from PR #19)
-  - [ ] "Edit" button visible
-  - [ ] Download button visible if docx exists
-- [ ] 11. Implement edit mode:
-  - [ ] Show LetterEditor component (reuse from PR #19)
-  - [ ] "Save" button visible
-  - [ ] "Edit" button hidden
-- [ ] 12. Handle save action:
-  - [ ] Call useUpdateLetter hook
-  - [ ] Show success message
-  - [ ] Switch back to view mode
-  - [ ] Update letter data
-  - [ ] Handle errors
-- [ ] 13. Handle re-export action:
-  - [ ] Show confirmation dialog
-  - [ ] Call useExportLetter hook
-  - [ ] Show loading state
-  - [ ] On success, update download URL
-  - [ ] Show success message
-  - [ ] Handle errors
-- [ ] 14. Handle download action:
-  - [ ] Trigger browser download using download URL
-- [ ] 15. Add loading state while fetching letter
-- [ ] 16. Handle case where letter doesn't exist (404)
-- [ ] 17. Add unsaved changes warning when navigating away from edit mode
-- [ ] 18. Handle draft letters:
-  - [ ] Show "Finalize" button instead of "Re-export"
-  - [ ] On finalize, redirect to finalize page or show finalize flow
+- [x] 1. Create src/pages/EditLetter.tsx
+- [x] 2. Fetch letter by ID from URL params
+- [x] 3. Verify letter exists
+- [x] 4. Add page header with letter title
+- [x] 5. Add back button to return to letters library
+- [x] 6. Add "Edit" button (top right)
+- [x] 7. Add "Save" button (top right, visible in edit mode)
+- [x] 8. Add "Re-export" button (if letter is finalized)
+- [x] 9. Add "Download" button (if docx exists)
+- [x] 10. Implement view mode:
+  - [x] Show LetterViewer component (reuse from PR #19)
+  - [x] "Edit" button visible
+  - [x] Download button visible if docx exists
+- [x] 11. Implement edit mode:
+  - [x] Show LetterEditor component (reuse from PR #19)
+  - [x] "Save" button visible
+  - [x] "Edit" button hidden
+- [x] 12. Handle save action:
+  - [x] Call useUpdateLetter hook
+  - [x] Show success message
+  - [x] Switch back to view mode
+  - [x] Update letter data
+  - [x] Handle errors
+- [x] 13. Handle re-export action:
+  - [x] Show confirmation dialog
+  - [x] Call useExportLetter hook
+  - [x] Show loading state
+  - [x] On success, update download URL
+  - [x] Show success message
+  - [x] Handle errors
+- [x] 14. Handle download action:
+  - [x] Trigger browser download using download URL
+- [x] 15. Add loading state while fetching letter
+- [x] 16. Handle case where letter doesn't exist (404)
+- [x] 17. Add unsaved changes warning when navigating away from edit mode
+- [x] 18. Handle draft letters:
+  - [x] Show "Finalize" button instead of "Re-export"
+  - [x] On finalize, redirect to finalize page or show finalize flow
 

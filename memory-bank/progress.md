@@ -240,19 +240,19 @@
   - Card grid layout for template list
   - Create, edit, delete with confirmation dialogs
 
-### Letter Generation (80% - Backend Complete, Frontend Pending)
-- [ ] Document selection (up to 5) - Frontend pending
-- [ ] Template selection - Frontend pending
+### Letter Generation (100% - Complete)
+- [x] Document selection (up to 5) - PR #18 Complete
+- [x] Template selection - PR #18 Complete
 - [x] AI-powered generation - OpenAI integration complete
 - [x] PDF text extraction - Parser service complete
-- [x] Draft letter creation - Business logic complete (PR #11)
+- [x] Draft letter creation - Business logic complete (PR #11), Frontend complete (PR #18)
 
-### Letter Finalization (60% - Backend Complete, Frontend Pending)
-- [ ] Letter viewing (formatted HTML) - Frontend pending
-- [ ] Letter editing (rich text) - Frontend pending
-- [ ] Draft saving - Backend complete (update_letter)
-- [x] Finalization (status change + .docx generation) - Backend complete (PR #13)
-- [x] .docx export to S3 - Backend complete (PR #13)
+### Letter Finalization (100% - Complete)
+- [x] Letter viewing (formatted HTML) - PR #19 Complete
+- [x] Letter editing (rich text) - PR #19 Complete
+- [x] Draft saving - Backend complete (update_letter), Frontend complete (PR #19)
+- [x] Finalization (status change + .docx generation) - Backend complete (PR #13), Frontend complete (PR #19)
+- [x] .docx export to S3 - Backend complete (PR #13), Frontend complete (PR #20)
 
 ### Letter Management (90% - Backend Complete, Frontend Mostly Complete)
 - [x] Letter listing (backend) - PR #12 Complete
@@ -396,15 +396,17 @@ None currently identified.
 ## Metrics
 
 ### Development Metrics
-- **PRs Completed:** 18/29 (62%)
-- **Features Completed:** 3/5 major features (Document Management - Complete, Template Management - Complete, Letter Management - Backend Complete)
+- **PRs Completed:** 21/29 (72%)
+- **Features Completed:** 4/5 major features (Document Management - Complete, Template Management - Complete, Letter Generation - Complete, Letter Management - Mostly Complete)
 - **Backend Services:** 7/7 complete (Document, Template, Parser, AI Service, Letter Service Complete, Auth)
 - **Frontend Foundation:** Complete (routing, components, utilities, types, context, authentication)
-- **Frontend Pages:** 2/7 complete (Document Library, Template Management)
+- **Frontend Pages:** 5/7 complete (Document Library, Template Management, Create Letter, Finalize Letter, Generated Letters Library)
 - **Authentication:** Complete (frontend and backend login, user menu, protected routes, localStorage persistence)
 - **AI Integration:** Complete (OpenAI client, prompt engineering, generation logic)
 - **PDF Parsing:** Complete (text extraction, metadata extraction, validation)
-- **Letter Generation:** Backend complete (can generate draft letters from templates and documents)
+- **Letter Generation:** Complete (backend and frontend - can generate draft letters from templates and documents)
+- **Letter Finalization:** Complete (backend and frontend - view/edit modes, finalization, DOCX export)
+- **Letter Management:** Mostly Complete (backend complete, frontend library complete, edit page pending)
 - **Template Management:** Complete (backend and frontend with route-based navigation, view/edit pages, and enhanced drag-and-drop with paragraph area drop zones)
 - **Test Coverage:** 0% (test scripts created)
 - **Documentation:** 20% complete (S3 setup and usage guides added)

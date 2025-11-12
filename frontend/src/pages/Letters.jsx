@@ -27,7 +27,7 @@ export function Letters() {
   const { exportLetter, exporting } = useExportLetter();
 
   const handleCreateClick = () => {
-    navigate('/create-letter');
+    navigate('/letters/new');
   };
 
   const handleEditClick = (letter) => {

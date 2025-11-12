@@ -74,6 +74,34 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
    - Auto-refresh after create/update/delete
    - All files use JSX (no TypeScript types in components, types folder preserved)
 
+- ✅ PR #18: Create Letter Page - Frontend - COMPLETE
+  - Letter generation API hooks (useLetterGeneration with useGenerateLetter)
+  - DocumentSelector component with multi-select (max 5 documents), search/filter, and selection count
+  - TemplateSelector component with dropdown/select, default template pre-selection
+  - GenerationProgress component with loading spinner and progress message
+  - CreateLetter page with title input, template/document selection, generate button, and error handling
+  - Redirects to finalize page on successful generation
+  - Form validation and helpful messages
+
+- ✅ PR #19: Finalize Letter Page - Frontend - COMPLETE
+  - LetterViewer component with HTML content rendering (DOMPurify sanitization), proper styling, and print-friendly styles
+  - LetterEditor component with rich text editing (textarea-based), HTML formatting preservation
+  - Letter finalize API hooks (useLetterFinalize with useUpdateLetter and useFinalizeLetter)
+  - FinalizeLetter page with view/edit mode toggle, save and finalize actions, loading states, and error handling
+  - Redirects to letters library on finalization
+  - Handles draft and finalized letter states
+
+- ✅ PR #20: Generated Letters Library Page - Frontend - COMPLETE
+  - Letter list API hooks (useLetters with useLetters, useDeleteLetter, useExportLetter)
+  - LetterCard component with letter metadata display, status badges (Draft), action buttons (Edit, Download, Delete)
+  - LetterList component with grid layout, search functionality, status filtering, sorting controls (date created/modified, title, status)
+  - GeneratedLetters page (Letters.jsx) with page header, create button, sorting/filtering controls, delete confirmation dialog
+  - Navigation to edit page and create page
+  - Download uses existing docx_url or calls export endpoint
+  - Client-side filtering and search (fetches up to 100 items for filtering)
+  - Server-side sorting via API
+  - Loading skeletons and empty states
+
 ## Recent Changes
 
 - ✅ PR #14: Local Development Main Application - Complete
