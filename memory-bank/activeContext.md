@@ -2,10 +2,10 @@
 
 ## Current Status
 
-**Phase:** Authentication Flow Implementation  
+**Phase:** Backend Services Implementation  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication. Template service backend is complete with full CRUD operations.
 
 ## Current Work Focus
 
@@ -55,16 +55,44 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
 
 ## Recent Changes
 
+- ✅ PR #8: Template Service - Backend - Complete
+  - Created `services/template_service/schemas.py` with all template schemas (TemplateBase, TemplateCreate, TemplateUpdate, TemplateResponse, TemplateListResponse)
+  - Created `services/template_service/logic.py` with business logic:
+    - create_template(): Validates, handles default flag logic, creates DB record
+    - get_templates(): Lists templates with sorting (name, created_at)
+    - get_template_by_id(): Retrieval with firm-level isolation
+    - update_template(): Updates with default flag handling
+    - delete_template(): Deletes with usage check (prevents deletion if in use by letters)
+    - get_default_template(): Retrieves default template for firm
+  - Created `services/template_service/router.py` with router prefix `/{firm_id}/templates`:
+    - POST /{firm_id}/templates/ - Create template
+    - GET /{firm_id}/templates/ - List templates (with sorting)
+    - GET /{firm_id}/templates/default - Get default template
+    - GET /{firm_id}/templates/{template_id} - Get template by ID
+    - PUT /{firm_id}/templates/{template_id} - Update template
+    - DELETE /{firm_id}/templates/{template_id} - Delete template
+  - Created `services/template_service/handler.py` with Lambda handlers
+  - All operations enforce firm-level isolation
+  - Router registered in main.py for local development
+  - Validation for template name length (1-255 chars) and section names (non-empty)
+  - Default template logic: setting is_default=True unsets other defaults for the firm
+
 - ✅ PR #23: Authentication Flow - Frontend and Backend - Complete
   - Created Login page with email and password fields
-  - Implemented AuthContext with localStorage persistence
+  - Implemented AuthContext with localStorage persistence and validation
   - Created ProtectedRoute component to guard routes
   - Updated App.jsx to protect all routes except /login
   - Created auth service with /login endpoint
-  - Backend login endpoint queries User by email and returns user/firm info
+  - Backend login endpoint queries User by email and returns user/firm info + role
   - Mock authentication (password accepted but not validated)
   - Added NotFoundException to shared exceptions
   - All routes protected - unauthenticated users redirected to login
+  - User dropdown menu with email, role, and logout functionality
+  - Logo clickable to navigate to dashboard
+  - Firm name displayed in header
+  - Axios interceptors add firmId/userId headers to all requests
+  - Fixed useDocuments hooks to use firmId (camelCase) instead of firm_id
+  - User data persists across page reloads via localStorage
 
 - ✅ PR #15: Frontend Foundation and Routing - Complete
   - Created App.jsx with React Router and all route definitions
@@ -205,7 +233,7 @@ None identified yet - project is in initial setup phase.
 
 ### Phase 2: Core Features (In Progress)
 - [x] Document service (upload, list, delete) - PR #7 Complete
-- [ ] Template service (CRUD) - PR #8
+- [x] Template service (CRUD) - PR #8 Complete
 - [ ] Parser service (PDF extraction) - PR #9
 - [x] Frontend foundation (routing, components, layout) - PR #15 Complete
 
@@ -262,7 +290,7 @@ Features listed in PRD Section 6.7 (P1: Post-MVP Features)
 
 1. **MVP Focus:** Only P0 features should be implemented initially
 2. **Firm-Level Isolation:** All data must be filtered by firm_id - all users within a firm see the same documents, templates, and letters. All queries filter by firm_id for multi-tenancy. Document service uses firm_id as path parameter: `/{firm_id}/documents`.
-3. **Authentication:** Mock authentication implemented - password accepted but not validated. Login endpoint queries User by email and returns user/firm information. Frontend stores user data in localStorage and protects all routes except /login.
+3. **Authentication:** Mock authentication implemented - password accepted but not validated. Login endpoint queries User by email and returns user/firm/role information. Frontend stores user data in localStorage with validation, protects all routes except /login, displays user menu with logout, and injects firmId/userId headers in all API requests. All hooks use camelCase property names (firmId, userId, firmName, role).
 4. **Error Handling:** Comprehensive error handling at all layers
 5. **Documentation:** Keep documentation updated as code is written
 

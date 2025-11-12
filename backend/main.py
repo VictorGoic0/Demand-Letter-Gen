@@ -59,19 +59,19 @@ async def health():
 # Import and include routers from services
 from services.document_service import router as document_router
 from services.auth_service import router as auth_router
+from services.template_service import router as template_router
 from shared.exceptions import register_exception_handlers
 
 # Include routers
 app.include_router(auth_router)
 app.include_router(document_router)  # firm_id is in the router prefix
+app.include_router(template_router)  # firm_id is in the router prefix
 
 # Register exception handlers
 register_exception_handlers(app)
 
 # TODO: Add other service routers as they're implemented
-# from services.template_service import router as template_router
 # from services.letter_service import router as letter_router
-# app.include_router(template_router)
 # app.include_router(letter_router)
 
 

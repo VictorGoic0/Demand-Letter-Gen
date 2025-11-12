@@ -105,6 +105,16 @@ class OpenAIException(BaseAppException):
         )
 
 
+class ParserException(BaseAppException):
+    """Raised when a PDF parsing operation fails."""
+    def __init__(self, message: str = "PDF parsing failed", detail: Optional[str] = None):
+        super().__init__(
+            message=message,
+            detail=detail or "Failed to parse PDF document",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 class ValidationException(BaseAppException):
     """Raised when validation fails."""
     def __init__(self, message: str = "Validation failed", detail: Optional[str] = None):
