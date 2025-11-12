@@ -103,7 +103,7 @@ export function useExportLetter() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState(null);
 
-  const exportLetter = async (letterId) => {
+  const exportLetter = async (letterId, autoDownload = false) => {
     if (!user?.firmId) {
       throw new Error('User not authenticated');
     }
@@ -115,13 +115,15 @@ export function useExportLetter() {
       const response = await api.post(`/${user.firmId}/letters/${letterId}/export`);
       const { download_url } = response.data;
       
-      // Trigger browser download
-      const link = document.createElement('a');
-      link.href = download_url;
-      link.download = '';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Only trigger browser download if autoDownload is true
+      if (autoDownload) {
+        const link = document.createElement('a');
+        link.href = download_url;
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       
       return download_url;
     } catch (err) {

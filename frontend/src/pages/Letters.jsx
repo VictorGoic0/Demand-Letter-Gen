@@ -24,7 +24,7 @@ export function Letters() {
 
   const { letters, loading, error, refetch } = useLetters(sortBy, sortOrder, statusFilter, searchQuery);
   const { deleteLetter, deleting } = useDeleteLetter();
-  const { exportLetter, exporting } = useExportLetter();
+  const { exportLetter } = useExportLetter();
 
   const handleCreateClick = () => {
     navigate('/letters/new');
@@ -49,8 +49,8 @@ export function Letters() {
         link.click();
         document.body.removeChild(link);
       } else {
-        // Otherwise, call export endpoint
-        await exportLetter(letter.id);
+        // Otherwise, call export endpoint with auto-download
+        await exportLetter(letter.id, true);
       }
     } catch (error) {
       console.error('Failed to download letter:', error);
