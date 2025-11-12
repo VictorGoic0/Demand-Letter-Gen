@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Download, Trash2, ArrowUpDown, ArrowUp, ArrowDown, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DocumentListSkeleton } from '@/components/ui/LoadingSkeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Table,
   TableBody,
@@ -92,26 +94,16 @@ export function DocumentList({ documents, loading, onRefresh, sortBy, sortOrder,
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
-        ))}
-      </div>
-    );
+    return <DocumentListSkeleton />;
   }
 
   if (documents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="rounded-full bg-muted p-4 mb-4">
-          <File className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold mb-2">No documents yet</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          Upload your first document to get started with generating demand letters.
-        </p>
-      </div>
+      <EmptyState
+        icon={File}
+        title="No documents yet"
+        description="Upload your first document to get started with generating demand letters."
+      />
     );
   }
 

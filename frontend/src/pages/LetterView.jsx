@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, FileDown, Loader2, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Edit, FileDown, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { PageLoader } from '@/components/ui/PageLoader';
 import {
   Dialog,
   DialogContent,
@@ -61,14 +63,7 @@ export function LetterView() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading letter...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader message="Loading letter..." />;
   }
 
   if (error) {
@@ -82,15 +77,7 @@ export function LetterView() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Letters
         </Button>
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Button onClick={() => refetch()}>Retry</Button>
+        <ErrorMessage error={error} onRetry={refetch} />
       </div>
     );
   }
@@ -177,16 +164,7 @@ export function LetterView() {
       </div>
 
       {/* Error Banner */}
-      {exportError && (
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium">{exportError}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ErrorMessage error={exportError} />
 
       {/* Letter Content */}
       <Card>

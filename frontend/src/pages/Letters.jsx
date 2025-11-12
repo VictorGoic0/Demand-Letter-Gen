@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Plus, RefreshCw, AlertCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import {
   Dialog,
   DialogContent,
@@ -96,21 +97,7 @@ export function Letters() {
       </div>
 
       {/* Error State */}
-      {error && (
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm">{error}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={refetch}
-            className="ml-auto"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
-          </Button>
-        </div>
-      )}
+      <ErrorMessage error={error} onRetry={refetch} />
 
       {/* Letter List */}
       <div>

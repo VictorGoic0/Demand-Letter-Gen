@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Edit, Save, FileDown, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Edit, Save, FileDown, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { PageLoader } from '@/components/ui/PageLoader';
 import {
   Dialog,
   DialogContent,
@@ -94,28 +96,13 @@ export function FinalizeLetter() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading letter...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader message="Loading letter..." />;
   }
 
   if (error) {
     return (
       <div className="space-y-4">
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Button onClick={() => refetch()}>Retry</Button>
+        <ErrorMessage error={error} onRetry={refetch} />
       </div>
     );
   }
@@ -200,16 +187,7 @@ export function FinalizeLetter() {
       )}
 
       {/* Error Banner */}
-      {(updateError || finalizeError) && (
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium">{updateError || finalizeError}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ErrorMessage error={updateError || finalizeError} />
 
       {/* Letter Content */}
       <Card>

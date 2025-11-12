@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { RefreshCw, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { File } from 'lucide-react';
 import { DocumentUpload } from '@/components/Documents/DocumentUpload';
 import { DocumentList } from '@/components/Documents/DocumentList';
 import { useDocuments } from '@/hooks/useDocuments';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export function Documents() {
   const [sortBy, setSortBy] = useState('uploaded_at');
@@ -41,21 +42,7 @@ export function Documents() {
       </div>
 
       {/* Error State */}
-      {error && (
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm">{error}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={refetch}
-            className="ml-auto"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
-          </Button>
-        </div>
-      )}
+      <ErrorMessage error={error} onRetry={refetch} />
 
       {/* Document List */}
       <div>

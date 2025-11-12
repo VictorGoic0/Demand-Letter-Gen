@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { DocumentSelector } from '@/components/CreateLetter/DocumentSelector';
 import { TemplateSelector } from '@/components/CreateLetter/TemplateSelector';
 import { GenerationProgress } from '@/components/CreateLetter/GenerationProgress';
@@ -76,25 +76,7 @@ export function CreateLetter() {
       </div>
 
       {/* Error Banner */}
-      {error && (
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium flex-1">{error}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetry}
-                className="text-destructive border-destructive/20 hover:bg-destructive/10"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ErrorMessage error={error} onRetry={handleRetry} />
 
       {/* Generation Progress */}
       {generating && (

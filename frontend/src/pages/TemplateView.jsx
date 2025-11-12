@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useTemplate } from '@/hooks/useTemplates';
-import { AlertCircle } from 'lucide-react';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { PageLoader } from '@/components/ui/PageLoader';
 
 export function TemplateView() {
   const { templateId } = useParams();
@@ -13,12 +14,7 @@ export function TemplateView() {
   const { template, loading, error } = useTemplate(templateId);
 
   if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="h-8 bg-muted animate-pulse rounded w-48" />
-        <div className="h-96 bg-muted animate-pulse rounded-xl" />
-      </div>
-    );
+    return <PageLoader message="Loading template..." />;
   }
 
   if (error || !template) {
@@ -32,10 +28,7 @@ export function TemplateView() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Templates
         </Button>
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm">{error || 'Template not found'}</p>
-        </div>
+        <ErrorMessage error={error || 'Template not found'} />
       </div>
     );
   }

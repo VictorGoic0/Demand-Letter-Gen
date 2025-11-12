@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -14,17 +15,14 @@ import { LetterView } from './pages/LetterView';
 import { FinalizeLetter } from './pages/FinalizeLetter';
 import { EditLetter } from './pages/EditLetter';
 import { NotFound } from './pages/NotFound';
+import { PageLoader } from './components/ui/PageLoader';
 import './App.css';
 
 function LoginRoute() {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <PageLoader message="Loading..." />;
   }
 
   if (isAuthenticated) {
@@ -176,11 +174,13 @@ function App() {
   // AuthProvider handles localStorage check on mount via useEffect
   // This ensures user data persists across page reloads
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

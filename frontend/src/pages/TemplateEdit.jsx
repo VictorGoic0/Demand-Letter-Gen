@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TemplateForm } from '@/components/Templates/TemplateForm';
 import { useTemplate, useUpdateTemplate, useCreateTemplate } from '@/hooks/useTemplates';
-import { AlertCircle } from 'lucide-react';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { useState, useEffect } from 'react';
 
 export function TemplateEdit() {
@@ -51,12 +52,7 @@ export function TemplateEdit() {
   };
 
   if (!isNewTemplate && loading) {
-    return (
-      <div className="space-y-8">
-        <div className="h-8 bg-muted animate-pulse rounded w-48" />
-        <div className="h-96 bg-muted animate-pulse rounded-xl" />
-      </div>
-    );
+    return <PageLoader message="Loading template..." />;
   }
 
   if (!isNewTemplate && (error || !template)) {
@@ -70,10 +66,7 @@ export function TemplateEdit() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Templates
         </Button>
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm">{error || 'Template not found'}</p>
-        </div>
+        <ErrorMessage error={error || 'Template not found'} />
       </div>
     );
   }

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { LetterCardSkeleton } from '@/components/ui/LoadingSkeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Select,
   SelectContent,
@@ -46,28 +48,20 @@ export function LetterList({
   };
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
-        ))}
-      </div>
-    );
+    return <LetterCardSkeleton />;
   }
 
   if (letters.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="rounded-full bg-muted p-4 mb-4">
-          <FileText className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold mb-2">No letters yet</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          {searchQuery || statusFilter !== 'all' 
+      <EmptyState
+        icon={FileText}
+        title="No letters yet"
+        description={
+          searchQuery || statusFilter !== 'all' 
             ? 'No letters match your filters. Try adjusting your search or filters.'
-            : 'Create your first demand letter to get started.'}
-        </p>
-      </div>
+            : 'Create your first demand letter to get started.'
+        }
+      />
     );
   }
 
