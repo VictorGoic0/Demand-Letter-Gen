@@ -139,76 +139,112 @@
 
 ## PR #13: Letter Service - Backend (Part 2: DOCX Export)
 
+### Requirements & Design Decisions
+
+**HTML to DOCX Conversion:**
+- Create custom HTML parser that converts HTML to python-docx Document objects
+- Parser service is for PDFs only, not HTML, so we build our own HTML parser
+- Support: `<p>`, `<h1>`, `<h2>`, `<h3>`, `<strong>`, `<b>`, `<em>`, `<i>`, `<ul>`, `<ol>`, `<li>`
+- Handle nested tags appropriately
+- We're using HTML here instead of having the LLM go straight to python-docx BECAUSE we want to display it to the user and make it editable before finalizing
+
+**Filename Generation:**
+- Format: `Demand_Letter_[Title]_[Date].docx`
+- Sanitize title: remove special characters, keep alphanumeric + spaces/underscores/hyphens
+- Replace spaces with underscores
+- Length limit: 50 characters (truncate if needed)
+
+**S3 Key Structure:**
+- Format: `{firmId}/letters/{filename}.docx`
+- No letter_id in path (simpler structure)
+
+**Finalize Letter Behavior:**
+- Allow finalizing letters with status 'draft' OR 'created' (user may edit finalized letters)
+- Always generate new DOCX (overwrite existing if present)
+- Change status to 'created' if not already
+- If filename changes (docx_s3_key changes), clean up old file from S3 if possible
+
+**Export Letter Behavior:**
+- Return existing presigned URL if docx_s3_key exists
+- If no docx_s3_key exists, generate DOCX and upload
+- Update docx_s3_key if it changes
+- If filename changes, clean up old file from S3 if possible
+
 ### DOCX Generator Implementation
-- [ ] 1. Create services/letter_service/docx_generator.py
-- [ ] 2. Import python-docx library
-- [ ] 3. Implement html_to_docx function:
-  - [ ] Parse HTML content
-  - [ ] Create new Document
-  - [ ] Convert HTML tags to docx formatting:
-    - [ ] <p> → paragraph
-    - [ ] <h1>, <h2>, <h3> → headings
-    - [ ] <strong>, <b> → bold
-    - [ ] <em>, <i> → italic
-    - [ ] <ul>, <ol>, <li> → lists
-  - [ ] Handle nested tags
-  - [ ] Apply styling
-  - [ ] Return Document object
-- [ ] 4. Implement generate_filename function:
-  - [ ] Accept letter title and date
-  - [ ] Sanitize title
-  - [ ] Format as "Demand_Letter_[Title]_[Date].docx"
-  - [ ] Return filename
-- [ ] 5. Implement save_docx_to_s3 function:
-  - [ ] Accept Document object
-  - [ ] Save to BytesIO buffer
-  - [ ] Upload buffer to S3
-  - [ ] Return S3 key
-- [ ] 6. Add error handling for HTML parsing
-- [ ] 7. Add error handling for docx generation
-- [ ] 8. Add error handling for S3 upload
+- [x] 1. Create services/letter_service/docx_generator.py
+- [x] 2. Import python-docx library
+- [x] 3. Implement html_to_docx function:
+  - [x] Parse HTML content
+  - [x] Create new Document
+  - [x] Convert HTML tags to docx formatting:
+    - [x] <p> → paragraph
+    - [x] <h1>, <h2>, <h3> → headings
+    - [x] <strong>, <b> → bold
+    - [x] <em>, <i> → italic
+    - [x] <ul>, <ol>, <li> → lists
+  - [x] Handle nested tags
+  - [x] Apply styling
+  - [x] Return Document object
+- [x] 4. Implement generate_filename function:
+  - [x] Accept letter title and date
+  - [x] Sanitize title
+  - [x] Format as "Demand_Letter_[Title]_[Date].docx"
+  - [x] Return filename
+- [x] 5. Implement save_docx_to_s3 function:
+  - [x] Accept Document object
+  - [x] Save to BytesIO buffer
+  - [x] Upload buffer to S3
+  - [x] Return S3 key
+- [x] 6. Add error handling for HTML parsing
+- [x] 7. Add error handling for docx generation
+- [x] 8. Add error handling for S3 upload
 
 ### Letter Business Logic - Export
-- [ ] 9. Add finalize_letter function to logic.py:
-  - [ ] Verify letter exists
-  - [ ] Verify user has access
-  - [ ] Verify status is 'draft'
-  - [ ] Generate .docx from content
-  - [ ] Upload .docx to S3
-  - [ ] Update letter record:
-    - [ ] Set status to 'created'
-    - [ ] Set docx_s3_key
-  - [ ] Return letter with download URL
-- [ ] 10. Add export_letter function to logic.py:
-  - [ ] Verify letter exists
-  - [ ] Verify user has access
-  - [ ] Generate new .docx from current content
-  - [ ] Upload to S3 (overwrite or new file)
-  - [ ] Update docx_s3_key if changed
-  - [ ] Return download URL
-- [ ] 11. Add error handling for finalize operations
-- [ ] 12. Add error handling for export operations
+- [x] 9. Add finalize_letter function to logic.py:
+  - [x] Verify letter exists
+  - [x] Verify user has access
+  - [x] Allow status 'draft' OR 'created' (re-finalizing allowed)
+  - [x] Generate .docx from content
+  - [x] Upload .docx to S3
+  - [x] Update letter record:
+    - [x] Set status to 'created'
+    - [x] Set docx_s3_key
+  - [x] Clean up old file if filename changed
+  - [x] Return letter with download URL
+- [x] 10. Add export_letter function to logic.py:
+  - [x] Verify letter exists
+  - [x] Verify user has access
+  - [x] Return existing presigned URL if docx_s3_key exists
+  - [x] Generate new .docx from current content if needed
+  - [x] Upload to S3
+  - [x] Update docx_s3_key if changed
+  - [x] Clean up old file if filename changed
+  - [x] Return download URL
+- [x] 11. Add error handling for finalize operations
+- [x] 12. Add error handling for export operations
 
 ### Letter Router - Export
-- [ ] 13. Implement POST /{letter_id}/finalize endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call finalize_letter logic
-  - [ ] Return 200 with letter data and download URL
-- [ ] 14. Implement POST /{letter_id}/export endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call export_letter logic
-  - [ ] Return 200 with download URL
-- [ ] 15. Add OpenAPI documentation for export endpoints
+- [x] 13. Implement POST /{letter_id}/finalize endpoint:
+  - [x] Get firm_id from path
+  - [x] Call finalize_letter logic
+  - [x] Return 200 with letter data and download URL
+- [x] 14. Implement POST /{letter_id}/export endpoint:
+  - [x] Get firm_id from path
+  - [x] Call export_letter logic
+  - [x] Return 200 with download URL
+- [x] 15. Add OpenAPI documentation for export endpoints
 
 ### Lambda Handler
-- [ ] 16. Create services/letter_service/handler.py
-- [ ] 17. Import router and create FastAPI app
-- [ ] 18. Create list handler function using Mangum
-- [ ] 19. Create get handler function using Mangum
-- [ ] 20. Create update handler function using Mangum
-- [ ] 21. Create delete handler function using Mangum
-- [ ] 22. Create finalize handler function using Mangum
-- [ ] 23. Create export handler function using Mangum
+- [x] 16. Create services/letter_service/handler.py
+- [x] 17. Import router and create FastAPI app
+- [x] 18. Create list handler function using Mangum
+- [x] 19. Create get handler function using Mangum
+- [x] 20. Create update handler function using Mangum
+- [x] 21. Create delete handler function using Mangum
+- [x] 22. Create finalize handler function using Mangum
+- [x] 23. Create export handler function using Mangum
+
+**PR #13 Status: ✅ COMPLETE**
 
 ---
 

@@ -19,6 +19,7 @@ from shared.exceptions import (
 from shared.s3_client import get_s3_client
 from shared.config import get_settings
 from .schemas import LetterResponse, DocumentMetadata
+from .docx_generator import html_to_docx, generate_filename, save_docx_to_s3
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,6 @@ def get_letters(
         Tuple of (list of LetterResponse, total count)
     """
     try:
-        logger.info(f"Getting letters for firm {firm_id}, page={page}, page_size={page_size}, sort_by={sort_by}, sort_order={sort_order}")
-        
         # Base query filtered by firm_id with eager loading for template only
         # Note: source_documents is a dynamic relationship (lazy="dynamic"), so we can't use joinedload
         query = (
@@ -75,12 +74,10 @@ def get_letters(
         
         # Get total count
         total = query.count()
-        logger.info(f"Total letters found: {total}")
         
         # Apply pagination
         offset = (page - 1) * page_size
         letters = query.offset(offset).limit(page_size).all()
-        logger.info(f"Retrieved {len(letters)} letters from database")
         
         # Convert to response models
         letter_responses = []
@@ -112,12 +109,10 @@ def get_letters(
             )
             letter_responses.append(letter_response)
         
-        logger.info(f"Successfully built {len(letter_responses)} letter responses for firm {firm_id}")
-        
         return letter_responses, total
         
     except Exception as e:
-        logger.error(f"Error getting letters for firm {firm_id}: {str(e)}", exc_info=True)
+        logger.error(f"Error getting letters for firm {firm_id}: {str(e)}")
         raise
 
 
@@ -142,8 +137,6 @@ def get_letter_by_id(
         ForbiddenException: If letter doesn't belong to firm
     """
     try:
-        logger.info(f"Getting letter {letter_id} for firm {firm_id}")
-        
         settings = get_settings()
         s3_client = get_s3_client()
         
@@ -159,18 +152,14 @@ def get_letter_by_id(
         )
         
         if not letter:
-            logger.warning(f"Letter {letter_id} not found")
             raise LetterNotFoundException(letter_id=str(letter_id))
         
         # Verify firm-level isolation
         if letter.firm_id != firm_id:
-            logger.warning(f"Letter {letter_id} does not belong to firm {firm_id} (belongs to {letter.firm_id})")
             raise ForbiddenException(
                 message="Access denied",
                 detail="Letter does not belong to this firm",
             )
-        
-        logger.info(f"Letter {letter_id} found, building response")
         
         # Build source documents metadata
         # source_documents is a dynamic relationship, so we need to call .all() on it
@@ -183,7 +172,6 @@ def get_letter_by_id(
             )
             for doc in letter.source_documents.all()
         ]
-        logger.info(f"Letter {letter_id} has {len(source_docs)} source documents")
         
         # Generate presigned URL if docx exists
         docx_url = None
@@ -195,7 +183,6 @@ def get_letter_by_id(
                     expiration=3600,  # 1 hour
                     http_method="GET",
                 )
-                logger.info(f"Presigned URL generated for letter docx: {letter_id}")
             except Exception as e:
                 logger.warning(f"Failed to generate presigned URL for letter {letter_id}: {str(e)}")
                 # Don't fail the request if URL generation fails, just leave it as None
@@ -363,5 +350,244 @@ def delete_letter(
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting letter: {str(e)}")
+        raise
+
+
+def finalize_letter(
+    db: Session,
+    letter_id: UUID,
+    firm_id: UUID,
+) -> LetterResponse:
+    """
+    Finalize a letter by generating DOCX and updating status to 'created'.
+    Works on letters with status 'draft' OR 'created' (allows re-finalizing).
+    Always generates new DOCX (overwrites existing if present).
+    
+    Args:
+        db: Database session
+        letter_id: Letter ID
+        firm_id: Firm ID to verify ownership
+        
+    Returns:
+        LetterResponse with finalized letter data and download URL
+        
+    Raises:
+        LetterNotFoundException: If letter not found
+        ForbiddenException: If letter doesn't belong to firm
+        S3UploadException: If DOCX generation or upload fails
+        ValueError: If HTML to DOCX conversion fails
+    """
+    try:
+        settings = get_settings()
+        s3_client = get_s3_client()
+        
+        # Get letter and verify ownership
+        letter = db.query(GeneratedLetter).filter(GeneratedLetter.id == letter_id).first()
+        
+        if not letter:
+            raise LetterNotFoundException(letter_id=str(letter_id))
+        
+        # Verify firm-level isolation
+        if letter.firm_id != firm_id:
+            raise ForbiddenException(
+                message="Access denied",
+                detail="Letter does not belong to this firm",
+            )
+        
+        # Store old S3 key for cleanup if filename changes
+        old_s3_key = letter.docx_s3_key
+        
+        # Generate filename
+        filename = generate_filename(letter.title, letter.updated_at)
+        new_s3_key = f"{firm_id}/letters/{filename}"
+        
+        # Convert HTML to DOCX
+        try:
+            doc = html_to_docx(letter.content)
+        except Exception as e:
+            logger.error(f"Failed to convert HTML to DOCX for letter {letter_id}: {str(e)}")
+            raise ValueError(f"Failed to convert HTML to DOCX: {str(e)}") from e
+        
+        # Save DOCX to S3
+        try:
+            save_docx_to_s3(
+                doc=doc,
+                bucket_name=settings.aws.s3_bucket_exports,
+                s3_key=new_s3_key,
+                s3_client=s3_client,
+            )
+        except S3UploadException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to save DOCX to S3 for letter {letter_id}: {str(e)}")
+            raise S3UploadException(
+                message="Failed to upload DOCX file to S3",
+                detail=str(e),
+            ) from e
+        
+        # Clean up old file if filename changed
+        if old_s3_key and old_s3_key != new_s3_key:
+            try:
+                s3_client.delete_file(
+                    bucket_name=settings.aws.s3_bucket_exports,
+                    s3_key=old_s3_key,
+                )
+                logger.info(f"Cleaned up old DOCX file: {old_s3_key}")
+            except Exception as e:
+                logger.warning(f"Failed to delete old DOCX file {old_s3_key}: {str(e)}")
+                # Don't fail the operation if cleanup fails
+        
+        # Update letter record
+        letter.status = "created"
+        letter.docx_s3_key = new_s3_key
+        # updated_at is automatically updated by the model's onupdate
+        
+        db.commit()
+        db.refresh(letter)
+        
+        logger.info(f"Letter finalized: {letter_id}, DOCX saved to {new_s3_key}")
+        
+        # Return updated letter with presigned URL
+        return get_letter_by_id(db=db, letter_id=letter_id, firm_id=firm_id)
+        
+    except (LetterNotFoundException, ForbiddenException, S3UploadException, ValueError):
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error finalizing letter: {str(e)}")
+        raise
+
+
+def export_letter(
+    db: Session,
+    letter_id: UUID,
+    firm_id: UUID,
+) -> str:
+    """
+    Export a letter by returning existing presigned URL or generating new DOCX.
+    If docx_s3_key exists, returns existing presigned URL.
+    If no docx_s3_key exists, generates DOCX and uploads it.
+    Updates docx_s3_key if it changes (e.g., filename changed).
+    
+    Args:
+        db: Database session
+        letter_id: Letter ID
+        firm_id: Firm ID to verify ownership
+        
+    Returns:
+        Presigned URL for downloading the DOCX file
+        
+    Raises:
+        LetterNotFoundException: If letter not found
+        ForbiddenException: If letter doesn't belong to firm
+        S3UploadException: If DOCX generation or upload fails
+        ValueError: If HTML to DOCX conversion fails
+    """
+    try:
+        settings = get_settings()
+        s3_client = get_s3_client()
+        
+        # Get letter and verify ownership
+        letter = db.query(GeneratedLetter).filter(GeneratedLetter.id == letter_id).first()
+        
+        if not letter:
+            raise LetterNotFoundException(letter_id=str(letter_id))
+        
+        # Verify firm-level isolation
+        if letter.firm_id != firm_id:
+            raise ForbiddenException(
+                message="Access denied",
+                detail="Letter does not belong to this firm",
+            )
+        
+        # If docx_s3_key exists, return existing presigned URL
+        if letter.docx_s3_key:
+            try:
+                presigned_url = s3_client.generate_presigned_url(
+                    bucket_name=settings.aws.s3_bucket_exports,
+                    s3_key=letter.docx_s3_key,
+                    expiration=3600,  # 1 hour
+                    http_method="GET",
+                )
+                logger.info(f"Returning existing DOCX URL for letter {letter_id}")
+                return presigned_url
+            except Exception as e:
+                logger.warning(f"Failed to generate presigned URL for existing DOCX: {str(e)}")
+                # Fall through to generate new DOCX
+        
+        # No existing DOCX, generate new one
+        # Store old S3 key for cleanup if filename changes
+        old_s3_key = letter.docx_s3_key
+        
+        # Generate filename
+        filename = generate_filename(letter.title, letter.updated_at)
+        new_s3_key = f"{firm_id}/letters/{filename}"
+        
+        # Convert HTML to DOCX
+        try:
+            doc = html_to_docx(letter.content)
+        except Exception as e:
+            logger.error(f"Failed to convert HTML to DOCX for letter {letter_id}: {str(e)}")
+            raise ValueError(f"Failed to convert HTML to DOCX: {str(e)}") from e
+        
+        # Save DOCX to S3
+        try:
+            save_docx_to_s3(
+                doc=doc,
+                bucket_name=settings.aws.s3_bucket_exports,
+                s3_key=new_s3_key,
+                s3_client=s3_client,
+            )
+        except S3UploadException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to save DOCX to S3 for letter {letter_id}: {str(e)}")
+            raise S3UploadException(
+                message="Failed to upload DOCX file to S3",
+                detail=str(e),
+            ) from e
+        
+        # Clean up old file if filename changed
+        if old_s3_key and old_s3_key != new_s3_key:
+            try:
+                s3_client.delete_file(
+                    bucket_name=settings.aws.s3_bucket_exports,
+                    s3_key=old_s3_key,
+                )
+                logger.info(f"Cleaned up old DOCX file: {old_s3_key}")
+            except Exception as e:
+                logger.warning(f"Failed to delete old DOCX file {old_s3_key}: {str(e)}")
+                # Don't fail the operation if cleanup fails
+        
+        # Update docx_s3_key if it changed
+        if letter.docx_s3_key != new_s3_key:
+            letter.docx_s3_key = new_s3_key
+            # updated_at is automatically updated by the model's onupdate
+            db.commit()
+            db.refresh(letter)
+            logger.info(f"Updated docx_s3_key for letter {letter_id}: {new_s3_key}")
+        
+        # Generate presigned URL
+        try:
+            presigned_url = s3_client.generate_presigned_url(
+                bucket_name=settings.aws.s3_bucket_exports,
+                s3_key=new_s3_key,
+                expiration=3600,  # 1 hour
+                http_method="GET",
+            )
+            logger.info(f"Generated new DOCX and URL for letter {letter_id}")
+            return presigned_url
+        except Exception as e:
+            logger.error(f"Failed to generate presigned URL for new DOCX: {str(e)}")
+            raise S3UploadException(
+                message="Failed to generate download URL",
+                detail=str(e),
+            ) from e
+        
+    except (LetterNotFoundException, ForbiddenException, S3UploadException, ValueError):
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error exporting letter: {str(e)}")
         raise
 

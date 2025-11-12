@@ -15,12 +15,16 @@ from .schemas import (
     LetterResponse,
     LetterListResponse,
     LetterUpdate,
+    FinalizeResponse,
+    ExportResponse,
 )
 from .logic import (
     get_letters,
     get_letter_by_id,
     update_letter,
     delete_letter,
+    finalize_letter,
+    export_letter,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,11 +60,8 @@ async def list_letters_endpoint(
     Returns paginated list of letters.
     """
     try:
-        logger.info(f"GET /{firm_id}/letters/ - Request received: page={page}, page_size={page_size}, sort_by={sort_by}, sort_order={sort_order}")
-        
         # Validate sort_by
         if sort_by and sort_by not in ["created_at", "updated_at", "title", "status"]:
-            logger.warning(f"Invalid sort_by value: {sort_by}")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="sort_by must be one of: created_at, updated_at, title, status",
@@ -68,14 +69,12 @@ async def list_letters_endpoint(
         
         # Validate sort_order
         if sort_order not in ["asc", "desc"]:
-            logger.warning(f"Invalid sort_order value: {sort_order}")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="sort_order must be 'asc' or 'desc'",
             )
         
         # Get letters
-        logger.info(f"Calling get_letters logic for firm {firm_id}")
         letters, total = get_letters(
             db=db,
             firm_id=firm_id,
@@ -85,23 +84,18 @@ async def list_letters_endpoint(
             sort_order=sort_order,
         )
         
-        logger.info(f"Successfully retrieved {len(letters)} letters (total: {total}) for firm {firm_id}")
-        
         # Create paginated response
-        response = LetterListResponse.create(
+        return LetterListResponse.create(
             items=letters,
             total=total,
             page=page,
             page_size=page_size,
         )
         
-        logger.info(f"Returning paginated response: page={page}, page_size={page_size}, total={total}, items_count={len(letters)}")
-        return response
-        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in list endpoint for firm {firm_id}: {str(e)}", exc_info=True)
+        logger.error(f"Error in list endpoint: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve letters",
@@ -207,5 +201,84 @@ async def delete_letter_endpoint(
         
     except Exception as e:
         logger.error(f"Error in delete endpoint: {str(e)}")
+        raise
+
+
+@router.post(
+    "/{letter_id}/finalize",
+    response_model=FinalizeResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Finalize letter",
+    description="Finalize a letter by generating DOCX and updating status to 'created'. Works on letters with status 'draft' OR 'created' (allows re-finalizing).",
+)
+async def finalize_letter_endpoint(
+    firm_id: UUID,
+    letter_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """
+    Finalize a letter.
+    
+    - **firm_id**: Firm ID (path parameter)
+    - **letter_id**: Letter ID (path parameter)
+    
+    Generates DOCX file, uploads to S3, updates status to 'created', and returns letter with download URL.
+    """
+    try:
+        letter = finalize_letter(
+            db=db,
+            letter_id=letter_id,
+            firm_id=firm_id,
+        )
+        
+        # Build response
+        return FinalizeResponse(
+            letter=letter,
+            download_url=letter.docx_url,
+            message="Letter finalized successfully",
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in finalize endpoint: {str(e)}")
+        raise
+
+
+@router.post(
+    "/{letter_id}/export",
+    response_model=ExportResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Export letter",
+    description="Export a letter by returning existing presigned URL or generating new DOCX if none exists.",
+)
+async def export_letter_endpoint(
+    firm_id: UUID,
+    letter_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """
+    Export a letter.
+    
+    - **firm_id**: Firm ID (path parameter)
+    - **letter_id**: Letter ID (path parameter)
+    
+    Returns presigned URL for downloading the DOCX file. If no DOCX exists, generates one first.
+    """
+    try:
+        download_url = export_letter(
+            db=db,
+            letter_id=letter_id,
+            firm_id=firm_id,
+        )
+        
+        # Build response
+        return ExportResponse(
+            download_url=download_url,
+            expires_in=3600,  # 1 hour
+            letter_id=letter_id,
+            message="Letter exported successfully",
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in export endpoint: {str(e)}")
         raise
 
