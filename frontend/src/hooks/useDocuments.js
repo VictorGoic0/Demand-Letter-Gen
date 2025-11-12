@@ -9,7 +9,7 @@ export function useDocuments(sortBy = null, sortOrder = 'desc') {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user?.firm_id) {
+    if (!user?.firmId) {
       setLoading(false);
       return;
     }
@@ -29,7 +29,7 @@ export function useDocuments(sortBy = null, sortOrder = 'desc') {
           params.sort_order = sortOrder;
         }
 
-        const response = await api.get(`/${user.firm_id}/documents/`, { params });
+        const response = await api.get(`/${user.firmId}/documents/`, { params });
         setDocuments(response.data.items || []);
       } catch (err) {
         setError(err.message || 'Failed to fetch documents');
@@ -40,10 +40,10 @@ export function useDocuments(sortBy = null, sortOrder = 'desc') {
     };
 
     fetchDocuments();
-  }, [user?.firm_id, sortBy, sortOrder]);
+  }, [user?.firmId, sortBy, sortOrder]);
 
   return { documents, loading, error, refetch: () => {
-    if (user?.firm_id) {
+    if (user?.firmId) {
       const fetchDocuments = async () => {
         try {
           setLoading(true);
@@ -59,7 +59,7 @@ export function useDocuments(sortBy = null, sortOrder = 'desc') {
             params.sort_order = sortOrder;
           }
 
-          const response = await api.get(`/${user.firm_id}/documents/`, { params });
+          const response = await api.get(`/${user.firmId}/documents/`, { params });
           setDocuments(response.data.items || []);
         } catch (err) {
           setError(err.message || 'Failed to fetch documents');
@@ -76,7 +76,7 @@ export function useDocumentUpload() {
   const { user } = useAuth();
 
   const uploadDocument = async (file, onProgress) => {
-    if (!user?.firm_id) {
+    if (!user?.firmId) {
       throw new Error('User not authenticated');
     }
 
@@ -89,7 +89,7 @@ export function useDocumentUpload() {
     }
 
     const response = await api.post(
-      `/${user.firm_id}/documents/`,
+      `/${user.firmId}/documents/`,
       formData,
       {
         headers: {
@@ -127,7 +127,7 @@ export function useDocumentDelete() {
   const [error, setError] = useState(null);
 
   const deleteDocument = async (documentId) => {
-    if (!user?.firm_id) {
+    if (!user?.firmId) {
       throw new Error('User not authenticated');
     }
 
@@ -135,7 +135,7 @@ export function useDocumentDelete() {
     setError(null);
 
     try {
-      await api.delete(`/${user.firm_id}/documents/${documentId}`);
+      await api.delete(`/${user.firmId}/documents/${documentId}`);
       return true;
     } catch (err) {
       setError(err.message || 'Failed to delete document');
@@ -154,7 +154,7 @@ export function useDocumentDownload() {
   const [error, setError] = useState(null);
 
   const downloadDocument = async (documentId) => {
-    if (!user?.firm_id) {
+    if (!user?.firmId) {
       throw new Error('User not authenticated');
     }
 
@@ -162,7 +162,7 @@ export function useDocumentDownload() {
     setError(null);
 
     try {
-      const response = await api.get(`/${user.firm_id}/documents/${documentId}/download`);
+      const response = await api.get(`/${user.firmId}/documents/${documentId}/download`);
       const { url } = response.data;
       
       // Trigger browser download

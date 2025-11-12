@@ -42,6 +42,7 @@ def login_user(email: str, password: str, db: Session) -> LoginResponse:
             userId=str(user.id),
             firmId=str(user.firm_id),
             firmName=firm.name,
+            role=user.role,
         )
     except NoResultFound:
         logger.warning(f"Login attempt with non-existent email: {email}")

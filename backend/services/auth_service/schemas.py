@@ -16,4 +16,5 @@ class LoginResponse(BaseModel):
     userId: str = Field(..., description="User ID (UUID as string)")
     firmId: str = Field(..., description="Firm ID (UUID as string)")
     firmName: str = Field(..., description="Firm name")
+    role: str = Field(..., description="User role (attorney or paralegal)")
 
