@@ -266,65 +266,65 @@
 ## PR #20: Generated Letters Library Page - Frontend
 
 ### Letter List API Hooks
-- [ ] 1. Create src/hooks/useLetters.ts
-- [ ] 2. Implement useLetters hook:
-  - [ ] Fetch letters list
-  - [ ] Accept sorting params
-  - [ ] Accept filter params (status)
-  - [ ] Handle pagination
-  - [ ] Handle loading/error
-- [ ] 3. Implement useDeleteLetter hook:
-  - [ ] Accept letter ID
-  - [ ] Call delete endpoint
-  - [ ] Handle success/error
-- [ ] 4. Implement useExportLetter hook:
-  - [ ] Accept letter ID
-  - [ ] Call export endpoint
-  - [ ] Return download URL
-  - [ ] Handle errors
+- [x] 1. Create src/hooks/useLetters.ts
+- [x] 2. Implement useLetters hook:
+  - [x] Fetch letters list
+  - [x] Accept sorting params
+  - [x] Accept filter params (status)
+  - [x] Handle pagination
+  - [x] Handle loading/error
+- [x] 3. Implement useDeleteLetter hook:
+  - [x] Accept letter ID
+  - [x] Call delete endpoint
+  - [x] Handle success/error
+- [x] 4. Implement useExportLetter hook:
+  - [x] Accept letter ID
+  - [x] Call export endpoint
+  - [x] Return download URL
+  - [x] Handle errors
 
 ### Letter Card Component
-- [ ] 5. Create src/components/Letters/LetterCard.tsx
-- [ ] 6. Display letter title
-- [ ] 7. Display status badge:
-  - [ ] "Draft" badge for draft status
-  - [ ] No badge for created status
-- [ ] 8. Display created date
-- [ ] 9. Display last modified date
-- [ ] 10. Display template name (if available)
-- [ ] 11. Add "Edit" button
-- [ ] 12. Add "Download" button (if finalized)
-- [ ] 13. Add "Delete" button with confirmation
-- [ ] 14. Add click handler to open edit page
-- [ ] 15. Add hover effects
+- [x] 5. Create src/components/Letters/LetterCard.tsx
+- [x] 6. Display letter title
+- [x] 7. Display status badge:
+  - [x] "Draft" badge for draft status
+  - [x] No badge for created status
+- [x] 8. Display created date
+- [x] 9. Display last modified date
+- [x] 10. Display template name (if available)
+- [x] 11. Add "Edit" button
+- [x] 12. Add "Download" button (if finalized)
+- [x] 13. Add "Delete" button with confirmation
+- [x] 14. Add click handler to open edit page
+- [x] 15. Add hover effects
 
 ### Letter List Component
-- [ ] 16. Create src/components/Letters/LetterList.tsx
-- [ ] 17. Render grid or list of LetterCards
-- [ ] 18. Add sorting controls:
-  - [ ] Sort by date created
-  - [ ] Sort by date modified
-  - [ ] Sort by title
-  - [ ] Sort by status
-- [ ] 19. Add filter controls:
-  - [ ] Filter by status (all, draft, created)
-- [ ] 20. Add search functionality
-- [ ] 21. Add empty state when no letters
-- [ ] 22. Add loading skeleton
-- [ ] 23. Implement pagination if needed
+- [x] 16. Create src/components/Letters/LetterList.tsx
+- [x] 17. Render grid or list of LetterCards
+- [x] 18. Add sorting controls:
+  - [x] Sort by date created
+  - [x] Sort by date modified
+  - [x] Sort by title
+  - [x] Sort by status
+- [x] 19. Add filter controls:
+  - [x] Filter by status (all, draft, created)
+- [x] 20. Add search functionality
+- [x] 21. Add empty state when no letters
+- [x] 22. Add loading skeleton
+- [x] 23. Implement pagination if needed
 
 ### Generated Letters Page
-- [ ] 24. Create src/pages/GeneratedLetters.tsx
-- [ ] 25. Add page header with title
-- [ ] 26. Add "Create New Letter" button (links to /create-letter)
-- [ ] 27. Render sorting and filter controls
-- [ ] 28. Render LetterList component
-- [ ] 29. Handle edit: navigate to /letters/:id/edit
-- [ ] 30. Handle download: trigger file download
-- [ ] 31. Handle delete with confirmation dialog
-- [ ] 32. Add loading state
-- [ ] 33. Add error state
-- [ ] 34. Refresh list after delete
+- [x] 24. Create src/pages/GeneratedLetters.tsx
+- [x] 25. Add page header with title
+- [x] 26. Add "Create New Letter" button (links to /create-letter)
+- [x] 27. Render sorting and filter controls
+- [x] 28. Render LetterList component
+- [x] 29. Handle edit: navigate to /letters/:id/edit
+- [x] 30. Handle download: trigger file download
+- [x] 31. Handle delete with confirmation dialog
+- [x] 32. Add loading state
+- [x] 33. Add error state
+- [x] 34. Refresh list after delete
 
 ---
 
