@@ -7,30 +7,40 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth token and user data
-    const token = localStorage.getItem('auth_token');
-    const userData = localStorage.getItem('user_data');
-    
-    if (token && userData) {
+    // Check for stored user data on app load (page reload)
+    const loadUserFromStorage = () => {
       try {
-        setUser(JSON.parse(userData));
+        const userData = localStorage.getItem('user_data');
+        
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          // Ensure we have all required fields
+          if (parsed.email && parsed.userId && parsed.firmId && parsed.firmName) {
+            setUser({ ...parsed, id: parsed.userId });
+          } else {
+            // Invalid user data - clear it
+            console.warn('Invalid user data in localStorage, clearing...');
+            localStorage.removeItem('user_data');
+          }
+        }
       } catch (error) {
-        console.error('Failed to parse user data:', error);
-        localStorage.removeItem('auth_token');
+        console.error('Failed to parse user data from localStorage:', error);
         localStorage.removeItem('user_data');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    loadUserFromStorage();
   }, []);
 
-  const login = (token, userData) => {
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('user_data', JSON.stringify(userData));
-    setUser(userData);
+  const login = (userData) => {
+    const userWithId = { ...userData, id: userData.userId };
+    localStorage.setItem('user_data', JSON.stringify(userWithId));
+    setUser(userWithId);
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     setUser(null);
   };

@@ -130,6 +130,8 @@ function AppRoutes() {
 }
 
 function App() {
+  // AuthProvider handles localStorage check on mount via useEffect
+  // This ensures user data persists across page reloads
   return (
     <AuthProvider>
       <BrowserRouter>

@@ -2,10 +2,10 @@
 
 ## Current Status
 
-**Phase:** Frontend Foundation Complete, Ready for Page Implementation  
+**Phase:** Authentication Flow Implementation  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), and PR #15 (Frontend Foundation and Routing). Frontend foundation is complete with React Router, shadcn components, layout, utilities, types, and AuthContext. Ready to build individual page components.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication.
 
 ## Current Work Focus
 
@@ -54,6 +54,17 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
    - All hooks implemented (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
 
 ## Recent Changes
+
+- ✅ PR #23: Authentication Flow - Frontend and Backend - Complete
+  - Created Login page with email and password fields
+  - Implemented AuthContext with localStorage persistence
+  - Created ProtectedRoute component to guard routes
+  - Updated App.jsx to protect all routes except /login
+  - Created auth service with /login endpoint
+  - Backend login endpoint queries User by email and returns user/firm info
+  - Mock authentication (password accepted but not validated)
+  - Added NotFoundException to shared exceptions
+  - All routes protected - unauthenticated users redirected to login
 
 - ✅ PR #15: Frontend Foundation and Routing - Complete
   - Created App.jsx with React Router and all route definitions
@@ -251,7 +262,7 @@ Features listed in PRD Section 6.7 (P1: Post-MVP Features)
 
 1. **MVP Focus:** Only P0 features should be implemented initially
 2. **Firm-Level Isolation:** All data must be filtered by firm_id - all users within a firm see the same documents, templates, and letters. All queries filter by firm_id for multi-tenancy. Document service uses firm_id as path parameter: `/{firm_id}/documents`.
-3. **No Auth for MVP:** JWT authentication removed from MVP scope. firm_id is provided as path parameter in URL (e.g., `/{firm_id}/documents`).
+3. **Authentication:** Mock authentication implemented - password accepted but not validated. Login endpoint queries User by email and returns user/firm information. Frontend stores user data in localStorage and protects all routes except /login.
 4. **Error Handling:** Comprehensive error handling at all layers
 5. **Documentation:** Keep documentation updated as code is written
 

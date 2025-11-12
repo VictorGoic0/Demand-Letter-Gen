@@ -26,6 +26,16 @@ class BaseAppException(Exception):
         super().__init__(self.message)
 
 
+class NotFoundException(BaseAppException):
+    """Raised when a resource is not found."""
+    def __init__(self, message: str = "Resource not found", detail: Optional[str] = None):
+        super().__init__(
+            message=message,
+            detail=detail or "The requested resource does not exist",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
 class DocumentNotFoundException(BaseAppException):
     """Raised when a document is not found."""
     def __init__(self, document_id: Optional[str] = None, detail: Optional[str] = None):

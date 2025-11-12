@@ -8,12 +8,13 @@ import { login as loginAPI } from '../api/auth';
 
 export function Login() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -25,11 +26,18 @@ export function Login() {
       return;
     }
 
+    // Password validation
+    if (!password || password.length === 0) {
+      setError('Please enter your password');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const userData = await loginAPI(email);
+      const userData = await loginAPI(email, password);
       login(userData);
       navigate('/dashboard');
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -55,6 +63,21 @@ export function Login() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
               />

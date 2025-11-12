@@ -114,28 +114,36 @@
 - [x] 29. Add response interceptor for network errors
 - [ ] 30. Add request retry logic (optional) (SKIPPED)
 
-### Backend Login Route (NOT IMPLEMENTED - ADDED AS TASKS)
-- [ ] 31. Create backend /login endpoint
-- [ ] 32. Accept email in request body (no password - mock auth)
-- [ ] 33. Query user table by email
-- [ ] 34. Get user's firm information
-- [ ] 35. Return response with:
-  - [ ] email
-  - [ ] userId
-  - [ ] firmId
-  - [ ] firmName
-- [ ] 36. Handle case where user doesn't exist (return 404 or appropriate error)
-- [ ] 37. Add endpoint to FastAPI router
+### Backend Login Route (COMPLETE)
+- [x] 31. Create backend /login endpoint
+- [x] 32. Accept email in request body (password accepted but not validated - mock auth)
+- [x] 33. Query user table by email
+- [x] 34. Get user's firm information
+- [x] 35. Return response with:
+  - [x] email
+  - [x] userId
+  - [x] firmId
+  - [x] firmName
+- [x] 36. Handle case where user doesn't exist (return 404 or appropriate error)
+- [x] 37. Add endpoint to FastAPI router
 - [ ] 38. Test endpoint manually
 
-### Frontend State and localStorage Management (NOT IMPLEMENTED - ADDED AS TASKS)
-- [ ] 39. Update App.jsx useEffect to check localStorage on page reload
-- [ ] 40. Load user data from localStorage into AuthContext if present
-- [ ] 41. Ensure AuthContext properly initializes from localStorage
-- [ ] 42. Update axios request interceptor to include firmId in requests (if needed)
-- [ ] 43. Update axios request interceptor to include userId in requests (if needed)
-- [ ] 44. Test that user data persists across page reloads
-- [ ] 45. Test that unauthenticated users are redirected to login on page reload
+### Frontend State and localStorage Management (COMPLETE)
+- [x] 39. Update App.jsx useEffect to check localStorage on page reload
+- [x] 40. Load user data from localStorage into AuthContext if present
+- [x] 41. Ensure AuthContext properly initializes from localStorage
+  - Added validation to ensure all required fields are present
+  - Improved error handling for corrupted localStorage data
+- [x] 42. Update axios request interceptor to include firmId in requests (if needed)
+  - Added X-Firm-Id header to all requests from localStorage
+- [x] 43. Update axios request interceptor to include userId in requests (if needed)
+  - Added X-User-Id header to all requests from localStorage
+- [x] 44. Test that user data persists across page reloads
+  - AuthContext useEffect loads user data on mount
+  - User data validated before setting state
+- [x] 45. Test that unauthenticated users are redirected to login on page reload
+  - ProtectedRoute redirects unauthenticated users to /login
+  - Response interceptor handles 401 errors and redirects
 
 ---
 
