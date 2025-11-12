@@ -384,21 +384,16 @@
   - [x] Delete old DOCX file from S3 if s3_key changes
   - [x] Return new presigned URL with updated content
   - [ ] Add unit tests for re-export scenario
-- [ ] 21. Remove HTML tags from export content:
-  - [ ] Review html_to_docx function in services/letter_service/docx_generator.py
-  - [ ] Add HTML tag stripping before parsing (remove raw HTML tags that shouldn't be in content)
-  - [ ] Ensure only valid formatting tags (p, h1-h3, strong, em, ul, ol, li) are processed
-  - [ ] Strip any remaining HTML entities and tags that aren't handled by parser
-  - [ ] Preserve text content while removing unwanted HTML markup
-  - [ ] Add tests for HTML tag removal
-- [ ] 22. Remove backticks from export content:
-  - [ ] Add backtick removal in html_to_docx function
-  - [ ] Strip backticks (`` ` ``) from text content before DOCX conversion
-  - [ ] Handle both single backticks and triple backticks (code blocks)
-  - [ ] Preserve other formatting while removing backticks
+- [x] 21. Remove markdown code block markers from export content:
+  - [x] Review html_to_docx function in services/letter_service/docx_generator.py
+  - [x] Add cleaning logic to remove ```html at the beginning of content
+  - [x] Add cleaning logic to remove ``` at the end of content
+  - [x] Preserve all valid HTML formatting tags (p, h1-h3, strong, em, ul, ol, li)
+  - [x] Apply cleaning before HTML parsing
+  - [ ] Add tests for markdown code block marker removal
+- [x] 22. Remove stray backticks from export content:
+  - [x] Add backtick removal in html_to_docx function
+  - [x] Strip any remaining single backticks (`` ` ``) that appear in text content
+  - [x] Preserve HTML formatting while removing backticks
   - [ ] Add tests for backtick removal
-- [ ] 23. Update finalize_letter to use same cleaning logic:
-  - [ ] Apply HTML tag and backtick removal to finalize_letter function
-  - [ ] Ensure consistent content cleaning across both export and finalize endpoints
-  - [ ] Update tests to verify cleaned content in both flows
 

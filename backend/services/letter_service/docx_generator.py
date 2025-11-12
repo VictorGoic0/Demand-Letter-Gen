@@ -181,6 +181,20 @@ def html_to_docx(html_content: str) -> Document:
         cleaned_html = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.DOTALL | re.IGNORECASE)
         cleaned_html = re.sub(r'<style[^>]*>.*?</style>', '', cleaned_html, flags=re.DOTALL | re.IGNORECASE)
         
+        # Task 21: Remove markdown code block markers
+        # Remove ```html at the beginning (case-insensitive, with optional whitespace/newlines)
+        # Match start of string, optional whitespace, ```html, optional whitespace
+        cleaned_html = re.sub(r'^\s*```html\s*', '', cleaned_html, flags=re.IGNORECASE | re.MULTILINE)
+        # Remove ``` at the end (with optional whitespace/newlines)
+        # Match optional whitespace, ```, optional whitespace, end of string
+        cleaned_html = re.sub(r'\s*```\s*$', '', cleaned_html, flags=re.MULTILINE)
+        
+        # Task 22: Remove stray single backticks from text content
+        # Remove any remaining backticks from the content
+        # These are likely markdown artifacts (inline code markers) that shouldn't appear in the final DOCX
+        # Since we're working with HTML content, backticks aren't valid HTML and should be removed
+        cleaned_html = re.sub(r'`', '', cleaned_html)
+        
         # Parse HTML
         parser.feed(cleaned_html)
         
