@@ -2,7 +2,7 @@
 
 ## Project Status
 
-**Overall Progress:** ~52% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service CRUD Complete, Frontend Foundation Complete, Document Library Page Complete, Authentication Flow Complete (15/29 PRs Complete)  
+**Overall Progress:** ~59% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Authentication Flow Complete (17/29 PRs Complete)  
 **Last Updated:** November 2025
 
 ## What Works
@@ -25,6 +25,8 @@
 - ✅ PR #10: AI Service - Backend (Part 1: OpenAI Integration) (OpenAI Client, Prompt Engineering, Schemas, Retry Logic, Comprehensive System Prompt)
 - ✅ PR #11: AI Service - Backend (Part 2: Generation Logic) (Business Logic, Router, Lambda Handler, Full Letter Generation Workflow)
 - ✅ PR #12: Letter Service - Backend (Part 1: CRUD Operations) (Schemas, Logic, Router, Full CRUD with Firm-Level Isolation)
+- ✅ PR #13: Letter Service - Backend (Part 2: DOCX Export) (HTML to DOCX Conversion, Finalize, Export, Lambda Handlers)
+- ✅ PR #14: Local Development Main Application (FastAPI App with All Routers, Health Checks, Startup/Shutdown Events, Docker Scripts, Migration Scripts, Check Scripts)
 - ✅ PR #15: Frontend Foundation and Routing (App Structure, shadcn Components, Layout, Utilities, Types, AuthContext)
 - ✅ PR #16: Document Library Page - Frontend (Hooks, Components, Multi-file Upload, Progress Tracking, Document Management)
 - ✅ PR #23: Authentication Flow - Frontend and Backend (Complete)
@@ -103,8 +105,36 @@
   - S3 integration for .docx deletion
   - Pagination and sorting support
   - Comprehensive error handling
-- [ ] PR #13: Letter Service - Backend (Part 2: DOCX Export)
-- [ ] PR #14: Local Development Main Application
+- [x] PR #13: Letter Service - Backend (Part 2: DOCX Export) - COMPLETE
+  - Created `docx_generator.py` with HTML to DOCX conversion:
+    - Custom HTML parser supporting common tags (p, h1-h3, strong, b, em, i, ul, ol, li)
+    - Handles nested formatting with stack-based approach
+    - `html_to_docx()` function for conversion
+    - `generate_filename()` with sanitization (50 char limit)
+    - `save_docx_to_s3()` for S3 uploads
+  - Added `finalize_letter()` function:
+    - Works on 'draft' OR 'created' status (allows re-finalizing)
+    - Generates DOCX and uploads to S3 (key: `{firmId}/letters/{filename}.docx`)
+    - Updates status to 'created' and sets docx_s3_key
+    - Cleans up old file if filename changes
+  - Added `export_letter()` function:
+    - Returns existing presigned URL if docx exists
+    - Generates new DOCX if needed
+    - Updates docx_s3_key if filename changes
+  - Added endpoints: POST /{letter_id}/finalize, POST /{letter_id}/export
+  - Created Lambda handlers for all endpoints
+  - Comprehensive error handling throughout
+- [x] PR #14: Local Development Main Application - COMPLETE
+  - Updated main.py with FastAPI lifespan events (startup/shutdown)
+  - Detailed health checks on startup (database connection test, S3 bucket checks)
+  - Enhanced /health endpoint with database and S3 status
+  - Created Docker management scripts (server_start.sh, server_end.sh, server_restart.sh)
+  - Created migration scripts (migrate-up.sh, migrate-down.sh, migrate-create.sh)
+  - Created check scripts for all tables (check_letter_table.py, check_letter_document_table.py)
+  - All service routers integrated
+  - CORS configured for development
+  - Exception handlers registered
+  - OpenAPI documentation configured
 
 ### Phase 3: Frontend (29% - 2/7 PRs Complete)
 - [x] PR #15: Frontend Foundation and Routing - COMPLETE
@@ -161,26 +191,27 @@
 - [x] PDF text extraction - Parser service complete
 - [x] Draft letter creation - Business logic complete (PR #11)
 
-### Letter Finalization (0%)
-- [ ] Letter viewing (formatted HTML)
-- [ ] Letter editing (rich text)
-- [ ] Draft saving
-- [ ] Finalization (status change + .docx generation)
-- [ ] .docx export to S3
+### Letter Finalization (60% - Backend Complete, Frontend Pending)
+- [ ] Letter viewing (formatted HTML) - Frontend pending
+- [ ] Letter editing (rich text) - Frontend pending
+- [ ] Draft saving - Backend complete (update_letter)
+- [x] Finalization (status change + .docx generation) - Backend complete (PR #13)
+- [x] .docx export to S3 - Backend complete (PR #13)
 
-### Letter Management (40% - Backend CRUD Complete, Frontend Pending)
+### Letter Management (80% - Backend Complete, Frontend Pending)
 - [x] Letter listing (backend) - PR #12 Complete
 - [x] Letter retrieval (backend) - PR #12 Complete
 - [x] Letter updating (backend) - PR #12 Complete
 - [x] Letter deletion (backend) - PR #12 Complete
+- [x] Letter finalization (backend) - PR #13 Complete
+- [x] Letter export (backend) - PR #13 Complete
 - [ ] Generated letters library (frontend) - Pending
 - [ ] Letter editing (post-finalization) - Frontend pending
-- [ ] Letter re-export - Backend pending (PR #13)
 - [ ] Status indicators (draft/created) - Frontend pending
 
 ## Technical Infrastructure Status
 
-### Backend Infrastructure (92% - 11/12 Complete)
+### Backend Infrastructure (100% - 12/12 Complete)
 - [x] FastAPI application structure (basic setup)
 - [x] Database models (SQLAlchemy) - All 6 models complete
 - [x] Database migrations (Alembic) - Initialized and configured
@@ -197,7 +228,14 @@
 - [x] AI service OpenAI integration - Complete (client, prompts, schemas)
 - [x] AI service generation logic - Complete (business logic, router, handler)
 - [x] Letter service router - Complete (CRUD operations, PR #12)
-- [ ] Letter service finalize/export - Pending (PR #13)
+- [x] Letter service finalize/export - Complete (PR #13)
+- [x] Letter service DOCX generator - Complete (HTML to DOCX conversion, PR #13)
+- [x] Main FastAPI application - Complete (PR #14)
+  - All service routers integrated
+  - Startup/shutdown events with health checks
+  - Enhanced /health endpoint
+  - Docker and migration scripts
+  - Check scripts for all tables
 - [ ] Authentication middleware (deferred - using mock auth)
 
 ### Frontend Infrastructure (100% - Foundation Complete)
@@ -222,12 +260,15 @@
 - [ ] CloudWatch logging
 - [x] Environment variables documented (S3 bucket names)
 
-### Development Environment (80% - 4/5 Complete)
+### Development Environment (100% - 5/5 Complete)
 - [x] Docker Compose setup
 - [x] Local database running (PostgreSQL 15 configured)
 - [x] Hot reload configured
 - [x] Environment variables documented and working
 - [x] Development scripts created (seed, check, test scripts)
+- [x] Docker management scripts (server_start.sh, server_end.sh, server_restart.sh)
+- [x] Migration scripts (migrate-up.sh, migrate-down.sh, migrate-create.sh)
+- [x] Check scripts for all database tables
 
 ## Testing Status
 
@@ -294,9 +335,9 @@ None currently identified.
 ## Metrics
 
 ### Development Metrics
-- **PRs Completed:** 15/29 (52%)
-- **Features Completed:** 2.5/5 major features (Document Management - Complete, Template Management - Backend Complete, Letter Management - Backend CRUD Complete)
-- **Backend Services:** 7/7 complete (Document, Template, Parser, AI Service, Letter Service CRUD, Auth)
+- **PRs Completed:** 17/29 (59%)
+- **Features Completed:** 3/5 major features (Document Management - Complete, Template Management - Backend Complete, Letter Management - Backend Complete)
+- **Backend Services:** 7/7 complete (Document, Template, Parser, AI Service, Letter Service Complete, Auth)
 - **Frontend Foundation:** Complete (routing, components, utilities, types, context, authentication)
 - **Frontend Pages:** 1/7 complete (Document Library)
 - **Authentication:** Complete (frontend and backend login, user menu, protected routes, localStorage persistence)

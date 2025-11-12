@@ -31,9 +31,16 @@ backend/
     parser_service/   # PDF text extraction
     ai_service/       # Letter generation orchestration
     letter_service/   # Letter CRUD, finalize, export
-  scripts/            # Utility scripts (testing, migrations, etc.)
-    test_db.py        # Database connection and schema validation
-  main.py             # Local dev: combines all routers
+  scripts/            # Utility scripts (testing, check scripts)
+    check_*.py        # Table check scripts (firm, user, document, template, letter, letter_document)
+    seed_*.py         # Seed scripts (test_firm, test_users)
+    test_*.py         # Test scripts (db_connection, upload_document_api)
+  migration_scripts/ # Alembic migration scripts
+    migrate-up.sh     # Upgrade to latest migration
+    migrate-down.sh   # Rollback one migration
+    migrate-create.sh # Create new migration
+  server_*.sh         # Docker management scripts (start, end, restart)
+  main.py             # Local dev: combines all routers with health checks
 ```
 
 ### Service Responsibilities
@@ -68,8 +75,17 @@ backend/
   - Get single letter with full metadata and presigned URL
   - Update letter title and/or content
   - Delete letter and associated .docx from S3
-- Generates .docx files from HTML content (PR #13 Pending)
-- Handles finalize and re-export actions (PR #13 Pending)
+- DOCX generation from HTML content (PR #13 Complete)
+  - Custom HTML parser (`HTMLToDocxParser`) supporting common tags (p, h1-h3, strong, b, em, i, ul, ol, li)
+  - Handles nested formatting with stack-based approach
+  - Converts HTML to python-docx Document objects
+  - Filename generation with sanitization (50 char limit, format: `Demand_Letter_[Title]_[Date].docx`)
+- Finalize and export actions (PR #13 Complete)
+  - `finalize_letter()`: Generates DOCX, updates status to 'created', uploads to S3
+  - `export_letter()`: Returns existing presigned URL or generates new DOCX
+  - Works on letters with status 'draft' OR 'created' (allows re-finalizing)
+  - S3 key format: `{firmId}/letters/{filename}.docx`
+  - Cleans up old files when filenames change
 - Manages letter-document associations (via LetterSourceDocument junction table)
 - Uploads .docx exports to S3 (using `shared/s3_client.py`)
 - Uses bucket: `goico-demand-letters-exports-dev` (presigned URLs for frontend access)
@@ -122,14 +138,40 @@ Document Service:
 Frontend → API Gateway → Letter Service Lambda
   ↓
 Letter Service:
-  1. Fetches letter from RDS
-  2. Converts HTML content to .docx using python-docx
-  3. Uploads .docx to S3
-  4. Updates letter record:
+  1. Fetches letter from RDS (verifies firm-level access)
+  2. Generates filename from title and date (sanitized, 50 char limit)
+  3. Converts HTML content to .docx using custom HTML parser:
+     - Parses HTML tags (p, h1-h3, strong, b, em, i, ul, ol, li)
+     - Handles nested formatting (bold + italic)
+     - Creates python-docx Document with proper styling
+  4. Uploads .docx to S3 (key: {firmId}/letters/{filename}.docx)
+  5. Cleans up old file if filename changed
+  6. Updates letter record:
      - status = 'created'
-     - docx_s3_key = S3 key
-  5. Generates presigned download URL
-  6. Returns download URL
+     - docx_s3_key = new S3 key
+  7. Generates presigned download URL (1 hour expiration)
+  8. Returns letter data with download URL
+```
+
+### Export Flow
+
+```
+Frontend → API Gateway → Letter Service Lambda
+  ↓
+Letter Service:
+  1. Fetches letter from RDS (verifies firm-level access)
+  2. If docx_s3_key exists:
+     - Generates presigned URL from existing S3 key
+     - Returns URL immediately
+  3. If no docx_s3_key exists:
+     - Generates filename from title and date
+     - Converts HTML to .docx
+     - Uploads to S3
+     - Updates docx_s3_key
+     - Generates presigned URL
+     - Returns URL
+  4. If filename changed:
+     - Cleans up old file from S3
 ```
 
 ## Design Patterns
@@ -264,6 +306,10 @@ App
 - Hot reload for both frontend and backend
 - Local PostgreSQL database
 - Direct service imports (no API calls between services)
+- Docker management scripts: `server_start.sh`, `server_end.sh`, `server_restart.sh`
+- Migration scripts: `migration_scripts/migrate-up.sh`, `migrate-down.sh`, `migrate-create.sh`
+- Check scripts: `scripts/check_*.py` for all database tables (first 5 results)
+- Main application with startup/shutdown events and detailed health checks
 
 ### Production
 - Each service as separate Lambda function
@@ -286,6 +332,13 @@ App
 4. **Firm-Level Templates:** Templates shared across firm, not per-user
 5. **Service Separation:** Clear boundaries but shared codebase for development speed
 6. **Environment Configuration:** `.env` files are source of truth for most configuration. OpenAI model and temperature are in `shared/config.py` for easier development iteration.
-7. **Scripts Organization:** All utility scripts live in `backend/scripts/` directory
+7. **Scripts Organization:** 
+   - Utility scripts in `backend/scripts/` directory (check, seed, test scripts)
+   - Migration scripts in `backend/migration_scripts/` directory (alembic commands)
+   - Docker management scripts in `backend/` root (server_start.sh, server_end.sh, server_restart.sh)
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
+9. **HTML to DOCX Conversion:** Custom HTML parser built using Python's `html.parser` module, converting to python-docx Document objects. Supports common tags with nested formatting support. Filename generation with sanitization (50 char limit).
+10. **DOCX Export Strategy:** S3 key format `{firmId}/letters/{filename}.docx` (no letter_id in path). Old files cleaned up when filenames change. Finalize always generates new DOCX (overwrites existing). Export returns existing URL if available, generates if not.
+11. **Health Checks:** Main application performs detailed health checks on startup (database connection test, S3 bucket accessibility). Enhanced `/health` endpoint returns database and S3 connection status for monitoring.
+12. **Startup/Shutdown Events:** FastAPI lifespan context manager handles startup (health checks) and shutdown (connection cleanup) events.
 

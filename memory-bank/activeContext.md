@@ -5,7 +5,7 @@
 **Phase:** Backend Services Implementation  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #9 (Parser Service - Backend), PR #10 (AI Service - Backend Part 1: OpenAI Integration), PR #11 (AI Service - Backend Part 2: Generation Logic), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Parser service is complete with PDF text extraction and metadata extraction. AI service is complete with OpenAI integration, prompt engineering, and full letter generation logic that creates draft letters from templates and documents. Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #9 (Parser Service - Backend), PR #10 (AI Service - Backend Part 1: OpenAI Integration), PR #11 (AI Service - Backend Part 2: Generation Logic), PR #12 (Letter Service - Backend Part 1: CRUD Operations), PR #13 (Letter Service - Backend Part 2: DOCX Export), PR #14 (Local Development Main Application), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Parser service is complete with PDF text extraction and metadata extraction. AI service is complete with OpenAI integration, prompt engineering, and full letter generation logic that creates draft letters from templates and documents. Letter service is complete with CRUD operations and DOCX export functionality (HTML to DOCX conversion, finalize, and export endpoints). Main FastAPI application is complete with all service routers integrated, detailed health checks, and startup/shutdown events. Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication.
 
 ## Current Work Focus
 
@@ -54,6 +54,57 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
    - All hooks implemented (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
 
 ## Recent Changes
+
+- ✅ PR #14: Local Development Main Application - Complete
+  - Updated `backend/main.py` with FastAPI lifespan events:
+    - Startup: Detailed database connection health check (tests with `SELECT 1`)
+    - Startup: Detailed S3 bucket health checks (checks both documents and exports buckets)
+    - Shutdown: Proper database connection cleanup (engine.dispose())
+    - Enhanced `/health` endpoint with detailed status (database and S3 connection states)
+  - Created Docker management scripts in `/backend`:
+    - `server_start.sh` - Start docker-compose services
+    - `server_end.sh` - Stop docker-compose services
+    - `server_restart.sh` - Restart docker-compose services
+  - Created migration scripts in `/backend/migration_scripts/`:
+    - `migrate-up.sh` - Run `alembic upgrade head`
+    - `migrate-down.sh` - Run `alembic downgrade -1`
+    - `migrate-create.sh` - Create new migration with `alembic revision --autogenerate`
+  - Created check scripts for all database tables:
+    - `scripts/check_letter_table.py` - Check generated_letters table (first 5 results)
+    - `scripts/check_letter_document_table.py` - Check letter_source_documents table (first 5 results)
+  - All service routers already integrated in main.py
+  - CORS middleware configured with development origins
+  - Exception handlers registered
+  - OpenAPI documentation configured
+  - Testing setup deferred to MVP+ (optional)
+
+- ✅ PR #13: Letter Service - Backend (Part 2: DOCX Export) - Complete
+  - Created `services/letter_service/docx_generator.py` with HTML to DOCX conversion:
+    - Custom HTML parser (`HTMLToDocxParser`) supporting `<p>`, `<h1>`, `<h2>`, `<h3>`, `<strong>`, `<b>`, `<em>`, `<i>`, `<ul>`, `<ol>`, `<li>`
+    - Handles nested formatting (bold + italic)
+    - `html_to_docx()` function for conversion
+    - `generate_filename()` with sanitization (50 char limit, format: `Demand_Letter_[Title]_[Date].docx`)
+    - `save_docx_to_s3()` for uploading DOCX files to S3
+    - Error handling for HTML parsing, DOCX generation, and S3 upload
+  - Added `finalize_letter()` function to `logic.py`:
+    - Works on letters with status 'draft' OR 'created' (allows re-finalizing)
+    - Always generates new DOCX (overwrites existing if present)
+    - Changes status to 'created' if not already
+    - Generates filename and uploads to S3 (key format: `{firmId}/letters/{filename}.docx`)
+    - Cleans up old file if filename changes
+    - Returns letter with presigned download URL
+  - Added `export_letter()` function to `logic.py`:
+    - Returns existing presigned URL if docx_s3_key exists
+    - Generates new DOCX if no docx_s3_key exists
+    - Updates docx_s3_key if filename changes
+    - Cleans up old file if filename changes
+    - Returns presigned download URL
+  - Added endpoints to `router.py`:
+    - POST /{firm_id}/letters/{letter_id}/finalize - Finalize letter
+    - POST /{firm_id}/letters/{letter_id}/export - Export letter
+    - OpenAPI documentation included
+  - Created `services/letter_service/handler.py` with Lambda handlers for all endpoints
+  - All error handling implemented throughout
 
 - ✅ PR #12: Letter Service - Backend (Part 1: CRUD Operations) - Complete
   - Created `services/letter_service/schemas.py` with all letter schemas:
@@ -329,13 +380,14 @@ None identified yet - project is in initial setup phase.
 - [x] Lambda-optimized structure setup
 - [x] Shared backend utilities
 
-### Phase 2: Core Features (100% - 6/6 PRs Complete)
+### Phase 2: Core Features (100% - 7/7 PRs Complete)
 - [x] Document service (upload, list, delete) - PR #7 Complete
 - [x] Template service (CRUD) - PR #8 Complete
 - [x] Parser service (PDF extraction) - PR #9 Complete
 - [x] AI service OpenAI integration - PR #10 Complete
 - [x] AI service generation logic - PR #11 Complete
 - [x] Letter service CRUD operations - PR #12 Complete
+- [x] Letter service DOCX export - PR #13 Complete
 - [x] Frontend foundation (routing, components, layout) - PR #15 Complete
 
 ### Phase 3: Frontend Pages (14% - 1/7 PRs Complete)

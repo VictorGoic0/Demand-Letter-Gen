@@ -86,9 +86,19 @@ alembic>=1.12.0  # Database migrations
 - Frontend Vite dev server (port 5173)
 
 **Utility Scripts:**
-- Located in `backend/scripts/` directory
-- `test_db.py` - Database connection and schema validation
-- All scripts use `.env.local` for configuration
+- Located in `backend/scripts/` directory:
+  - `check_*.py` - Table check scripts (firm, user, document, template, letter, letter_document) - returns first 5 results
+  - `seed_*.py` - Seed scripts (test_firm, test_users)
+  - `test_*.py` - Test scripts (db_connection, upload_document_api)
+- Migration scripts in `backend/migration_scripts/`:
+  - `migrate-up.sh` - Run `alembic upgrade head`
+  - `migrate-down.sh` - Run `alembic downgrade -1`
+  - `migrate-create.sh` - Create new migration with message
+- Docker management scripts in `backend/` root:
+  - `server_start.sh` - Start docker-compose services
+  - `server_end.sh` - Stop docker-compose services
+  - `server_restart.sh` - Restart docker-compose services
+- All scripts use `.env` for configuration
 
 **Environment Variables:**
 
@@ -240,7 +250,15 @@ npm run build
 
 **Local Development:**
 ```bash
+# Start Docker services
 cd backend
+./server_start.sh
+
+# Run migrations (if needed)
+./migration_scripts/migrate-up.sh
+
+# Backend auto-reloads via docker-compose (uvicorn --reload)
+# Or run manually:
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
@@ -299,14 +317,18 @@ serverless deploy
 
 ### Local Development
 
-1. Start Docker Compose: `docker-compose up`
-2. Run migrations: `alembic upgrade head`
-3. Backend auto-reloads on code changes
+1. Start Docker Compose: `./server_start.sh` (or `docker-compose up`)
+2. Run migrations: `./migration_scripts/migrate-up.sh` (or `alembic upgrade head`)
+3. Backend auto-reloads on code changes (via docker-compose uvicorn --reload)
 4. Frontend hot-reloads on code changes
 5. Access:
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
+   - Health Check: http://localhost:8000/health (returns database and S3 status)
+6. Check database tables: `python scripts/check_*.py` (returns first 5 results)
+7. Stop services: `./server_end.sh` (or `docker-compose down`)
+8. Restart services: `./server_restart.sh` (or `docker-compose restart`)
 
 ### Testing
 
