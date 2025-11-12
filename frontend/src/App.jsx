@@ -108,7 +108,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/create-letter"
+        path="/letters/new"
         element={
           <ProtectedRoute>
             <MainLayout>

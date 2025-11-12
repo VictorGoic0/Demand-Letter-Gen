@@ -69,125 +69,125 @@
 ## PR #17: Template Management Page - Frontend
 
 ### Template API Hooks
-- [ ] 1. Create src/hooks/useTemplates.ts
-- [ ] 2. Implement useTemplates hook:
-  - [ ] Fetch templates for firm
-  - [ ] Handle loading/error states
-  - [ ] Return templates list
-- [ ] 3. Implement useDefaultTemplate hook:
-  - [ ] Fetch default template
-  - [ ] Return template or null
-- [ ] 4. Implement useCreateTemplate hook:
-  - [ ] Accept template data
-  - [ ] Call create endpoint
-  - [ ] Handle success/error
-- [ ] 5. Implement useUpdateTemplate hook:
-  - [ ] Accept template ID and data
-  - [ ] Call update endpoint
-  - [ ] Handle success/error
-- [ ] 6. Implement useDeleteTemplate hook:
-  - [ ] Accept template ID
-  - [ ] Call delete endpoint
-  - [ ] Handle success/error
+- [x] 1. Create src/hooks/useTemplates.ts
+- [x] 2. Implement useTemplates hook:
+  - [x] Fetch templates for firm
+  - [x] Handle loading/error states
+  - [x] Return templates list
+- [x] 3. Implement useDefaultTemplate hook:
+  - [x] Fetch default template
+  - [x] Return template or null
+- [x] 4. Implement useCreateTemplate hook:
+  - [x] Accept template data
+  - [x] Call create endpoint
+  - [x] Handle success/error
+- [x] 5. Implement useUpdateTemplate hook:
+  - [x] Accept template ID and data
+  - [x] Call update endpoint
+  - [x] Handle success/error
+- [x] 6. Implement useDeleteTemplate hook:
+  - [x] Accept template ID
+  - [x] Call delete endpoint
+  - [x] Handle success/error
 
 ### Template Form Component
-- [ ] 7. Create src/components/Templates/TemplateForm.tsx
-- [ ] 8. Add template name input field
-- [ ] 9. Add letterhead text textarea
-- [ ] 10. Add opening paragraph textarea
-- [ ] 11. Add closing paragraph textarea
-- [ ] 12. Add sections management:
-  - [ ] List of section names
-  - [ ] Add section button
-  - [ ] Remove section button
-  - [ ] Reorder sections (drag-drop or buttons)
-- [ ] 13. Add "Set as Default" checkbox
-- [ ] 14. Add form validation
-- [ ] 15. Add save button with loading state
-- [ ] 16. Add cancel button
-- [ ] 17. Handle create vs edit mode
-- [ ] 18. Pre-fill form in edit mode
+- [x] 7. Create src/components/Templates/TemplateForm.tsx
+- [x] 8. Add template name input field
+- [x] 9. Add letterhead text textarea
+- [x] 10. Add opening paragraph textarea
+- [x] 11. Add closing paragraph textarea
+- [x] 12. Add sections management:
+  - [x] List of section names
+  - [x] Add section button
+  - [x] Remove section button
+  - [x] Reorder sections (drag-drop or buttons)
+- [x] 13. Add "Set as Default" checkbox
+- [x] 14. Add form validation
+- [x] 15. Add save button with loading state
+- [x] 16. Add cancel button
+- [x] 17. Handle create vs edit mode
+- [x] 18. Pre-fill form in edit mode
 
 ### Template Display Components
-- [ ] 19. Create src/components/Templates/TemplateCard.tsx
-- [ ] 20. Display template name
-- [ ] 21. Display "Default" badge if is_default
-- [ ] 22. Display section count
-- [ ] 23. Display created date
-- [ ] 24. Add edit button
-- [ ] 25. Add delete button
-- [ ] 26. Add delete confirmation dialog
-- [ ] 27. Create src/components/Templates/TemplateList.tsx
-- [ ] 28. Render grid/list of TemplateCards
-- [ ] 29. Add empty state
-- [ ] 30. Add loading skeleton
+- [x] 19. Create src/components/Templates/TemplateCard.tsx
+- [x] 20. Display template name
+- [x] 21. Display "Default" badge if is_default
+- [x] 22. Display section count
+- [x] 23. Display created date
+- [x] 24. Add edit button
+- [x] 25. Add delete button
+- [x] 26. Add delete confirmation dialog
+- [x] 27. Create src/components/Templates/TemplateList.tsx
+- [x] 28. Render grid/list of TemplateCards
+- [x] 29. Add empty state
+- [x] 30. Add loading skeleton
 
 ### Template Management Page
-- [ ] 31. Create src/pages/TemplateManagement.tsx
-- [ ] 32. Add page header with title
-- [ ] 33. Add "Create Template" button
-- [ ] 34. Show TemplateForm in dialog on create
-- [ ] 35. Render TemplateList component
-- [ ] 36. Handle edit: open dialog with TemplateForm pre-filled
-- [ ] 37. Handle delete with confirmation
-- [ ] 38. Add loading state
-- [ ] 39. Add error state
-- [ ] 40. Refresh list after create/update/delete
+- [x] 31. Create src/pages/TemplateManagement.tsx
+- [x] 32. Add page header with title
+- [x] 33. Add "Create Template" button
+- [x] 34. Show TemplateForm in dialog on create
+- [x] 35. Render TemplateList component
+- [x] 36. Handle edit: open dialog with TemplateForm pre-filled
+- [x] 37. Handle delete with confirmation
+- [x] 38. Add loading state
+- [x] 39. Add error state
+- [x] 40. Refresh list after create/update/delete
 
 ---
 
 ## PR #18: Create Letter Page - Frontend
 
 ### Letter Generation API Hooks
-- [ ] 1. Create src/hooks/useLetterGeneration.ts
-- [ ] 2. Implement useGenerateLetter hook:
-  - [ ] Accept template ID and document IDs
-  - [ ] Call generate endpoint
-  - [ ] Handle loading state (can take up to 30s)
-  - [ ] Handle success/error
-  - [ ] Return generated letter data
+- [x] 1. Create src/hooks/useLetterGeneration.ts
+- [x] 2. Implement useGenerateLetter hook:
+  - [x] Accept template ID and document IDs
+  - [x] Call generate endpoint
+  - [x] Handle loading state (can take up to 30s)
+  - [x] Handle success/error
+  - [x] Return generated letter data
 
 ### Document Selection Component
-- [ ] 3. Create src/components/CreateLetter/DocumentSelector.tsx
-- [ ] 4. Fetch and display available documents
-- [ ] 5. Add checkbox for each document
-- [ ] 6. Enforce max selection of 5 documents:
-  - [ ] Disable checkboxes when 5 selected
-  - [ ] Show message "Maximum 5 documents"
-- [ ] 7. Display selected count (e.g., "3 of 5 selected")
-- [ ] 8. Add search/filter for documents
-- [ ] 9. Show document metadata (name, date, size)
-- [ ] 10. Add "Clear Selection" button
+- [x] 3. Create src/components/CreateLetter/DocumentSelector.tsx
+- [x] 4. Fetch and display available documents
+- [x] 5. Add checkbox for each document
+- [x] 6. Enforce max selection of 5 documents:
+  - [x] Disable checkboxes when 5 selected
+  - [x] Show message "Maximum 5 documents"
+- [x] 7. Display selected count (e.g., "3 of 5 selected")
+- [x] 8. Add search/filter for documents
+- [x] 9. Show document metadata (name, date, size)
+- [x] 10. Add "Clear Selection" button
 
 ### Template Selection Component
-- [ ] 11. Create src/components/CreateLetter/TemplateSelector.tsx
-- [ ] 12. Fetch and display available templates
-- [ ] 13. Render as dropdown/select or radio buttons
-- [ ] 14. Pre-select default template if exists
-- [ ] 15. Show template preview on selection (optional)
-- [ ] 16. Handle case where no templates exist
+- [x] 11. Create src/components/CreateLetter/TemplateSelector.tsx
+- [x] 12. Fetch and display available templates
+- [x] 13. Render as dropdown/select or radio buttons
+- [x] 14. Pre-select default template if exists
+- [x] 15. Show template preview on selection (optional)
+- [x] 16. Handle case where no templates exist
 
 ### Generation Progress Component
-- [ ] 17. Create src/components/CreateLetter/GenerationProgress.tsx
-- [ ] 18. Show loading spinner during generation
-- [ ] 19. Show progress message "Generating your demand letter..."
-- [ ] 20. Show estimated time remaining (optional)
-- [ ] 21. Add cancel button (optional, if API supports)
+- [x] 17. Create src/components/CreateLetter/GenerationProgress.tsx
+- [x] 18. Show loading spinner during generation
+- [x] 19. Show progress message "Generating your demand letter..."
+- [x] 20. Show estimated time remaining (optional)
+- [x] 21. Add cancel button (optional, if API supports)
 
 ### Create Letter Page
-- [ ] 22. Create src/pages/CreateLetter.tsx
-- [ ] 23. Add page header with title and description
-- [ ] 24. Add optional title input for letter
-- [ ] 25. Render TemplateSelector component
-- [ ] 26. Render DocumentSelector component
-- [ ] 27. Add "Generate Letter" button:
-  - [ ] Disabled if template or documents not selected
-  - [ ] Disabled if < 1 or > 5 documents selected
-- [ ] 28. Show GenerationProgress when generating
-- [ ] 29. On success, redirect to /letters/:id/finalize
-- [ ] 30. On error, show error message with retry option
-- [ ] 31. Add form validation and error states
-- [ ] 32. Add helpful messages/tooltips
+- [x] 22. Create src/pages/CreateLetter.tsx
+- [x] 23. Add page header with title and description
+- [x] 24. Add optional title input for letter
+- [x] 25. Render TemplateSelector component
+- [x] 26. Render DocumentSelector component
+- [x] 27. Add "Generate Letter" button:
+  - [x] Disabled if template or documents not selected
+  - [x] Disabled if < 1 or > 5 documents selected
+- [x] 28. Show GenerationProgress when generating
+- [x] 29. On success, redirect to /letters/:id/finalize
+- [x] 30. On error, show error message with retry option
+- [x] 31. Add form validation and error states
+- [x] 32. Add helpful messages/tooltips
 
 ---
 
