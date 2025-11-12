@@ -194,72 +194,72 @@
 ## PR #19: Finalize Letter Page - Frontend
 
 ### Letter Display Component
-- [ ] 1. Create src/components/Letters/LetterViewer.tsx
-- [ ] 2. Accept content prop (HTML string)
-- [ ] 3. Render HTML content safely using react-markdown or dangerouslySetInnerHTML with sanitization
-- [ ] 4. Apply proper styling to rendered HTML
-- [ ] 5. Add formatting for:
-  - [ ] Headings
-  - [ ] Paragraphs
-  - [ ] Bold/italic text
-  - [ ] Lists
-- [ ] 6. Make scrollable if content is long
-- [ ] 7. Add print-friendly styles
+- [x] 1. Create src/components/Letters/LetterViewer.tsx
+- [x] 2. Accept content prop (HTML string)
+- [x] 3. Render HTML content safely using react-markdown or dangerouslySetInnerHTML with sanitization
+- [x] 4. Apply proper styling to rendered HTML
+- [x] 5. Add formatting for:
+  - [x] Headings
+  - [x] Paragraphs
+  - [x] Bold/italic text
+  - [x] Lists
+- [x] 6. Make scrollable if content is long
+- [x] 7. Add print-friendly styles
 
 ### Letter Editor Component
-- [ ] 8. Create src/components/Letters/LetterEditor.tsx
-- [ ] 9. Accept content prop and onChange callback
-- [ ] 10. Use rich text editor or large textarea
-- [ ] 11. Preserve HTML formatting in edit mode
-- [ ] 12. Add basic formatting toolbar (optional):
-  - [ ] Bold, italic
-  - [ ] Headings
-  - [ ] Lists
-- [ ] 13. Add character/word count (optional)
-- [ ] 14. Auto-save draft functionality (optional)
+- [x] 8. Create src/components/Letters/LetterEditor.tsx
+- [x] 9. Accept content prop and onChange callback
+- [x] 10. Use rich text editor or large textarea
+- [x] 11. Preserve HTML formatting in edit mode
+- [x] 12. Add basic formatting toolbar (optional):
+  - [x] Bold, italic
+  - [x] Headings
+  - [x] Lists
+- [x] 13. Add character/word count (optional)
+- [x] 14. Auto-save draft functionality (optional)
 
 ### Finalize Letter API Hooks
-- [ ] 15. Create src/hooks/useLetterFinalize.ts
-- [ ] 16. Implement useUpdateLetter hook:
-  - [ ] Accept letter ID and updated content
-  - [ ] Call update endpoint
-  - [ ] Handle success/error
-- [ ] 17. Implement useFinalizeLetter hook:
-  - [ ] Accept letter ID
-  - [ ] Call finalize endpoint
-  - [ ] Handle loading (docx generation)
-  - [ ] Handle success/error
-  - [ ] Return download URL
+- [x] 15. Create src/hooks/useLetterFinalize.ts
+- [x] 16. Implement useUpdateLetter hook:
+  - [x] Accept letter ID and updated content
+  - [x] Call update endpoint
+  - [x] Handle success/error
+- [x] 17. Implement useFinalizeLetter hook:
+  - [x] Accept letter ID
+  - [x] Call finalize endpoint
+  - [x] Handle loading (docx generation)
+  - [x] Handle success/error
+  - [x] Return download URL
 
 ### Finalize Letter Page
-- [ ] 18. Create src/pages/FinalizeLetter.tsx
-- [ ] 19. Fetch letter by ID from URL params
-- [ ] 20. Add page header with letter title
-- [ ] 21. Add "Edit" button (top right)
-- [ ] 22. Add "Save" button (top right, visible in edit mode)
-- [ ] 23. Add "Finalize" button (bottom right)
-- [ ] 24. Implement view mode:
-  - [ ] Show LetterViewer component
-  - [ ] "Edit" button visible
-- [ ] 25. Implement edit mode:
-  - [ ] Show LetterEditor component
-  - [ ] "Save" button visible
-  - [ ] "Edit" button hidden
-- [ ] 26. Handle save action:
-  - [ ] Call useUpdateLetter hook
-  - [ ] Show success message
-  - [ ] Switch back to view mode
-  - [ ] Handle errors
-- [ ] 27. Handle finalize action:
-  - [ ] Show confirmation dialog
-  - [ ] Call useFinalizeLetter hook
-  - [ ] Show loading state during docx generation
-  - [ ] On success, redirect to /letters
-  - [ ] Show success message with download link
-  - [ ] Handle errors
-- [ ] 28. Add loading state while fetching letter
-- [ ] 29. Handle case where letter doesn't exist
-- [ ] 30. Handle case where letter is already finalized (redirect to edit page)
+- [x] 18. Create src/pages/FinalizeLetter.tsx
+- [x] 19. Fetch letter by ID from URL params
+- [x] 20. Add page header with letter title
+- [x] 21. Add "Edit" button (top right)
+- [x] 22. Add "Save" button (top right, visible in edit mode)
+- [x] 23. Add "Finalize" button (bottom right)
+- [x] 24. Implement view mode:
+  - [x] Show LetterViewer component
+  - [x] "Edit" button visible
+- [x] 25. Implement edit mode:
+  - [x] Show LetterEditor component
+  - [x] "Save" button visible
+  - [x] "Edit" button hidden
+- [x] 26. Handle save action:
+  - [x] Call useUpdateLetter hook
+  - [x] Show success message
+  - [x] Switch back to view mode
+  - [x] Handle errors
+- [x] 27. Handle finalize action:
+  - [x] Show confirmation dialog
+  - [x] Call useFinalizeLetter hook
+  - [x] Show loading state during docx generation
+  - [x] On success, redirect to /letters
+  - [x] Show success message with download link
+  - [x] Handle errors
+- [x] 28. Add loading state while fetching letter
+- [x] 29. Handle case where letter doesn't exist
+- [x] 30. Handle case where letter is already finalized (redirect to edit page)
 
 ---
 
