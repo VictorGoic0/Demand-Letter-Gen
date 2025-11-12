@@ -5,7 +5,7 @@
 **Phase:** Backend Services Implementation  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication. Template service backend is complete with full CRUD operations.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #9 (Parser Service - Backend), PR #10 (AI Service - Backend Part 1: OpenAI Integration), PR #11 (AI Service - Backend Part 2: Generation Logic), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), and PR #23 (Authentication Flow - Frontend and Backend). Parser service is complete with PDF text extraction and metadata extraction. AI service is complete with OpenAI integration, prompt engineering, and full letter generation logic that creates draft letters from templates and documents. Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication.
 
 ## Current Work Focus
 
@@ -54,6 +54,81 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
    - All hooks implemented (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
 
 ## Recent Changes
+
+- ✅ PR #11: AI Service - Backend (Part 2: Generation Logic) - Complete
+  - Created `services/ai_service/logic.py` with `generate_letter()` function:
+    - Validates document count (1-5 documents)
+    - Fetches and verifies template with firm-level isolation
+    - Fetches and verifies all documents with firm-level isolation
+    - Calls parser service to extract text from each document
+    - Validates extracted text is not empty
+    - Builds prompt using template and document context
+    - Calls OpenAI API to generate letter content
+    - Validates and sanitizes HTML output
+    - Creates GeneratedLetter record in database with status='draft'
+    - Creates LetterSourceDocument associations for all source documents
+    - Returns GenerateResponse with letter_id, content, and status
+    - Comprehensive error handling for all failure points
+    - Logging for generation requests, successes, and failures
+  - Created `services/ai_service/router.py`:
+    - POST /generate/letter endpoint
+    - Accepts firm_id and optional created_by as query params (MVP approach)
+    - Validates GenerateRequest schema
+    - Returns 201 with GenerateResponse
+    - OpenAPI documentation included
+    - Proper error handling with appropriate HTTP status codes
+  - Created `services/ai_service/handler.py`:
+    - FastAPI app setup for Lambda deployment
+    - Mangum handler configured
+    - Exception handlers registered
+    - Ready for 60-second timeout configuration in Lambda
+  - Router exported in `__init__.py` and registered in `main.py`
+  - Full integration with parser service and template service
+  - Testing utilities deferred for MVP (optional)
+
+- ✅ PR #10: AI Service - Backend (Part 1: OpenAI Integration) - Complete
+  - Created `services/ai_service/openai_client.py` with OpenAI client:
+    - Singleton client with API key from config
+    - `build_generation_prompt()` - builds structured prompts (delegates to prompts.py)
+    - `call_openai_api()` - calls OpenAI with temperature from config (0.7), no streaming
+    - Retry logic with exponential backoff for rate limits and transient failures
+    - Error handling for API errors with OpenAIException
+    - `estimate_token_count()` - rough token estimation for logging
+    - `validate_response_format()` - validates HTML output
+  - Created `services/ai_service/prompts.py` with prompt engineering:
+    - Comprehensive BASE_SYSTEM_PROMPT for legal writing (structured process, guidelines, do's/don'ts)
+    - `build_context_from_documents()` - formats document text with labels, separators, optional truncation
+    - `build_template_instructions()` - formats template structure (letterhead, sections, opening/closing)
+    - `build_output_format_instructions()` - HTML formatting requirements
+    - `combine_prompt_components()` - combines all components into OpenAI message list
+    - `get_html_formatting_examples()` - example HTML structure
+  - Created `services/ai_service/schemas.py`:
+    - GenerateRequest - template_id, document_ids (max 5), optional title
+    - GenerateResponse - letter_id, content (HTML), status (draft)
+    - Validation for document count (1-5 documents)
+  - System prompt expanded from "too vague" to "just right" with clear structure, process steps, guidelines, and explicit do's/don'ts
+
+- ✅ PR #9: Parser Service - Backend - Complete
+  - Created `services/parser_service/pdf_parser.py` with PDF parsing:
+    - `extract_text_from_pdf()` - extracts text from all pages with separators
+    - `extract_metadata_from_pdf()` - extracts page count, file size, creation date
+    - `validate_pdf_structure()` - validates PDF format and structure
+    - Error handling for corrupted PDFs, encrypted PDFs, unsupported versions
+  - Created `services/parser_service/schemas.py`:
+    - ParseRequest - document_ids (max 10)
+    - ParseResponse - document_id, extracted_text, page_count, file_size, metadata, success, error
+    - ParseBatchResponse - results list with total/successful/failed counts
+  - Created `services/parser_service/logic.py`:
+    - `parse_document()` - downloads from S3, extracts text, returns ParseResponse
+    - `parse_documents_batch()` - processes multiple documents, collects results
+    - Firm-level isolation enforced
+    - Error handling for S3 download and parsing failures
+  - Created `services/parser_service/router.py`:
+    - POST /parse/document/{document_id} - parse single document (firm_id query param)
+    - POST /parse/batch - parse multiple documents (firm_id query param)
+    - Firm-level isolation enforced on all endpoints
+  - Created `services/parser_service/handler.py` with Lambda handlers
+  - Router registered in main.py for local development
 
 - ✅ PR #8: Template Service - Backend - Complete
   - Created `services/template_service/schemas.py` with all template schemas (TemplateBase, TemplateCreate, TemplateUpdate, TemplateResponse, TemplateListResponse)
@@ -149,7 +224,7 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
   - Added serverless plugins: serverless-offline and serverless-python-requirements
   - Created `backend/package.json` for npm scripts
   - Created comprehensive deployment documentation: `backend/docs/lambda-deployment.md`
-  - Hardcoded OpenAI model (gpt-4), temperature (0.7), and max_tokens (2000) in `shared/config.py` for easier development
+  - OpenAI model (gpt-4) and temperature (0.7) in `shared/config.py` for easier development
 - ✅ PR #6: Shared Backend Utilities - Complete
   - Updated `shared/config.py` to use Pydantic BaseSettings (from pydantic-settings package)
   - Created Settings class with nested configuration models (Database, AWS, OpenAI, CORS)
@@ -215,7 +290,7 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
 
 ### Recent Decisions
 
-1. **OpenAI Configuration:** Model (gpt-4), temperature (0.7), and max_tokens (2000) are hardcoded in `shared/config.py` for easier development iteration. These can be adjusted directly in code as needed, avoiding environment variable friction during development.
+1. **OpenAI Configuration:** Model (gpt-4) and temperature (0.7) are in `shared/config.py` for easier development iteration. These can be adjusted directly in code as needed, avoiding environment variable friction during development.
 
 ### Current Blockers
 
@@ -231,10 +306,12 @@ None identified yet - project is in initial setup phase.
 - [x] Lambda-optimized structure setup
 - [x] Shared backend utilities
 
-### Phase 2: Core Features (In Progress)
+### Phase 2: Core Features (100% - 5/5 PRs Complete)
 - [x] Document service (upload, list, delete) - PR #7 Complete
 - [x] Template service (CRUD) - PR #8 Complete
-- [ ] Parser service (PDF extraction) - PR #9
+- [x] Parser service (PDF extraction) - PR #9 Complete
+- [x] AI service OpenAI integration - PR #10 Complete
+- [x] AI service generation logic - PR #11 Complete
 - [x] Frontend foundation (routing, components, layout) - PR #15 Complete
 
 ### Phase 3: Frontend Pages (14% - 1/7 PRs Complete)

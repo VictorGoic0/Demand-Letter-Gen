@@ -279,7 +279,7 @@ App
 3. **Status-Based Workflow:** Explicit draft/created status for business logic
 4. **Firm-Level Templates:** Templates shared across firm, not per-user
 5. **Service Separation:** Clear boundaries but shared codebase for development speed
-6. **Environment Configuration:** `.env` files are source of truth for most configuration. OpenAI model, temperature, and max_tokens are hardcoded in `shared/config.py` for easier development iteration.
+6. **Environment Configuration:** `.env` files are source of truth for most configuration. OpenAI model and temperature are in `shared/config.py` for easier development iteration.
 7. **Scripts Organization:** All utility scripts live in `backend/scripts/` directory
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
 

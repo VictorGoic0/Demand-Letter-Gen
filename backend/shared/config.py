@@ -91,7 +91,6 @@ class OpenAIConfig(BaseSettings):
     api_key: str = Field(...)
     model: str = Field(default="gpt-4")
     temperature: float = Field(default=0.7)
-    max_tokens: int = Field(default=2000)
     
     @field_validator("temperature")
     @classmethod
@@ -99,14 +98,6 @@ class OpenAIConfig(BaseSettings):
         """Validate temperature is between 0 and 2."""
         if not 0 <= v <= 2:
             raise ValueError("Temperature must be between 0 and 2")
-        return v
-    
-    @field_validator("max_tokens")
-    @classmethod
-    def validate_max_tokens(cls, v):
-        """Validate max_tokens is positive."""
-        if v < 1:
-            raise ValueError("max_tokens must be at least 1")
         return v
     
     model_config = SettingsConfigDict(
@@ -308,7 +299,6 @@ def get_config_summary(settings: Settings) -> Dict[str, Any]:
         "openai": {
             "model": settings.openai.model,
             "temperature": settings.openai.temperature,
-            "max_tokens": settings.openai.max_tokens,
             "api_key_configured": bool(settings.openai.api_key),
         },
         "cors": {

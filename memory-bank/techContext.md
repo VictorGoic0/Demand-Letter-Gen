@@ -117,7 +117,6 @@ S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
 OPENAI_API_KEY=<key>
 OPENAI_MODEL=gpt-4
 OPENAI_TEMPERATURE=0.7
-OPENAI_MAX_TOKENS=2000
 
 # CORS (optional, defaults to allow all)
 CORS_ALLOW_ORIGINS=*
@@ -265,14 +264,13 @@ serverless deploy
 ### OpenAI API
 
 **Usage:**
-- Model: GPT-4 (hardcoded in `shared/config.py` - currently "gpt-4")
-- Temperature: 0.7 (hardcoded in `shared/config.py`)
-- Max Tokens: 2000 (hardcoded in `shared/config.py`)
+- Model: GPT-4 (in `shared/config.py` - currently "gpt-4")
+- Temperature: 0.7 (in `shared/config.py`)
 - Purpose: Generate demand letter text
 - Authentication: API key from environment variable `OPENAI_API_KEY`
 - Error Handling: Retry logic for rate limits and transient failures
 
-**Note:** Model, temperature, and max_tokens are hardcoded in the code for easier development iteration. These can be adjusted directly in `shared/config.py` as needed.
+**Note:** Model and temperature are in `shared/config.py` for easier development iteration. These can be adjusted directly in code as needed.
 
 **Prompt Engineering:**
 - System prompt for legal writing style
