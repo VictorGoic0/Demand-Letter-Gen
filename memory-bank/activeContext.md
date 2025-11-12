@@ -5,7 +5,7 @@
 **Phase:** Frontend Pages Implementation  
 **Last Updated:** November 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #9 (Parser Service - Backend), PR #10 (AI Service - Backend Part 1: OpenAI Integration), PR #11 (AI Service - Backend Part 2: Generation Logic), PR #12 (Letter Service - Backend Part 1: CRUD Operations), PR #13 (Letter Service - Backend Part 2: DOCX Export), PR #14 (Local Development Main Application), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), PR #17 (Template Management Page - Frontend), PR #18 (Create Letter Page - Frontend), PR #19 (Finalize Letter Page - Frontend), PR #20 (Generated Letters Library Page - Frontend), and PR #23 (Authentication Flow - Frontend and Backend). Parser service is complete with PDF text extraction and metadata extraction. AI service is complete with OpenAI integration, prompt engineering, and full letter generation logic that creates draft letters from templates and documents. Letter service is complete with CRUD operations and DOCX export functionality (HTML to DOCX conversion, finalize, and export endpoints). Main FastAPI application is complete with all service routers integrated, detailed health checks, and startup/shutdown events. Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication. Frontend pages for document library, template management, letter creation, letter finalization, and generated letters library are all complete.
+The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #9 (Parser Service - Backend), PR #10 (AI Service - Backend Part 1: OpenAI Integration), PR #11 (AI Service - Backend Part 2: Generation Logic), PR #12 (Letter Service - Backend Part 1: CRUD Operations), PR #13 (Letter Service - Backend Part 2: DOCX Export), PR #14 (Local Development Main Application), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), PR #17 (Template Management Page - Frontend), PR #18 (Create Letter Page - Frontend), PR #19 (Finalize Letter Page - Frontend), PR #20 (Generated Letters Library Page - Frontend), PR #21 (Edit Letter Page - Frontend), and PR #23 (Authentication Flow - Frontend and Backend). Parser service is complete with PDF text extraction and metadata extraction. AI service is complete with OpenAI integration, prompt engineering, and full letter generation logic that creates draft letters from templates and documents. Letter service is complete with CRUD operations and DOCX export functionality (HTML to DOCX conversion, finalize, and export endpoints). Main FastAPI application is complete with all service routers integrated, detailed health checks, and startup/shutdown events. Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication. All frontend pages are complete: document library, template management, letter creation, letter finalization, generated letters library, and letter editing.
 
 ## Current Work Focus
 
@@ -101,6 +101,21 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
   - Client-side filtering and search (fetches up to 100 items for filtering)
   - Server-side sorting via API
   - Loading skeletons and empty states
+  - Fixed "Create New Letter" button route: `/create-letter` → `/letters/new`
+  - Fixed 404 "Go to Dashboard" link: `/documents` → `/dashboard`
+
+- ✅ PR #21: Edit Letter Page - Frontend - COMPLETE
+  - EditLetter page with view/edit mode toggle
+  - Back button to letters library with unsaved changes warning
+  - Edit/Save buttons with proper state management
+  - Download button (view mode only, when docx_url exists)
+  - Re-export button (finalized letters) with confirmation dialog and success modal
+  - Finalize button (draft letters) redirects to `/letters/:id/finalize`
+  - Unsaved changes warning using beforeunload event and custom navigation handlers (works with BrowserRouter)
+  - LetterViewer and LetterEditor components reused from PR #19
+  - Loading states, error handling, and 404 handling
+  - Fixed useBlocker compatibility issue (replaced with beforeunload + custom handlers for BrowserRouter)
+  - Fixed setExportError issue (removed since useExportLetter doesn't return setError)
 
 ## Recent Changes
 
@@ -490,13 +505,13 @@ None identified yet - project is in initial setup phase.
 - [x] Letter service DOCX export - PR #13 Complete
 - [x] Frontend foundation (routing, components, layout) - PR #15 Complete
 
-### Phase 3: Frontend Pages (71% - 5/7 PRs Complete)
+### Phase 3: Frontend Pages (86% - 6/7 PRs Complete)
 - [x] Document library page - PR #16 Complete
 - [x] Template management page - PR #17 Complete (with route-based navigation and enhanced drag-and-drop)
 - [x] Create letter page - PR #18 Complete
 - [x] Finalize letter page - PR #19 Complete
 - [x] Generated letters library page - PR #20 Complete
-- [ ] Edit letter page - PR #21 Next
+- [x] Edit letter page - PR #21 Complete
 
 ### Phase 3: AI Integration
 - [ ] AI service (letter generation)

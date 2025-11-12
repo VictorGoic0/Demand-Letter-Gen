@@ -2,7 +2,7 @@
 
 ## Project Status
 
-**Overall Progress:** ~72% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete, Create Letter Page Complete, Finalize Letter Page Complete, Generated Letters Library Page Complete, Authentication Flow Complete (21/29 PRs Complete)  
+**Overall Progress:** ~76% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete, Create Letter Page Complete, Finalize Letter Page Complete, Generated Letters Library Page Complete, Edit Letter Page Complete, Authentication Flow Complete (22/29 PRs Complete)  
 **Last Updated:** November 2025
 
 ## What Works
@@ -54,6 +54,17 @@
   - GeneratedLetters page with full CRUD operations
   - Client-side filtering and server-side sorting
   - Download and delete functionality
+  - Fixed "Create New Letter" button route: `/create-letter` → `/letters/new`
+  - Fixed 404 "Go to Dashboard" link: `/documents` → `/dashboard`
+- ✅ PR #21: Edit Letter Page - Frontend (Complete)
+  - EditLetter page with view/edit mode toggle
+  - Back button with unsaved changes warning
+  - Re-export flow with confirmation dialog and success modal
+  - Finalize button for draft letters (redirects to finalize page)
+  - Download button (view mode only when docx_url exists)
+  - Unsaved changes warning (beforeunload + custom handlers for BrowserRouter compatibility)
+  - Fixed useBlocker compatibility issue
+  - Fixed setExportError issue
 - ✅ PR #23: Authentication Flow - Frontend and Backend (Complete)
   - Login page with email/password fields
   - Protected routes with redirect to login
@@ -161,7 +172,7 @@
   - Exception handlers registered
   - OpenAPI documentation configured
 
-### Phase 3: Frontend (71% - 5/7 PRs Complete)
+### Phase 3: Frontend (86% - 6/7 PRs Complete)
 - [x] PR #15: Frontend Foundation and Routing - COMPLETE
 - [x] PR #16: Document Library Page - Frontend - COMPLETE
 - [x] PR #17: Template Management Page - Frontend - COMPLETE
@@ -196,7 +207,16 @@
   - GeneratedLetters page with full CRUD operations
   - Client-side filtering and server-side sorting
   - Download and delete functionality
-- [ ] PR #21: Edit Letter Page - Frontend
+  - Fixed route issues (Create New Letter button, 404 dashboard link)
+- [x] PR #21: Edit Letter Page - Frontend - COMPLETE
+  - EditLetter page with view/edit mode toggle
+  - Back button with unsaved changes warning
+  - Re-export flow with confirmation dialog and success modal
+  - Finalize button for draft letters (redirects to finalize page)
+  - Download button (view mode only when docx_url exists)
+  - Unsaved changes warning using beforeunload + custom handlers (BrowserRouter compatible)
+  - Fixed useBlocker compatibility issue
+  - Fixed setExportError issue
 
 ### Phase 4: Integration & Polish (33% - 1/3 PRs Complete)
 - [ ] PR #22: Error Handling and Loading States - Frontend
@@ -254,7 +274,7 @@
 - [x] Finalization (status change + .docx generation) - Backend complete (PR #13), Frontend complete (PR #19)
 - [x] .docx export to S3 - Backend complete (PR #13), Frontend complete (PR #20)
 
-### Letter Management (90% - Backend Complete, Frontend Mostly Complete)
+### Letter Management (100% - Complete)
 - [x] Letter listing (backend) - PR #12 Complete
 - [x] Letter retrieval (backend) - PR #12 Complete
 - [x] Letter updating (backend) - PR #12 Complete
@@ -263,7 +283,7 @@
 - [x] Letter export (backend) - PR #13 Complete
 - [x] Generated letters library (frontend) - PR #20 Complete
 - [x] Status indicators (draft/created) - PR #20 Complete
-- [ ] Letter editing (post-finalization) - PR #21 Pending
+- [x] Letter editing (post-finalization) - PR #21 Complete
 
 ## Technical Infrastructure Status
 
@@ -309,6 +329,7 @@
 - [x] Create Letter page with document/template selection and generation
 - [x] Finalize Letter page with view/edit modes and finalization
 - [x] Generated Letters Library page with search, filtering, and sorting
+- [x] Edit Letter page with view/edit modes, re-export, and unsaved changes warning
 - [x] Label component (shadcn/ui) installed and configured
 
 ### AWS Infrastructure (25% - S3 Complete)
@@ -396,17 +417,17 @@ None currently identified.
 ## Metrics
 
 ### Development Metrics
-- **PRs Completed:** 21/29 (72%)
-- **Features Completed:** 4/5 major features (Document Management - Complete, Template Management - Complete, Letter Generation - Complete, Letter Management - Mostly Complete)
+- **PRs Completed:** 22/29 (76%)
+- **Features Completed:** 5/5 major features (Document Management - Complete, Template Management - Complete, Letter Generation - Complete, Letter Finalization - Complete, Letter Management - Complete)
 - **Backend Services:** 7/7 complete (Document, Template, Parser, AI Service, Letter Service Complete, Auth)
 - **Frontend Foundation:** Complete (routing, components, utilities, types, context, authentication)
-- **Frontend Pages:** 5/7 complete (Document Library, Template Management, Create Letter, Finalize Letter, Generated Letters Library)
+- **Frontend Pages:** 6/7 complete (Document Library, Template Management, Create Letter, Finalize Letter, Generated Letters Library, Edit Letter)
 - **Authentication:** Complete (frontend and backend login, user menu, protected routes, localStorage persistence)
 - **AI Integration:** Complete (OpenAI client, prompt engineering, generation logic)
 - **PDF Parsing:** Complete (text extraction, metadata extraction, validation)
 - **Letter Generation:** Complete (backend and frontend - can generate draft letters from templates and documents)
 - **Letter Finalization:** Complete (backend and frontend - view/edit modes, finalization, DOCX export)
-- **Letter Management:** Mostly Complete (backend complete, frontend library complete, edit page pending)
+- **Letter Management:** Complete (backend complete, frontend complete - library, editing, re-export, download)
 - **Template Management:** Complete (backend and frontend with route-based navigation, view/edit pages, and enhanced drag-and-drop with paragraph area drop zones)
 - **Test Coverage:** 0% (test scripts created)
 - **Documentation:** 20% complete (S3 setup and usage guides added)

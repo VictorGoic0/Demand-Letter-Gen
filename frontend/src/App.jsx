@@ -10,6 +10,7 @@ import { TemplateView } from './pages/TemplateView';
 import { TemplateEdit } from './pages/TemplateEdit';
 import { CreateLetter } from './pages/CreateLetter';
 import { Letters } from './pages/Letters';
+import { LetterView } from './pages/LetterView';
 import { FinalizeLetter } from './pages/FinalizeLetter';
 import { EditLetter } from './pages/EditLetter';
 import { NotFound } from './pages/NotFound';
@@ -123,6 +124,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <Letters />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/letters/:id/view"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <LetterView />
             </MainLayout>
           </ProtectedRoute>
         }

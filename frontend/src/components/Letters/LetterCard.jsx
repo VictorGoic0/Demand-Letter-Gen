@@ -1,9 +1,9 @@
-import { Edit, Download, Trash2, FileText } from 'lucide-react';
+import { Edit, Download, Trash2, FileText, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function LetterCard({ letter, onEdit, onDownload, onDelete }) {
+export function LetterCard({ letter, onView, onEdit, onDownload, onDelete }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -59,6 +59,14 @@ export function LetterCard({ letter, onEdit, onDownload, onDelete }) {
         )}
       </CardContent>
       <CardFooter className="flex items-center justify-end gap-2 pt-4 border-t">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onView(letter)}
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          View
+        </Button>
         <Button
           variant="outline"
           size="sm"

@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 export function LetterList({ 
   letters, 
   loading, 
+  onView,
   onEdit, 
   onDownload, 
   onDelete,
@@ -145,6 +146,7 @@ export function LetterList({
           <LetterCard
             key={letter.id}
             letter={letter}
+            onView={onView}
             onEdit={onEdit}
             onDownload={onDownload}
             onDelete={onDelete}

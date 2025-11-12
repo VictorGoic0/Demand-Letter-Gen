@@ -30,6 +30,10 @@ export function Letters() {
     navigate('/letters/new');
   };
 
+  const handleViewClick = (letter) => {
+    navigate(`/letters/${letter.id}/view`);
+  };
+
   const handleEditClick = (letter) => {
     navigate(`/letters/${letter.id}/edit`);
   };
@@ -114,6 +118,7 @@ export function Letters() {
         <LetterList
           letters={letters}
           loading={loading}
+          onView={handleViewClick}
           onEdit={handleEditClick}
           onDownload={handleDownloadClick}
           onDelete={handleDeleteClick}
