@@ -370,3 +370,35 @@
   - [x] Show "Finalize" button instead of "Re-export"
   - [x] On finalize, redirect to finalize page or show finalize flow
 
+### Backend: Re-export and Content Cleaning
+- [x] 19. Investigate re-export endpoint issue:
+  - [x] Review export_letter function in services/letter_service/logic.py
+  - [x] Identify why existing docx_s3_key returns old URL instead of regenerating
+  - [x] Check if letter content updates are being persisted before export call
+  - [x] Verify database transaction timing and commit order
+  - [x] Add logging to track content changes vs docx_s3_key updates
+- [x] 20. Fix re-export to always regenerate DOCX:
+  - [x] Modify export_letter function to always regenerate DOCX (remove early return for existing docx_s3_key)
+  - [x] Ensure updated letter.content is used for DOCX generation
+  - [x] Update docx_s3_key in database after new DOCX is generated
+  - [x] Delete old DOCX file from S3 if s3_key changes
+  - [x] Return new presigned URL with updated content
+  - [ ] Add unit tests for re-export scenario
+- [ ] 21. Remove HTML tags from export content:
+  - [ ] Review html_to_docx function in services/letter_service/docx_generator.py
+  - [ ] Add HTML tag stripping before parsing (remove raw HTML tags that shouldn't be in content)
+  - [ ] Ensure only valid formatting tags (p, h1-h3, strong, em, ul, ol, li) are processed
+  - [ ] Strip any remaining HTML entities and tags that aren't handled by parser
+  - [ ] Preserve text content while removing unwanted HTML markup
+  - [ ] Add tests for HTML tag removal
+- [ ] 22. Remove backticks from export content:
+  - [ ] Add backtick removal in html_to_docx function
+  - [ ] Strip backticks (`` ` ``) from text content before DOCX conversion
+  - [ ] Handle both single backticks and triple backticks (code blocks)
+  - [ ] Preserve other formatting while removing backticks
+  - [ ] Add tests for backtick removal
+- [ ] 23. Update finalize_letter to use same cleaning logic:
+  - [ ] Apply HTML tag and backtick removal to finalize_letter function
+  - [ ] Ensure consistent content cleaning across both export and finalize endpoints
+  - [ ] Update tests to verify cleaned content in both flows
+

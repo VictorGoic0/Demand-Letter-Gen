@@ -248,7 +248,7 @@ async def finalize_letter_endpoint(
     response_model=ExportResponse,
     status_code=status.HTTP_200_OK,
     summary="Export letter",
-    description="Export a letter by returning existing presigned URL or generating new DOCX if none exists.",
+    description="Export a letter by always regenerating the DOCX from current letter content. This ensures re-export always uses the latest content.",
 )
 async def export_letter_endpoint(
     firm_id: UUID,
@@ -261,7 +261,8 @@ async def export_letter_endpoint(
     - **firm_id**: Firm ID (path parameter)
     - **letter_id**: Letter ID (path parameter)
     
-    Returns presigned URL for downloading the DOCX file. If no DOCX exists, generates one first.
+    Always regenerates the DOCX from current letter content and returns a new presigned URL.
+    This ensures re-export always reflects the latest content changes.
     """
     try:
         download_url = export_letter(

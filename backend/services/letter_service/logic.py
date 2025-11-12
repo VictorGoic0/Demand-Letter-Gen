@@ -464,10 +464,9 @@ def export_letter(
     firm_id: UUID,
 ) -> str:
     """
-    Export a letter by returning existing presigned URL or generating new DOCX.
-    If docx_s3_key exists, returns existing presigned URL.
-    If no docx_s3_key exists, generates DOCX and uploads it.
-    Updates docx_s3_key if it changes (e.g., filename changed).
+    Export a letter by always regenerating the DOCX from current letter content.
+    This ensures re-export always uses the latest content, even if a DOCX already exists.
+    Always generates a new DOCX, updates the database, and returns a new presigned URL.
     
     Args:
         db: Database session
@@ -500,23 +499,8 @@ def export_letter(
                 detail="Letter does not belong to this firm",
             )
         
-        # If docx_s3_key exists, return existing presigned URL
-        if letter.docx_s3_key:
-            try:
-                presigned_url = s3_client.generate_presigned_url(
-                    bucket_name=settings.aws.s3_bucket_exports,
-                    s3_key=letter.docx_s3_key,
-                    expiration=3600,  # 1 hour
-                    http_method="GET",
-                )
-                logger.info(f"Returning existing DOCX URL for letter {letter_id}")
-                return presigned_url
-            except Exception as e:
-                logger.warning(f"Failed to generate presigned URL for existing DOCX: {str(e)}")
-                # Fall through to generate new DOCX
-        
-        # No existing DOCX, generate new one
-        # Store old S3 key for cleanup if filename changes
+        # Always regenerate DOCX to ensure it reflects current letter content
+        # Store old S3 key for cleanup
         old_s3_key = letter.docx_s3_key
         
         # Generate filename
@@ -547,7 +531,14 @@ def export_letter(
                 detail=str(e),
             ) from e
         
-        # Clean up old file if filename changed
+        # Always update docx_s3_key in database (may be new or updated)
+        letter.docx_s3_key = new_s3_key
+        # updated_at is automatically updated by the model's onupdate
+        db.commit()
+        db.refresh(letter)
+        logger.info(f"Updated docx_s3_key for letter {letter_id}: {new_s3_key}")
+        
+        # Clean up old file if it exists and is different from new one
         if old_s3_key and old_s3_key != new_s3_key:
             try:
                 s3_client.delete_file(
@@ -558,14 +549,6 @@ def export_letter(
             except Exception as e:
                 logger.warning(f"Failed to delete old DOCX file {old_s3_key}: {str(e)}")
                 # Don't fail the operation if cleanup fails
-        
-        # Update docx_s3_key if it changed
-        if letter.docx_s3_key != new_s3_key:
-            letter.docx_s3_key = new_s3_key
-            # updated_at is automatically updated by the model's onupdate
-            db.commit()
-            db.refresh(letter)
-            logger.info(f"Updated docx_s3_key for letter {letter_id}: {new_s3_key}")
         
         # Generate presigned URL
         try:
