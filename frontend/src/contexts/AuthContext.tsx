@@ -1,17 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { LoginResponse } from '../api/auth';
 
-interface User {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  firm_id: string;
+interface User extends LoginResponse {
+  id: string; // Alias for userId
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (token: string, userData: User) => void;
+  login: (userData: LoginResponse) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -23,30 +20,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth token and user data
-    const token = localStorage.getItem('auth_token');
+    // Check for stored user data on app load
     const userData = localStorage.getItem('user_data');
     
-    if (token && userData) {
+    if (userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsed = JSON.parse(userData);
+        setUser({ ...parsed, id: parsed.userId });
       } catch (error) {
         console.error('Failed to parse user data:', error);
-        localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('user_data', JSON.stringify(userData));
-    setUser(userData);
+  const login = (userData: LoginResponse) => {
+    const userWithId = { ...userData, id: userData.userId };
+    localStorage.setItem('user_data', JSON.stringify(userWithId));
+    setUser(userWithId);
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     setUser(null);
   };

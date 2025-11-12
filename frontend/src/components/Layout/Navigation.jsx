@@ -9,7 +9,7 @@ const navigationItems = [
     icon: FileText,
   },
   {
-    name: 'My Campaigns',
+    name: 'My Letters',
     href: '/letters',
     icon: Mail,
   },

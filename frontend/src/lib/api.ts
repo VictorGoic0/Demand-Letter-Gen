@@ -9,13 +9,10 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor for auth tokens
+// Request interceptor - no token attachment needed (mock auth)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // No token attachment - using mock auth
     return config;
   },
   (error) => {
@@ -32,9 +29,12 @@ api.interceptors.response.use(
       const { status, data } = error.response;
       
       if (status === 401) {
-        // Unauthorized - clear token and redirect to login
-        localStorage.removeItem('auth_token');
-        // Could redirect to login page here if needed
+        // Unauthorized - clear user data and redirect to login
+        localStorage.removeItem('user_data');
+        // Redirect to login if we're in the browser
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       }
       
       // Return error with message

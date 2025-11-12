@@ -56,63 +56,86 @@
 ## PR #23: Authentication Flow - Frontend
 
 ### Login Page
-- [ ] 1. Create src/pages/Login.tsx
-- [ ] 2. Add email input field
-- [ ] 3. Add password input field
-- [ ] 4. Add "Remember me" checkbox
-- [ ] 5. Add "Login" button
-- [ ] 6. Add form validation
-- [ ] 7. Add loading state during login
-- [ ] 8. Add error message display
-- [ ] 9. Add "Forgot password" link (placeholder)
-- [ ] 10. Style with Tailwind and shadcn components
+- [x] 1. Create src/pages/Login.tsx
+- [x] 2. Add email input field
+- [ ] 3. Add password input field (SKIPPED - no password in mock auth)
+- [ ] 4. Add "Remember me" checkbox (SKIPPED - not needed)
+- [x] 5. Add "Login" button
+- [x] 6. Add form validation
+- [x] 7. Add loading state during login
+- [x] 8. Add error message display
+- [ ] 9. Add "Forgot password" link (placeholder) (SKIPPED - not needed)
+- [x] 10. Style with Tailwind and shadcn components
 
 ### Auth API
-- [ ] 11. Create src/api/auth.ts
-- [ ] 12. Implement login function:
-  - [ ] Call login endpoint
-  - [ ] Store access token in localStorage
-  - [ ] Return user data
-- [ ] 13. Implement logout function:
-  - [ ] Clear token from localStorage
-  - [ ] Clear user data from context
+- [x] 11. Create src/api/auth.ts
+- [x] 12. Implement login function:
+  - [x] Call login endpoint
+  - [ ] Store access token in localStorage (SKIPPED - no tokens)
+  - [x] Return user data
+- [x] 13. Implement logout function:
+  - [x] Clear token from localStorage (clears user_data instead)
+  - [x] Clear user data from context
 - [ ] 14. Implement getCurrentUser function:
-  - [ ] Verify token validity
-  - [ ] Fetch current user data
-- [ ] 15. Add token refresh logic (if applicable)
+  - [ ] Verify token validity (SKIPPED - no tokens)
+  - [ ] Fetch current user data (NOT IMPLEMENTED YET)
+- [ ] 15. Add token refresh logic (if applicable) (SKIPPED - no tokens)
 
 ### Auth Context Enhancement
-- [ ] 16. Update src/contexts/AuthContext.tsx
-- [ ] 17. Implement login function:
-  - [ ] Call auth API login
-  - [ ] Update user state
-  - [ ] Store token
-  - [ ] Handle errors
-- [ ] 18. Implement logout function:
-  - [ ] Call auth API logout
-  - [ ] Clear user state
-  - [ ] Redirect to login
-- [ ] 19. Implement token check on app load:
-  - [ ] Check for stored token
-  - [ ] Verify token validity
-  - [ ] Load user data if valid
-- [ ] 20. Add loading state for initial auth check
+- [x] 16. Update src/contexts/AuthContext.tsx
+- [x] 17. Implement login function:
+  - [x] Call auth API login
+  - [x] Update user state
+  - [ ] Store token (SKIPPED - stores user_data instead)
+  - [x] Handle errors
+- [x] 18. Implement logout function:
+  - [x] Call auth API logout
+  - [x] Clear user state
+  - [x] Redirect to login (handled by ProtectedRoute)
+- [x] 19. Implement token check on app load:
+  - [x] Check for stored token (checks user_data instead)
+  - [ ] Verify token validity (SKIPPED - no tokens)
+  - [x] Load user data if valid
+- [x] 20. Add loading state for initial auth check
 
 ### Protected Routes
-- [ ] 21. Create src/components/ProtectedRoute.tsx
-- [ ] 22. Check if user is authenticated
-- [ ] 23. Redirect to /login if not authenticated
-- [ ] 24. Show loading state while checking auth
-- [ ] 25. Wrap all protected routes in App.tsx
+- [x] 21. Create src/components/ProtectedRoute.tsx
+- [x] 22. Check if user is authenticated
+- [x] 23. Redirect to /login if not authenticated
+- [x] 24. Show loading state while checking auth
+- [x] 25. Wrap all protected routes in App.tsx
 
 ### Axios Interceptors
-- [ ] 26. Update src/lib/api.ts
-- [ ] 27. Add request interceptor to attach token
-- [ ] 28. Add response interceptor for 401 errors:
-  - [ ] Clear auth state
-  - [ ] Redirect to login
-- [ ] 29. Add response interceptor for network errors
-- [ ] 30. Add request retry logic (optional)
+- [x] 26. Update src/lib/api.ts
+- [ ] 27. Add request interceptor to attach token (SKIPPED - no tokens, interceptor exists but doesn't attach)
+- [x] 28. Add response interceptor for 401 errors:
+  - [x] Clear auth state
+  - [x] Redirect to login
+- [x] 29. Add response interceptor for network errors
+- [ ] 30. Add request retry logic (optional) (SKIPPED)
+
+### Backend Login Route (NOT IMPLEMENTED - ADDED AS TASKS)
+- [ ] 31. Create backend /login endpoint
+- [ ] 32. Accept email in request body (no password - mock auth)
+- [ ] 33. Query user table by email
+- [ ] 34. Get user's firm information
+- [ ] 35. Return response with:
+  - [ ] email
+  - [ ] userId
+  - [ ] firmId
+  - [ ] firmName
+- [ ] 36. Handle case where user doesn't exist (return 404 or appropriate error)
+- [ ] 37. Add endpoint to FastAPI router
+- [ ] 38. Test endpoint manually
+
+### Frontend State and localStorage Management (NOT IMPLEMENTED - ADDED AS TASKS)
+- [ ] 39. Update App.jsx useEffect to check localStorage on page reload
+- [ ] 40. Load user data from localStorage into AuthContext if present
+- [ ] 41. Ensure AuthContext properly initializes from localStorage
+- [ ] 42. Update axios request interceptor to include firmId in requests (if needed)
+- [ ] 43. Update axios request interceptor to include userId in requests (if needed)
+- [ ] 44. Test that user data persists across page reloads
+- [ ] 45. Test that unauthenticated users are redirected to login on page reload
 
 ---
 

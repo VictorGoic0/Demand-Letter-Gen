@@ -2,6 +2,9 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const API_ENDPOINTS = {
+  // Auth
+  LOGIN: '/login',
+  
   // Documents
   DOCUMENTS: '/documents',
   DOCUMENT_BY_ID: (id: string) => `/documents/${id}`,
@@ -34,7 +37,7 @@ export const API_ENDPOINTS = {
 } as const;
 
 // File Constraints
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 export const MAX_DOCUMENTS_PER_LETTER = 5;
 
 export const SUPPORTED_FILE_TYPES = [

@@ -4,65 +4,65 @@
 ## PR #16: Document Library Page - Frontend
 
 ### Document API Hooks
-- [ ] 1. Create src/hooks/useDocuments.ts
-- [ ] 2. Implement useDocuments hook:
-  - [ ] Use axios to fetch documents
-  - [ ] Handle loading state
-  - [ ] Handle error state
-  - [ ] Return documents list
-- [ ] 3. Implement useDocumentUpload hook:
-  - [ ] Accept file and upload progress callback
-  - [ ] Use FormData for multipart upload
-  - [ ] Handle upload progress
-  - [ ] Handle success/error
-- [ ] 4. Implement useDocumentDelete hook:
-  - [ ] Accept document ID
-  - [ ] Call delete endpoint
-  - [ ] Handle success/error
-- [ ] 5. Implement useDocumentDownload hook:
-  - [ ] Fetch presigned URL
-  - [ ] Trigger browser download
+- [x] 1. Create src/hooks/useDocuments.ts
+- [x] 2. Implement useDocuments hook:
+  - [x] Use axios to fetch documents
+  - [x] Handle loading state
+  - [x] Handle error state
+  - [x] Return documents list
+- [x] 3. Implement useDocumentUpload hook:
+  - [x] Accept file and upload progress callback
+  - [x] Use FormData for multipart upload
+  - [x] Handle upload progress
+  - [x] Handle success/error
+- [x] 4. Implement useDocumentDelete hook:
+  - [x] Accept document ID
+  - [x] Call delete endpoint
+  - [x] Handle success/error
+- [x] 5. Implement useDocumentDownload hook:
+  - [x] Fetch presigned URL
+  - [x] Trigger browser download
 
 ### Document Components
-- [ ] 6. Create src/components/Documents/DocumentUpload.tsx
-- [ ] 7. Add drag-and-drop zone:
-  - [ ] Handle drag events
-  - [ ] Visual feedback for drag over
-  - [ ] File input hidden with click to select
-- [ ] 8. Add file validation:
-  - [ ] Check file type (PDF only)
-  - [ ] Check file size (max 50MB)
-  - [ ] Show error messages
-- [ ] 9. Add upload progress bar
-- [ ] 10. Add upload success/error messages
-- [ ] 11. Create src/components/Documents/DocumentList.tsx
-- [ ] 12. Display documents in table/list format:
-  - [ ] Filename column
-  - [ ] Upload date column
-  - [ ] File size column
-  - [ ] Actions column (download, delete)
-- [ ] 13. Add sorting functionality:
-  - [ ] Sort by filename (asc/desc)
-  - [ ] Sort by upload date (asc/desc)
-  - [ ] Sort by file size (asc/desc)
-- [ ] 14. Add delete confirmation dialog
-- [ ] 15. Add download button with loading state
-- [ ] 16. Add empty state when no documents
-- [ ] 17. Create src/components/Documents/DocumentCard.tsx (alternative list view)
-- [ ] 18. Display document metadata in card format
-- [ ] 19. Add hover effects and interactions
+- [x] 6. Create src/components/Documents/DocumentUpload.tsx
+- [x] 7. Add drag-and-drop zone:
+  - [x] Handle drag events
+  - [x] Visual feedback for drag over
+  - [x] File input hidden with click to select
+- [x] 8. Add file validation:
+  - [x] Check file type (PDF only)
+  - [x] Check file size (max 50MB)
+  - [x] Show error messages
+- [x] 9. Add upload progress bar
+- [x] 10. Add upload success/error messages
+- [x] 11. Create src/components/Documents/DocumentList.tsx
+- [x] 12. Display documents in table/list format:
+  - [x] Filename column
+  - [x] Upload date column
+  - [x] File size column
+  - [x] Actions column (download, delete)
+- [x] 13. Add sorting functionality:
+  - [x] Sort by filename (asc/desc)
+  - [x] Sort by upload date (asc/desc)
+  - [x] Sort by file size (asc/desc)
+- [x] 14. Add delete confirmation dialog
+- [x] 15. Add download button with loading state
+- [x] 16. Add empty state when no documents
+- [x] 17. Create src/components/Documents/DocumentCard.tsx (alternative list view)
+- [x] 18. Display document metadata in card format
+- [x] 19. Add hover effects and interactions
 
 ### Document Library Page
-- [ ] 20. Create src/pages/DocumentLibrary.tsx
-- [ ] 21. Add page header with title
-- [ ] 22. Add "Upload Documents" button
-- [ ] 23. Render DocumentUpload component in dialog/modal
-- [ ] 24. Render DocumentList component
-- [ ] 25. Add loading skeleton while fetching
-- [ ] 26. Add error state display
-- [ ] 27. Add refresh button
-- [ ] 28. Implement pagination if needed
-- [ ] 29. Add search/filter functionality (stretch)
+- [x] 20. Create src/pages/DocumentLibrary.tsx
+- [x] 21. Add page header with title
+- [x] 22. Add "Upload Documents" button
+- [x] 23. Render DocumentUpload component in dialog/modal
+- [x] 24. Render DocumentList component
+- [x] 25. Add loading skeleton while fetching
+- [x] 26. Add error state display
+- [x] 27. Add refresh button
+- [x] 28. Implement pagination if needed
+- [x] 29. Add search/filter functionality (stretch)
 
 ---
 

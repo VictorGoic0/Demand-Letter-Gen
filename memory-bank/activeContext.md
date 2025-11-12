@@ -11,7 +11,7 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
 
 ### Immediate Next Steps
 
-**PR #6 Complete** - Shared utilities ready for use:
+**PR #16 Complete** - Document Library Page ready for testing:
 
 1. ✅ **PR #6: Shared Backend Utilities** - COMPLETE
    - Configuration management with Pydantic BaseSettings
@@ -44,10 +44,14 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
    - Neutral theme with primary color matching shadcn default
    - All placeholder pages created (Dashboard, Documents, Templates, CreateLetter, Letters, FinalizeLetter, EditLetter, NotFound)
 
-4. **PR #16: Document Library Page - Frontend** (Next)
-   - Document listing UI
-   - Upload functionality
-   - Document management interface
+4. ✅ **PR #16: Document Library Page - Frontend** - COMPLETE
+   - Document listing UI with table view and sorting
+   - Multi-file upload with drag-and-drop (always visible, no modal)
+   - Auto-upload on file selection
+   - Parallel uploads with individual progress tracking
+   - Document management (download, delete with confirmation)
+   - Empty states and error handling
+   - All hooks implemented (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
 
 ## Recent Changes
 
@@ -65,6 +69,26 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
   - Configured neutral theme with primary color (24 9.8% 10%) matching shadcn default
   - Navigation uses underline style for active items (modern look)
   - Build passes successfully
+
+- ✅ PR #16: Document Library Page - Frontend - Complete
+  - Created useDocuments hook (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
+  - Created DocumentUpload component with modern drag-and-drop UI
+    - Always visible at top of page (no modal)
+    - Auto-upload on file selection
+    - Multi-file support with parallel uploads
+    - Individual progress tracking per file
+    - File validation (PDF only, 50MB max)
+    - Progress cards showing upload status
+  - Created DocumentList component with table view
+    - Sortable columns (filename, upload date)
+    - Download and delete actions
+    - Delete confirmation dialog
+    - Empty state
+    - Loading skeletons
+  - Created DocumentCard component (alternative card view)
+  - Updated Documents page to integrate all components
+  - Navigation updated: "My Campaigns" → "My Letters"
+  - Error handling and loading states throughout
 
 - ✅ PR #1: Project Initialization - Frontend and backend setup complete
 - ✅ PR #2: Docker Configuration - Docker Compose and Dockerfiles created
@@ -174,9 +198,9 @@ None identified yet - project is in initial setup phase.
 - [ ] Parser service (PDF extraction) - PR #9
 - [x] Frontend foundation (routing, components, layout) - PR #15 Complete
 
-### Phase 3: Frontend Pages (Next)
-- [ ] Document library page - PR #16 Next
-- [ ] Template management page - PR #17
+### Phase 3: Frontend Pages (14% - 1/7 PRs Complete)
+- [x] Document library page - PR #16 Complete
+- [ ] Template management page - PR #17 Next
 - [ ] Create letter page - PR #18
 - [ ] Finalize letter page - PR #19
 - [ ] Generated letters library page - PR #20
