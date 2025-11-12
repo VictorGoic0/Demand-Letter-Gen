@@ -59,79 +59,81 @@
 ## PR #12: Letter Service - Backend (Part 1: CRUD Operations)
 
 ### Letter Schemas
-- [ ] 1. Create services/letter_service/schemas.py
-- [ ] 2. Define LetterBase schema
-- [ ] 3. Define LetterResponse schema:
-  - [ ] id (UUID)
-  - [ ] title (string)
-  - [ ] content (HTML string)
-  - [ ] status (draft or created)
-  - [ ] template_id (UUID)
-  - [ ] template_name (string)
-  - [ ] source_documents (list of document metadata)
-  - [ ] docx_url (string, nullable)
-  - [ ] created_at (datetime)
-  - [ ] updated_at (datetime)
-- [ ] 4. Define LetterListResponse schema
-- [ ] 5. Define LetterUpdate schema:
-  - [ ] title (optional)
-  - [ ] content (optional)
-- [ ] 6. Define FinalizeResponse schema
-- [ ] 7. Define ExportResponse schema
+- [x] 1. Create services/letter_service/schemas.py
+- [x] 2. Define LetterBase schema
+- [x] 3. Define LetterResponse schema:
+  - [x] id (UUID)
+  - [x] title (string)
+  - [x] content (HTML string)
+  - [x] status (draft or created)
+  - [x] template_id (UUID)
+  - [x] template_name (string)
+  - [x] source_documents (list of document metadata)
+  - [x] docx_url (string, nullable)
+  - [x] created_at (datetime)
+  - [x] updated_at (datetime)
+- [x] 4. Define LetterListResponse schema
+- [x] 5. Define LetterUpdate schema:
+  - [x] title (optional)
+  - [x] content (optional)
+- [x] 6. Define FinalizeResponse schema
+- [x] 7. Define ExportResponse schema
 
 ### Letter Business Logic - CRUD
-- [ ] 8. Create services/letter_service/logic.py
-- [ ] 9. Implement get_letters function:
-  - [ ] Query letters by firm_id
-  - [ ] Join with template for template name
-  - [ ] Join with documents for source documents
-  - [ ] Apply sorting (created_at, updated_at, title, status)
-  - [ ] Apply pagination
-  - [ ] Return list with full metadata
-- [ ] 10. Implement get_letter_by_id function:
-  - [ ] Verify letter exists
-  - [ ] Verify user has access (firm_id match)
-  - [ ] Join with template
-  - [ ] Join with source documents
-  - [ ] Generate presigned URL if docx exists
-  - [ ] Return full letter data
-- [ ] 11. Implement update_letter function:
-  - [ ] Verify letter exists
-  - [ ] Verify user has access
-  - [ ] Update title and/or content
-  - [ ] Update updated_at timestamp
-  - [ ] Return updated letter
-- [ ] 12. Implement delete_letter function:
-  - [ ] Verify letter exists
-  - [ ] Verify user has access
-  - [ ] Delete .docx from S3 if exists
-  - [ ] Delete letter-document associations
-  - [ ] Delete letter from database
-  - [ ] Return success response
-- [ ] 13. Add error handling for all functions
+- [x] 8. Create services/letter_service/logic.py
+- [x] 9. Implement get_letters function:
+  - [x] Query letters by firm_id
+  - [x] Join with template for template name
+  - [x] Join with documents for source documents
+  - [x] Apply sorting (created_at, updated_at, title, status)
+  - [x] Apply pagination
+  - [x] Return list with full metadata
+- [x] 10. Implement get_letter_by_id function:
+  - [x] Verify letter exists
+  - [x] Verify user has access (firm_id match)
+  - [x] Join with template
+  - [x] Join with source documents
+  - [x] Generate presigned URL if docx exists
+  - [x] Return full letter data
+- [x] 11. Implement update_letter function:
+  - [x] Verify letter exists
+  - [x] Verify user has access
+  - [x] Update title and/or content
+  - [x] Update updated_at timestamp
+  - [x] Return updated letter
+- [x] 12. Implement delete_letter function:
+  - [x] Verify letter exists
+  - [x] Verify user has access
+  - [x] Delete .docx from S3 if exists
+  - [x] Delete letter-document associations
+  - [x] Delete letter from database
+  - [x] Return success response
+- [x] 13. Add error handling for all functions
 
 ### Letter Router - CRUD
-- [ ] 14. Create services/letter_service/router.py
-- [ ] 15. Create APIRouter with prefix "/letters"
-- [ ] 16. Implement GET / endpoint:
-  - [ ] Get current user from auth
-  - [ ] Accept query params for sorting, filtering, pagination
-  - [ ] Call get_letters logic
-  - [ ] Return 200 with letter list
-- [ ] 17. Implement GET /{letter_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call get_letter_by_id logic
-  - [ ] Return 200 with letter data
-- [ ] 18. Implement PUT /{letter_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Validate request body
-  - [ ] Call update_letter logic
-  - [ ] Return 200 with updated letter
-- [ ] 19. Implement DELETE /{letter_id} endpoint:
-  - [ ] Get current user from auth
-  - [ ] Call delete_letter logic
-  - [ ] Return 204 no content
-- [ ] 20. Add OpenAPI documentation for CRUD endpoints
+- [x] 14. Create services/letter_service/router.py
+- [x] 15. Create APIRouter with prefix "/letters"
+- [x] 16. Implement GET / endpoint:
+  - [x] Get current user from auth
+  - [x] Accept query params for sorting, filtering, pagination
+  - [x] Call get_letters logic
+  - [x] Return 200 with letter list
+- [x] 17. Implement GET /{letter_id} endpoint:
+  - [x] Get current user from auth
+  - [x] Call get_letter_by_id logic
+  - [x] Return 200 with letter data
+- [x] 18. Implement PUT /{letter_id} endpoint:
+  - [x] Get current user from auth
+  - [x] Validate request body
+  - [x] Call update_letter logic
+  - [x] Return 200 with updated letter
+- [x] 19. Implement DELETE /{letter_id} endpoint:
+  - [x] Get current user from auth
+  - [x] Call delete_letter logic
+  - [x] Return 204 no content
+- [x] 20. Add OpenAPI documentation for CRUD endpoints
+
+**PR #12 Status: ✅ COMPLETE**
 
 ---
 

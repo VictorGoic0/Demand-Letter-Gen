@@ -63,12 +63,18 @@ backend/
 - Saves generated letter to database
 
 **Letter Service**
-- CRUD operations for generated letters
-- Generates .docx files from HTML content
-- Handles finalize and re-export actions
-- Manages letter-document associations
+- CRUD operations for generated letters (PR #12 Complete)
+  - List letters with pagination and sorting (created_at, updated_at, title, status)
+  - Get single letter with full metadata and presigned URL
+  - Update letter title and/or content
+  - Delete letter and associated .docx from S3
+- Generates .docx files from HTML content (PR #13 Pending)
+- Handles finalize and re-export actions (PR #13 Pending)
+- Manages letter-document associations (via LetterSourceDocument junction table)
 - Uploads .docx exports to S3 (using `shared/s3_client.py`)
 - Uses bucket: `goico-demand-letters-exports-dev` (presigned URLs for frontend access)
+- Router prefix: `/{firm_id}/letters`
+- All operations enforce firm-level isolation
 
 ## Data Flow Patterns
 

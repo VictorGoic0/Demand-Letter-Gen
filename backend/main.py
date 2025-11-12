@@ -62,6 +62,7 @@ from services.auth_service import router as auth_router
 from services.template_service import router as template_router
 from services.parser_service import router as parser_router
 from services.ai_service import router as ai_router
+from services.letter_service import router as letter_router
 from shared.exceptions import register_exception_handlers
 
 # Include routers
@@ -70,13 +71,10 @@ app.include_router(document_router)  # firm_id is in the router prefix
 app.include_router(template_router)  # firm_id is in the router prefix
 app.include_router(parser_router, prefix="/parse")  # firm_id is query param
 app.include_router(ai_router)  # firm_id is query param
+app.include_router(letter_router)  # firm_id is in the router prefix
 
 # Register exception handlers
 register_exception_handlers(app)
-
-# TODO: Add other service routers as they're implemented
-# from services.letter_service import router as letter_router
-# app.include_router(letter_router)
 
 
 if __name__ == "__main__":

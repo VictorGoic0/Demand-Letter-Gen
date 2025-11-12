@@ -55,6 +55,29 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
 
 ## Recent Changes
 
+- ✅ PR #12: Letter Service - Backend (Part 1: CRUD Operations) - Complete
+  - Created `services/letter_service/schemas.py` with all letter schemas:
+    - LetterBase, LetterResponse, LetterListResponse, LetterUpdate
+    - DocumentMetadata for source document info
+    - FinalizeResponse and ExportResponse (for PR #13)
+  - Created `services/letter_service/logic.py` with CRUD operations:
+    - `get_letters()` - Paginated listing with sorting (created_at, updated_at, title, status)
+    - `get_letter_by_id()` - Single letter retrieval with presigned URL generation
+    - `update_letter()` - Update title and/or content
+    - `delete_letter()` - Delete letter and associated .docx from S3
+    - All operations enforce firm-level isolation
+    - Eager loading for template and source documents
+    - Comprehensive error handling and logging
+  - Created `services/letter_service/router.py`:
+    - GET /{firm_id}/letters/ - List letters with pagination and sorting
+    - GET /{firm_id}/letters/{letter_id} - Get single letter
+    - PUT /{firm_id}/letters/{letter_id} - Update letter
+    - DELETE /{firm_id}/letters/{letter_id} - Delete letter
+    - OpenAPI documentation included
+  - Created `services/letter_service/__init__.py` to export router
+  - Router follows same patterns as document_service for consistency
+  - Ready for integration into main FastAPI application
+
 - ✅ PR #11: AI Service - Backend (Part 2: Generation Logic) - Complete
   - Created `services/ai_service/logic.py` with `generate_letter()` function:
     - Validates document count (1-5 documents)
@@ -306,12 +329,13 @@ None identified yet - project is in initial setup phase.
 - [x] Lambda-optimized structure setup
 - [x] Shared backend utilities
 
-### Phase 2: Core Features (100% - 5/5 PRs Complete)
+### Phase 2: Core Features (100% - 6/6 PRs Complete)
 - [x] Document service (upload, list, delete) - PR #7 Complete
 - [x] Template service (CRUD) - PR #8 Complete
 - [x] Parser service (PDF extraction) - PR #9 Complete
 - [x] AI service OpenAI integration - PR #10 Complete
 - [x] AI service generation logic - PR #11 Complete
+- [x] Letter service CRUD operations - PR #12 Complete
 - [x] Frontend foundation (routing, components, layout) - PR #15 Complete
 
 ### Phase 3: Frontend Pages (14% - 1/7 PRs Complete)

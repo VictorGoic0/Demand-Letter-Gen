@@ -2,7 +2,7 @@
 
 ## Project Status
 
-**Overall Progress:** ~48% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Frontend Foundation Complete, Document Library Page Complete, Authentication Flow Complete (14/29 PRs Complete)  
+**Overall Progress:** ~52% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service CRUD Complete, Frontend Foundation Complete, Document Library Page Complete, Authentication Flow Complete (15/29 PRs Complete)  
 **Last Updated:** November 2025
 
 ## What Works
@@ -24,6 +24,7 @@
 - ✅ PR #9: Parser Service - Backend (PDF Parser, Schemas, Logic, Router, Lambda Handlers, Firm-level Isolation)
 - ✅ PR #10: AI Service - Backend (Part 1: OpenAI Integration) (OpenAI Client, Prompt Engineering, Schemas, Retry Logic, Comprehensive System Prompt)
 - ✅ PR #11: AI Service - Backend (Part 2: Generation Logic) (Business Logic, Router, Lambda Handler, Full Letter Generation Workflow)
+- ✅ PR #12: Letter Service - Backend (Part 1: CRUD Operations) (Schemas, Logic, Router, Full CRUD with Firm-Level Isolation)
 - ✅ PR #15: Frontend Foundation and Routing (App Structure, shadcn Components, Layout, Utilities, Types, AuthContext)
 - ✅ PR #16: Document Library Page - Frontend (Hooks, Components, Multi-file Upload, Progress Tracking, Document Management)
 - ✅ PR #23: Authentication Flow - Frontend and Backend (Complete)
@@ -53,7 +54,7 @@
 - [x] PR #5: Lambda-Optimized Application Structure
 - [x] PR #6: Shared Backend Utilities
 
-### Phase 2: Backend Services (86% - 6/7 PRs Complete)
+### Phase 2: Backend Services (100% - 7/7 PRs Complete)
 - [x] PR #6: Shared Backend Utilities - COMPLETE
 - [x] PR #7: Document Service - Backend - COMPLETE
   - All endpoints implemented and tested
@@ -92,7 +93,16 @@
   - POST /generate/letter endpoint
   - Lambda handler configured
   - Router registered in main.py
-- [ ] PR #12: Letter Service - Backend (Part 1: CRUD Operations)
+- [x] PR #12: Letter Service - Backend (Part 1: CRUD Operations) - COMPLETE
+  - Letter schemas (LetterBase, LetterResponse, LetterListResponse, LetterUpdate, FinalizeResponse, ExportResponse)
+  - Business logic (get_letters, get_letter_by_id, update_letter, delete_letter)
+  - Router with CRUD endpoints (GET /, GET /{letter_id}, PUT /{letter_id}, DELETE /{letter_id})
+  - Firm-level isolation enforced
+  - Eager loading for template and source documents
+  - Presigned URL generation for .docx files
+  - S3 integration for .docx deletion
+  - Pagination and sorting support
+  - Comprehensive error handling
 - [ ] PR #13: Letter Service - Backend (Part 2: DOCX Export)
 - [ ] PR #14: Local Development Main Application
 
@@ -158,16 +168,19 @@
 - [ ] Finalization (status change + .docx generation)
 - [ ] .docx export to S3
 
-### Letter Management (0%)
-- [ ] Generated letters library
-- [ ] Letter editing (post-finalization)
-- [ ] Letter re-export
-- [ ] Letter deletion
-- [ ] Status indicators (draft/created)
+### Letter Management (40% - Backend CRUD Complete, Frontend Pending)
+- [x] Letter listing (backend) - PR #12 Complete
+- [x] Letter retrieval (backend) - PR #12 Complete
+- [x] Letter updating (backend) - PR #12 Complete
+- [x] Letter deletion (backend) - PR #12 Complete
+- [ ] Generated letters library (frontend) - Pending
+- [ ] Letter editing (post-finalization) - Frontend pending
+- [ ] Letter re-export - Backend pending (PR #13)
+- [ ] Status indicators (draft/created) - Frontend pending
 
 ## Technical Infrastructure Status
 
-### Backend Infrastructure (83% - 10/12 Complete)
+### Backend Infrastructure (92% - 11/12 Complete)
 - [x] FastAPI application structure (basic setup)
 - [x] Database models (SQLAlchemy) - All 6 models complete
 - [x] Database migrations (Alembic) - Initialized and configured
@@ -183,8 +196,9 @@
 - [x] Parser service Lambda handlers - Complete
 - [x] AI service OpenAI integration - Complete (client, prompts, schemas)
 - [x] AI service generation logic - Complete (business logic, router, handler)
+- [x] Letter service router - Complete (CRUD operations, PR #12)
+- [ ] Letter service finalize/export - Pending (PR #13)
 - [ ] Authentication middleware (deferred - using mock auth)
-- [ ] Letter service router - Pending (PR #12-13)
 
 ### Frontend Infrastructure (100% - Foundation Complete)
 - [x] React + Vite setup
@@ -280,9 +294,9 @@ None currently identified.
 ## Metrics
 
 ### Development Metrics
-- **PRs Completed:** 14/29 (48%)
-- **Features Completed:** 2/5 major features (Document Management - Complete, Template Management - Backend Complete)
-- **Backend Services:** 6/7 complete (Document, Template, Parser, AI Service Complete, Auth)
+- **PRs Completed:** 15/29 (52%)
+- **Features Completed:** 2.5/5 major features (Document Management - Complete, Template Management - Backend Complete, Letter Management - Backend CRUD Complete)
+- **Backend Services:** 7/7 complete (Document, Template, Parser, AI Service, Letter Service CRUD, Auth)
 - **Frontend Foundation:** Complete (routing, components, utilities, types, context, authentication)
 - **Frontend Pages:** 1/7 complete (Document Library)
 - **Authentication:** Complete (frontend and backend login, user menu, protected routes, localStorage persistence)
