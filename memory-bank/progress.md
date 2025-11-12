@@ -2,7 +2,7 @@
 
 ## Project Status
 
-**Overall Progress:** ~76% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete, Create Letter Page Complete, Finalize Letter Page Complete, Generated Letters Library Page Complete, Edit Letter Page Complete, Authentication Flow Complete (22/29 PRs Complete)  
+**Overall Progress:** ~76% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export + Re-export Improvements), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete, Create Letter Page Complete, Finalize Letter Page Complete, Generated Letters Library Page Complete, Edit Letter Page Complete (Frontend + Backend Improvements), Authentication Flow Complete (22/29 PRs Complete)  
 **Last Updated:** November 2025
 
 ## What Works
@@ -56,15 +56,25 @@
   - Download and delete functionality
   - Fixed "Create New Letter" button route: `/create-letter` → `/letters/new`
   - Fixed 404 "Go to Dashboard" link: `/documents` → `/dashboard`
-- ✅ PR #21: Edit Letter Page - Frontend (Complete)
-  - EditLetter page with view/edit mode toggle
-  - Back button with unsaved changes warning
-  - Re-export flow with confirmation dialog and success modal
-  - Finalize button for draft letters (redirects to finalize page)
-  - Download button (view mode only when docx_url exists)
-  - Unsaved changes warning (beforeunload + custom handlers for BrowserRouter compatibility)
-  - Fixed useBlocker compatibility issue
-  - Fixed setExportError issue
+- ✅ PR #21: Edit Letter Page - Frontend and Backend Improvements (Complete)
+  - **Frontend:**
+    - EditLetter page with view/edit mode toggle
+    - Back button with unsaved changes warning
+    - Re-export flow with confirmation dialog and success modal
+    - Finalize button for draft letters (redirects to finalize page)
+    - Download button (view mode only when docx_url exists)
+    - Unsaved changes warning (beforeunload + custom handlers for BrowserRouter compatibility)
+    - Fixed useBlocker compatibility issue
+    - Fixed setExportError issue
+  - **Backend:**
+    - Re-export always regenerates DOCX from current content
+    - List view returns docx_urls for finalized letters
+    - Old DOCX files cleaned up when filename changes
+    - Download button on letter cards (left side) - only visible for finalized letters
+  - **Content Cleaning:**
+    - Markdown code block markers (```html, ```) removed from exports
+    - Stray backticks removed from exports
+    - Valid HTML tags preserved
 - ✅ PR #23: Authentication Flow - Frontend and Backend (Complete)
   - Login page with email/password fields
   - Protected routes with redirect to login
@@ -208,15 +218,15 @@
   - Client-side filtering and server-side sorting
   - Download and delete functionality
   - Fixed route issues (Create New Letter button, 404 dashboard link)
-- [x] PR #21: Edit Letter Page - Frontend - COMPLETE
+- [x] PR #21: Edit Letter Page - Frontend and Backend Improvements - COMPLETE
   - EditLetter page with view/edit mode toggle
   - Back button with unsaved changes warning
-  - Re-export flow with confirmation dialog and success modal
-  - Finalize button for draft letters (redirects to finalize page)
-  - Download button (view mode only when docx_url exists)
+  - Re-export always regenerates DOCX from current content
+  - List view returns docx_urls for finalized letters
+  - Download button on letter cards (left side) - only visible for finalized letters
+  - Content cleaning: markdown code block markers and backticks removed from exports
+  - Old DOCX files cleaned up when filename changes
   - Unsaved changes warning using beforeunload + custom handlers (BrowserRouter compatible)
-  - Fixed useBlocker compatibility issue
-  - Fixed setExportError issue
 
 ### Phase 4: Integration & Polish (33% - 1/3 PRs Complete)
 - [ ] PR #22: Error Handling and Loading States - Frontend
@@ -427,7 +437,7 @@ None currently identified.
 - **PDF Parsing:** Complete (text extraction, metadata extraction, validation)
 - **Letter Generation:** Complete (backend and frontend - can generate draft letters from templates and documents)
 - **Letter Finalization:** Complete (backend and frontend - view/edit modes, finalization, DOCX export)
-- **Letter Management:** Complete (backend complete, frontend complete - library, editing, re-export, download)
+- **Letter Management:** Complete (backend complete, frontend complete - library, editing, re-export always regenerates, download button on cards, content cleaning for exports)
 - **Template Management:** Complete (backend and frontend with route-based navigation, view/edit pages, and enhanced drag-and-drop with paragraph area drop zones)
 - **Test Coverage:** 0% (test scripts created)
 - **Documentation:** 20% complete (S3 setup and usage guides added)

@@ -104,18 +104,32 @@ The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend U
   - Fixed "Create New Letter" button route: `/create-letter` → `/letters/new`
   - Fixed 404 "Go to Dashboard" link: `/documents` → `/dashboard`
 
-- ✅ PR #21: Edit Letter Page - Frontend - COMPLETE
-  - EditLetter page with view/edit mode toggle
-  - Back button to letters library with unsaved changes warning
-  - Edit/Save buttons with proper state management
-  - Download button (view mode only, when docx_url exists)
-  - Re-export button (finalized letters) with confirmation dialog and success modal
-  - Finalize button (draft letters) redirects to `/letters/:id/finalize`
-  - Unsaved changes warning using beforeunload event and custom navigation handlers (works with BrowserRouter)
-  - LetterViewer and LetterEditor components reused from PR #19
-  - Loading states, error handling, and 404 handling
-  - Fixed useBlocker compatibility issue (replaced with beforeunload + custom handlers for BrowserRouter)
-  - Fixed setExportError issue (removed since useExportLetter doesn't return setError)
+- ✅ PR #21: Edit Letter Page - Frontend and Backend Improvements - COMPLETE
+  - **Frontend:**
+    - EditLetter page with view/edit mode toggle
+    - Back button to letters library with unsaved changes warning
+    - Edit/Save buttons with proper state management
+    - Download button (view mode only, when docx_url exists)
+    - Re-export button (finalized letters) with confirmation dialog and success modal
+    - Finalize button (draft letters) redirects to `/letters/:id/finalize`
+    - Unsaved changes warning using beforeunload event and custom navigation handlers (works with BrowserRouter)
+    - LetterViewer and LetterEditor components reused from PR #19
+    - Loading states, error handling, and 404 handling
+    - Fixed useBlocker compatibility issue (replaced with beforeunload + custom handlers for BrowserRouter)
+    - Fixed setExportError issue (removed since useExportLetter doesn't return setError)
+  - **Backend Improvements:**
+    - Re-export endpoint always regenerates DOCX from current letter content (removed early return for existing docx_s3_key)
+    - Export function updates database with new docx_s3_key after generation
+    - Old DOCX files cleaned up from S3 when filename changes
+    - List view now returns presigned URLs (docx_url) for finalized letters with docx_s3_key
+    - Download button on letter cards (left side) - only visible for finalized letters with docx_url
+    - Download function simplified - no auto-export, only downloads if URL exists
+  - **Content Cleaning (Export Only):**
+    - Markdown code block markers removed: ```html at beginning, ``` at end
+    - Stray backticks removed from export content
+    - Cleaning applied in html_to_docx function before HTML parsing
+    - Valid HTML formatting tags preserved (p, h1-h3, strong, em, ul, ol, li)
+    - Database content unchanged - cleaning only affects exports
 
 ## Recent Changes
 

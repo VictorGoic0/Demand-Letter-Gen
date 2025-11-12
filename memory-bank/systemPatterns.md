@@ -153,26 +153,28 @@ Letter Service:
   8. Returns letter data with download URL
 ```
 
-### Export Flow
+### Export Flow (Re-export)
 
 ```
 Frontend → API Gateway → Letter Service Lambda
   ↓
 Letter Service:
   1. Fetches letter from RDS (verifies firm-level access)
-  2. If docx_s3_key exists:
-     - Generates presigned URL from existing S3 key
-     - Returns URL immediately
-  3. If no docx_s3_key exists:
-     - Generates filename from title and date
-     - Converts HTML to .docx
-     - Uploads to S3
-     - Updates docx_s3_key
-     - Generates presigned URL
-     - Returns URL
-  4. If filename changed:
-     - Cleans up old file from S3
+  2. Always regenerates DOCX from current letter.content:
+     - Stores old S3 key for cleanup
+     - Generates filename from title and updated_at date
+     - Cleans content: removes ```html at start, ``` at end, stray backticks
+     - Converts cleaned HTML to .docx using custom parser
+     - Uploads new .docx to S3 (key: {firmId}/letters/{filename}.docx)
+     - Updates docx_s3_key in database
+     - Cleans up old file from S3 if filename changed
+     - Generates presigned URL (1 hour expiration)
+     - Returns new presigned URL
+  3. Database always updated with new docx_s3_key
+  4. Old files automatically cleaned up when filename changes
 ```
+
+**Note:** Re-export always regenerates to ensure DOCX reflects latest content changes. Download uses existing presigned URLs from list view (only for finalized letters).
 
 ## Design Patterns
 
@@ -338,7 +340,8 @@ App
    - Docker management via npm scripts in `package.json` (npm run start, end, restart)
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
 9. **HTML to DOCX Conversion:** Custom HTML parser built using Python's `html.parser` module, converting to python-docx Document objects. Supports common tags with nested formatting support. Filename generation with sanitization (50 char limit).
-10. **DOCX Export Strategy:** S3 key format `{firmId}/letters/{filename}.docx` (no letter_id in path). Old files cleaned up when filenames change. Finalize always generates new DOCX (overwrites existing). Export returns existing URL if available, generates if not.
-11. **Health Checks:** Main application performs detailed health checks on startup (database connection test, S3 bucket accessibility). Enhanced `/health` endpoint returns database and S3 connection status for monitoring.
-12. **Startup/Shutdown Events:** FastAPI lifespan context manager handles startup (health checks) and shutdown (connection cleanup) events.
+10. **DOCX Export Strategy:** S3 key format `{firmId}/letters/{filename}.docx` (no letter_id in path). Old files cleaned up when filenames change. Finalize always generates new DOCX (overwrites existing). Re-export always regenerates DOCX from current content (ensures latest changes are reflected). List view returns presigned URLs (docx_url) for finalized letters. Download button only visible for finalized letters with docx_url.
+11. **Content Cleaning (Export Only):** Markdown code block markers (```html at start, ``` at end) and stray backticks are removed during DOCX conversion. Cleaning happens in html_to_docx function before HTML parsing. Valid HTML formatting tags (p, h1-h3, strong, em, ul, ol, li) are preserved. Database content remains unchanged - cleaning only affects exports.
+12. **Health Checks:** Main application performs detailed health checks on startup (database connection test, S3 bucket accessibility). Enhanced `/health` endpoint returns database and S3 connection status for monitoring.
+13. **Startup/Shutdown Events:** FastAPI lifespan context manager handles startup (health checks) and shutdown (connection cleanup) events.
 
