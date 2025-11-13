@@ -9,6 +9,23 @@ from dotenv import load_dotenv
 from alembic import context
 
 # Load environment variables from .env file
+# Try .env.production first (for production), then fall back to .env (for development)
+# Look in the backend directory (parent of alembic directory)
+# backend_dir = os.path.dirname(os.path.dirname(__file__))
+# env_file = os.getenv("DOTENV_FILE")
+# if not env_file:
+#     # Try .env.production first, then .env
+#     prod_env = os.path.join(backend_dir, ".env.production")
+#     dev_env = os.path.join(backend_dir, ".env")
+#     if os.path.exists(prod_env):
+#         env_file = prod_env
+#     else:
+#         env_file = dev_env
+# else:
+#     # If DOTENV_FILE is set, use it (can be relative or absolute)
+#     if not os.path.isabs(env_file):
+#         env_file = os.path.join(backend_dir, env_file)
+# load_dotenv(env_file)
 load_dotenv()
 
 # Add the backend directory to the path so we can import shared modules

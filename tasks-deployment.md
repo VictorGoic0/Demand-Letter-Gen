@@ -105,34 +105,22 @@
 - [ ] 3. Note RDS endpoint hostname from AWS Console
 - [ ] 4. Note RDS port (default: 5432)
 
-### Security Group Configuration
-- [ ] 5. Configure RDS security group `demand-letter-gen-rds-sg`:
-  - [ ] **Option A** (More secure): Allow PostgreSQL (5432) from your IP only (for testing)
-    - Add your current IP: `[your-ip]/32`
-    - Lambda will connect using this same security group
-  - [ ] **Option B** (Less secure but easier): Allow PostgreSQL (5432) from 0.0.0.0/0
-    - Still secure with strong password
-    - Easier for MVP
-  - [ ] **Recommended for MVP**: Start with Option A, can change to B if connection issues
-- [ ] 6. Test connection from your local machine:
-  ```bash
-  psql -h [rds-endpoint] -U postgres -d postgres
-  ```
-
 ### Database Initialization
-- [ ] 7. Run Alembic migrations on production database:
-  - [ ] Set production DB environment variables locally (create .env.prod)
-  - [ ] Run: `alembic upgrade head`
-  - [ ] Verify all tables created successfully
-  - [ ] Check tables: `\dt` in psql
-- [ ] 8. Verify database setup:
-  - [ ] Run database check scripts from `backend/scripts/`
-  - [ ] Verify all tables exist (firms, users, documents, templates, letters, letter_source_documents)
+- [x] 7. Run Alembic migrations on production database:
+  - [x] Ensure `backend/.env.production` exists with production DB credentials
+  - [x] Run: `cd backend && alembic upgrade head`
+  - [x] Verify all tables created successfully
+  - [x] Check tables: `\dt` in psql
+- [x] 8. Verify database setup:
+  - [x] Run database check scripts from `backend/scripts/`
+  - [x] Verify all tables exist (firms, users, documents, templates, letters, letter_source_documents)
+- [x] 9. Seed production database:
+  - [x] Run seed scripts: `seed_test_firm.py` and `seed_test_users.py` (using `.env.production`)
 
 ### Important Notes
-- [ ] 9. Save RDS credentials securely (password manager or secure notes)
-- [ ] 10. Document RDS endpoint for serverless.yml configuration
-- [ ] 11. **Do NOT** commit RDS credentials to git
+- [x] 10. Save RDS credentials securely (password manager or secure notes)
+- [ ] 11. Document RDS endpoint for serverless.yml configuration
+- [x] 12. **Do NOT** commit RDS credentials to git
 
 ---
 
@@ -142,7 +130,7 @@
 **Note**: For MVP speed, we're using AWS credentials directly in Lambda env vars instead of IAM roles/Secrets Manager. This is less secure but much faster to set up. Can migrate to IAM/Secrets Manager post-MVP.
 
 ### Create Production Environment Variables File
-- [ ] 1. Create `backend/.env.prod` (DO NOT commit):
+- [ ] 1. Create `backend/.env.production` (DO NOT commit):
   - [ ] DB_HOST=[RDS endpoint from PR #2]
   - [ ] DB_PORT=5432
   - [ ] DB_NAME=demand_letters_prod
@@ -157,14 +145,14 @@
   - [ ] ENVIRONMENT=production
   - [ ] DEBUG=false
   - [ ] LOG_LEVEL=INFO
-- [ ] 2. Ensure `.env.prod` is in `.gitignore`
+- [ ] 2. Ensure `.env.production` is in `.gitignore`
 - [ ] 3. Update `backend/.env.example` with production placeholders
 
 ### Update Serverless Configuration for MVP
 - [ ] 4. Update `backend/serverless.yml` for simplified production:
   - [ ] Remove IAM role configuration (use default Lambda role)
   - [ ] Remove VPC configuration (Lambda in default/public subnet)
-  - [ ] Update environment variables to read from .env.prod
+  - [ ] Update environment variables to read from .env.production
   - [ ] Set appropriate memory and timeout for production
   - [ ] Configure basic API Gateway CORS
 - [ ] 5. Verify serverless.yml has basic S3 permissions:
@@ -731,24 +719,8 @@ psql -h [rds-endpoint] -U postgres -d postgres
 ```bash
 cd backend
 
-# Create .env.prod with RDS endpoint
-cat > .env.prod << EOF
-DB_HOST=[your-rds-endpoint]
-DB_PORT=5432
-DB_NAME=postgres
-DB_USER=postgres
-DB_PASSWORD=[your-rds-password]
-AWS_REGION=us-east-2
-S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-prod
-S3_BUCKET_EXPORTS=goico-demand-letters-exports-prod
-OPENAI_API_KEY=[your-openai-key]
-ENVIRONMENT=production
-DEBUG=false
-LOG_LEVEL=INFO
-EOF
-
-# Load env and run migrations
-export $(cat .env.prod | xargs)
+# Ensure .env.production exists with RDS endpoint and credentials
+# Then run migrations (alembic will automatically load .env.production)
 alembic upgrade head
 ```
 

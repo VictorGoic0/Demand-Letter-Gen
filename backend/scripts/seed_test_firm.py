@@ -19,6 +19,15 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, backend_dir)
 
 # Load environment variables
+# Try .env.production first (for production), then fall back to .env (for development)
+# prod_env = os.path.join(backend_dir, '.env.production')
+# dev_env = os.path.join(backend_dir, '.env')
+# if os.path.exists(prod_env):
+#     load_dotenv(prod_env)
+#     print("📝 Loading from .env.production")
+# else:
+#     load_dotenv(dev_env)
+#     print("📝 Loading from .env")
 load_dotenv(os.path.join(backend_dir, '.env'))
 
 from shared.database import SessionLocal
