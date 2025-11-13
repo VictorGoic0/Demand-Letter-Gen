@@ -1,13 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FileText, LayoutTemplate, Mail, Upload } from 'lucide-react';
+import { LayoutTemplate, Mail, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: FileText,
-  },
   {
     name: 'My Letters',
     href: '/letters',

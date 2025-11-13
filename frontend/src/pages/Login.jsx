@@ -36,7 +36,7 @@ export function Login() {
     try {
       const userData = await loginAPI(email, password);
       login(userData);
-      navigate('/dashboard');
+      navigate('/letters');
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -45,7 +45,22 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+      {/* Logo and Title */}
+      <div className="mb-8 flex flex-col items-center">
+        <div className="flex items-center gap-3 mb-4">
+          <img 
+            src="/logo.svg" 
+            alt="Demand Letter Generator" 
+            className="w-12 h-12"
+          />
+          <span className="text-2xl font-semibold text-foreground">Demand Letter Generator</span>
+        </div>
+        <p className="text-muted-foreground text-center max-w-md">
+          AI-powered demand letter generation for legal professionals
+        </p>
+      </div>
+
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>

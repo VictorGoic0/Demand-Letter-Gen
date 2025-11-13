@@ -4,7 +4,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
 import { Documents } from './pages/Documents';
 import { Templates } from './pages/Templates';
 import { TemplateView } from './pages/TemplateView';
@@ -26,7 +25,7 @@ function LoginRoute() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/letters" replace />;
   }
 
   return <Login />;
@@ -41,17 +40,7 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <MainLayout>
-              <Navigate to="/dashboard" replace />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Dashboard />
+              <Navigate to="/letters" replace />
             </MainLayout>
           </ProtectedRoute>
         }

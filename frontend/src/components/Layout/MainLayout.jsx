@@ -14,7 +14,7 @@ export function MainLayout({ children }) {
           <div className="flex items-center justify-between">
             {/* Logo and Firm Name */}
             <div className="flex items-center gap-3">
-              <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Link to="/letters" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <img 
                   src="/logo.svg" 
                   alt="Demand Letter Generator" 
