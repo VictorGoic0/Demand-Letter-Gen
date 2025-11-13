@@ -26,6 +26,14 @@ provider:
     ENVIRONMENT: ${self:provider.stage}
     DEBUG: ${env:DEBUG, 'false'}
     LOG_LEVEL: ${env:LOG_LEVEL, 'INFO'}
+  logRetentionInDays: 7  # Keep costs low for MVP
+  apiGateway:
+    binaryMediaTypes:
+      - 'multipart/form-data'
+      - 'application/pdf'
+      - 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    minimumCompressionSize: 1024
+    shouldStartNameWithService: true
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -46,11 +54,6 @@ provider:
         - logs:CreateLogStream
         - logs:PutLogEvents
       Resource: 'arn:aws:logs:*:*:*'
-    - Effect: Allow
-      Action:
-        - rds:DescribeDBInstances
-        - rds:Connect
-      Resource: '*'
 
 package:
   patterns:
