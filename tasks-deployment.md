@@ -333,19 +333,39 @@ This PR documents all the fixes required to get the application working in produ
 **Fix**:
 - [x] Changed `backend/services/template_service/router.py` line 120 to: `page_size=len(templates) if len(templates) > 0 else 1`
 
-#### 7. S3 Upload Failures (ONGOING)
+#### 7. S3 Upload Failures ✅ FIXED
 **Problem**: Document uploads failing with `InvalidAccessKeyId` error
 
-**Root Cause**: TBD - needs investigation
-- S3 client trying to use AWS credentials from environment variables
-- Lambda execution role should provide S3 access automatically
-- Credentials in .env.production may be invalid or not being used correctly
+**Root Cause**: 
+- S3 client was checking for AWS credentials from environment variables even when running in Lambda
+- Lambda execution role provides S3 access automatically via IAM, but the code was still trying to read `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` from environment
+- When these env vars were missing or invalid, boto3 would fail with `InvalidAccessKeyId`
 
-**Attempted Fix (reverted)**:
-- Tried making S3 client use IAM role when credentials not provided
-- Reverted - need different approach
+**Fix**:
+- [x] Updated `backend/shared/s3_client.py` to detect Lambda environment using `AWS_EXECUTION_ENV` environment variable
+- [x] When in Lambda: Initialize boto3 client with only `region_name` (no credentials) - uses IAM role automatically
+- [x] When in local dev: Use explicit credentials from environment variables or parameters
+- [x] Lambda no longer reads or checks `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` - relies entirely on IAM role
 
-**Current Status**: File uploads not working - requires AWS credentials to be configured properly
+**Implementation Details**:
+```python
+# Detect if running in Lambda
+is_lambda = 'AWS_EXECUTION_ENV' in os.environ
+
+if is_lambda:
+    # Lambda environment - use IAM role (no credentials)
+    self.client = boto3.client('s3', region_name=self.region_name)
+else:
+    # Local development - use explicit credentials
+    self.client = boto3.client(
+        's3',
+        aws_access_key_id=self.aws_access_key_id,
+        aws_secret_access_key=self.aws_secret_access_key,
+        region_name=self.region_name
+    )
+```
+
+**Status**: ✅ Fixed - S3 uploads now work in Lambda using IAM role
 
 ### Deployment Scripts
 - [x] Updated `backend/package.json` scripts to use `npx serverless` and proper env var loading:

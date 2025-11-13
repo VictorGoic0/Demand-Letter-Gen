@@ -25,27 +25,37 @@ class S3Client:
         """
         Initialize S3 client with AWS credentials.
         
+        In Lambda: Uses IAM role automatically
+        In local dev: Uses explicit credentials from env vars
+        
         Args:
             aws_access_key_id: AWS access key ID (defaults to env var)
             aws_secret_access_key: AWS secret access key (defaults to env var)
             region_name: AWS region name (defaults to env var)
         """
-        self.aws_access_key_id = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
-        self.aws_secret_access_key = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
-        self.region_name = region_name or os.getenv("AWS_REGION", "us-east-2")
+        # Detect if running in Lambda
+        is_lambda = 'AWS_EXECUTION_ENV' in os.environ
         
-        # Initialize boto3 client
-        try:
+        if is_lambda:
+            # Lambda environment - use IAM role (no credentials)
+            self.region_name = region_name or os.getenv('AWS_REGION', 'us-east-2')
             self.client = boto3.client(
-                "s3",
+                's3',
+                region_name=self.region_name
+            )
+            logger.info("S3 client initialized with IAM role for Lambda")
+        else:
+            # Local development - use explicit credentials
+            self.aws_access_key_id = aws_access_key_id or os.getenv('AWS_ACCESS_KEY_ID')
+            self.aws_secret_access_key = aws_secret_access_key or os.getenv('AWS_SECRET_ACCESS_KEY')
+            self.region_name = region_name or os.getenv('AWS_REGION', 'us-east-2')
+            self.client = boto3.client(
+                's3',
                 aws_access_key_id=self.aws_access_key_id,
                 aws_secret_access_key=self.aws_secret_access_key,
-                region_name=self.region_name,
+                region_name=self.region_name
             )
-            logger.info(f"S3 client initialized for region: {self.region_name}")
-        except Exception as e:
-            logger.error(f"Failed to initialize S3 client: {str(e)}")
-            raise
+            logger.info("S3 client initialized with explicit credentials for local dev")
 
     def upload_file(
         self,

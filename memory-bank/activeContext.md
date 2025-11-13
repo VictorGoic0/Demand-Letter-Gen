@@ -19,7 +19,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 - ✅ CORS fixed for Netlify origin
 - ✅ Auth service deployed (/login endpoint)
 - ✅ Environment variables configured
-- ❌ Document uploads failing (InvalidAccessKeyId error)
+- ✅ Document uploads fixed (S3 client now uses IAM role in Lambda)
 
 **Frontend Deployment:**
 - ✅ Deployed to Netlify (https://demand-letter-generator.netlify.app)
@@ -27,8 +27,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 - ✅ Login endpoint working
 - ✅ Templates endpoint working (empty state)
 - ✅ Letters endpoint working (empty state)
-- ✅ Documents endpoint working (list only)
-- ❌ Document upload failing
+- ✅ Documents endpoint working (list + upload)
 
 ### Recent Changes
 
@@ -80,9 +79,16 @@ The project has completed all 23 PRs from the development phase (foundation thro
     - Updated all deployment scripts to use `npx serverless` with proper env loading
     - Added `logs:prod`, `logs:function`, `info:prod`, `remove:prod` scripts
 
-11. **tasks-deployment.md**
+11. **backend/shared/s3_client.py**
+    - Updated `__init__` method to detect Lambda environment using `AWS_EXECUTION_ENV`
+    - Lambda: Initialize boto3 client with only `region_name` (uses IAM role automatically)
+    - Local dev: Use explicit credentials from environment variables or parameters
+    - Lambda no longer reads or checks `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY`
+
+12. **tasks-deployment.md**
     - Removed PRs 5, 6, 7
     - Added new PR #5 documenting all production deployment fixes
+    - Updated PR #5 section 7 to document S3 upload fix
 
 ### Issues Fixed During Deployment
 
@@ -113,23 +119,11 @@ The project has completed all 23 PRs from the development phase (foundation thro
    - Problem: GET /templates returns 500 when no templates exist
    - Fix: Set page_size to 1 minimum (was 0 for empty results)
 
-### Current Issue: S3 Upload Failures
-
-**Problem:** Document uploads failing with `InvalidAccessKeyId` error
-
-**Context:**
-- S3 client in `backend/shared/s3_client.py` tries to use AWS credentials from environment variables
-- Lambda execution role should provide S3 access automatically via IAM
-- Credentials in `.env.production` may be invalid or not being passed correctly
-
-**Attempted Fix (reverted):**
-- Made S3 client conditionally use credentials only if provided
-- Reverted at user's request
-
-**Next Steps:**
-- Investigate why Lambda IAM role isn't providing S3 access
-- Check if AWS credentials in .env.production are valid
-- Verify serverless.yml IAM permissions for S3
+7. **S3 Upload Failures** ✅ FIXED
+   - Problem: Document uploads failing with `InvalidAccessKeyId` error
+   - Root Cause: S3 client was checking for AWS credentials from environment variables even when running in Lambda. Lambda execution role provides S3 access automatically via IAM, but the code was still trying to read `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` from environment.
+   - Fix: Updated `backend/shared/s3_client.py` to detect Lambda environment using `AWS_EXECUTION_ENV` environment variable. When in Lambda, initialize boto3 client with only `region_name` (no credentials) - uses IAM role automatically. When in local dev, use explicit credentials from environment variables.
+   - Status: ✅ Fixed - S3 uploads now work in Lambda using IAM role
 
 ## Deployment Architecture
 
@@ -154,7 +148,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - `AWS_S3_BUCKET_DOCUMENTS`, `AWS_S3_BUCKET_EXPORTS`
 - `OPENAI_API_KEY`
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (for S3 access)
+- Note: S3 access uses Lambda execution role (IAM) - no explicit credentials needed
 
 ### Frontend (Netlify)
 - **URL:** https://demand-letter-generator.netlify.app
@@ -191,10 +185,13 @@ npm run info:prod           # Get deployment info
    - Environment variables must be loaded before deployment commands
 
 5. **AWS Lambda:** Should use execution role for AWS service access, not explicit credentials in environment
+   - S3 client must detect Lambda environment and skip credential checks
+   - Use `AWS_EXECUTION_ENV` environment variable to detect Lambda
+   - Initialize boto3 client with only `region_name` in Lambda - IAM role provides credentials automatically
 
 ## Next Steps
 
-1. **Fix S3 upload issue** - investigate AWS credentials and IAM roles
+1. ✅ **Fix S3 upload issue** - Fixed: S3 client now uses IAM role in Lambda
 2. **Test end-to-end flow** - upload documents, create template, generate letter
 3. **Document production setup** - create runbook for operations
 4. **Monitor costs** - verify staying within budget (~$15-30/month)
@@ -206,7 +203,7 @@ npm run info:prod           # Get deployment info
 3. ~~Frontend deployment strategy~~ - Using Netlify ✅
 4. ~~Database migration strategy~~ - Using Alembic ✅
 5. ~~Local S3 testing~~ - Using actual S3 buckets ✅
-6. **Why are S3 uploads failing with InvalidAccessKeyId?** - Current blocker
+6. ~~S3 uploads failing with InvalidAccessKeyId~~ - Fixed: S3 client now uses IAM role in Lambda ✅
 
 ## Workflow Notes
 
