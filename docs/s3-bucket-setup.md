@@ -157,6 +157,13 @@ Where `{env}` is:
 - `staging` for staging
 - `prod` for production
 
+### Production Buckets (Confirmed)
+
+**Production bucket names:**
+- Documents: `goico-demand-letters-documents-prod`
+- Exports: `goico-demand-letters-exports-prod`
+- Region: `us-east-2`
+
 ## Troubleshooting
 
 ### Bucket Already Exists
@@ -169,11 +176,26 @@ If you get "BucketAlreadyExists" error, the bucket name is already taken. Try:
 - Verify your AWS credentials have S3 permissions
 - Check IAM user/role has `s3:CreateBucket` permission
 - Ensure you're using the correct AWS account
+- For production, verify Lambda execution role has proper S3 permissions
 
 ### Region Mismatch
 - Ensure all buckets are in the same region
 - Set `AWS_REGION` environment variable correctly
 - Verify region in AWS Console
+- Production buckets are in `us-east-2`
+
+### Presigned URLs Not Working
+- Verify exports bucket does NOT have public access blocked
+- Check bucket policy allows presigned URL access
+- Ensure Lambda execution role has `s3:GetObject` permission
+- Verify presigned URL expiration time is reasonable (default: 1 hour)
+
+### Production-Specific Issues
+
+**Lambda Cannot Access Buckets:**
+- Verify bucket policies include Lambda execution role ARN
+- Check IAM role has S3 permissions
+- For MVP, ensure AWS credentials are properly configured in Lambda environment variables
 
 ## Next Steps
 

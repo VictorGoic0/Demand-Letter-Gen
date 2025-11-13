@@ -5,19 +5,6 @@
 
 **Goal**: Deploy to AWS Lambda + RDS + Netlify for ~$15-30/month
 
-**Cost Optimizations**:
-- ✅ No VPC configuration = Lambda has default internet access (-$32/month NAT Gateway)
-- ✅ No Secrets Manager (-$1/month)
-- ✅ Single-AZ RDS db.t3.micro (-$15/month vs larger instances)
-- ✅ Direct AWS credentials in env vars (faster setup)
-- ✅ Basic CloudWatch only (no third-party monitoring)
-
-**Network Architecture**:
-- Lambda: No VPC config = runs in AWS managed VPC with internet access
-- Can call OpenAI API directly (no NAT Gateway needed)
-- Can connect to RDS (RDS has public access enabled, secured by security groups)
-- API Gateway provides public HTTPS endpoint for frontend
-- RDS security group restricts database access (strong password + IP filtering)
 
 **Tech Stack**:
 - Backend: AWS Lambda (Python 3.11) + API Gateway → HTTPS URL
@@ -29,7 +16,7 @@
 **PRs**:
 1. S3 Bucket Setup
 2. RDS PostgreSQL Setup
-3. Environment Config - Simplified, no IAM/Secrets Manager
+3. Environment Config
 4. Lambda Function Definitions
 5. Basic Monitoring - Simplified
 6. Testing
@@ -38,50 +25,50 @@
 
 ---
 
-## PR #1: Production S3 Bucket Setup
+## PR #1: Production S3 Bucket Setup ✅
 
 ### S3 Bucket Creation
-- [ ] 1. Set AWS region for production (confirm: us-east-2?)
-- [ ] 2. Create production documents bucket:
-  - [ ] Bucket name: `goico-demand-letters-documents-prod`
-  - [ ] Region: us-east-2 (or confirm preferred region)
-  - [ ] Enable versioning
-  - [ ] Enable encryption (AES256)
-  - [ ] Block all public access
-- [ ] 3. Create production exports bucket:
-  - [ ] Bucket name: `goico-demand-letters-exports-prod`
-  - [ ] Region: us-east-2 (or confirm preferred region)
-  - [ ] Enable versioning
-  - [ ] Enable encryption (AES256)
-  - [ ] DO NOT block public access (needed for presigned URLs)
+- [x] 1. Set AWS region for production (confirm: us-east-2?)
+- [x] 2. Create production documents bucket:
+  - [x] Bucket name: `goico-demand-letters-documents-prod`
+  - [x] Region: us-east-2 (or confirm preferred region)
+  - [x] Enable versioning
+  - [x] Enable encryption (AES256)
+  - [x] Block all public access
+- [x] 3. Create production exports bucket:
+  - [x] Bucket name: `goico-demand-letters-exports-prod`
+  - [x] Region: us-east-2 (or confirm preferred region)
+  - [x] Enable versioning
+  - [x] Enable encryption (AES256)
+  - [x] DO NOT block public access (needed for presigned URLs)
 
 ### S3 Configuration Script
-- [ ] 4. Create `backend/scripts/create_prod_s3_buckets.sh`:
-  - [ ] Add shebang and error handling
-  - [ ] Set AWS_REGION variable
-  - [ ] Set ENV="prod" variable
-  - [ ] Add bucket creation commands with proper configuration
-  - [ ] Add versioning enablement commands
-  - [ ] Add encryption configuration commands
-  - [ ] Add public access block for documents bucket
-  - [ ] Add verification commands to check bucket creation
-- [ ] 5. Make script executable: `chmod +x backend/scripts/create_prod_s3_buckets.sh`
-- [ ] 6. Run script to create production S3 buckets
-- [ ] 7. Verify buckets created successfully in AWS Console
-- [ ] 8. Delete script after successful creation (cleanup)
+- [x] 4. Create `backend/scripts/create_prod_s3_buckets.sh`:
+  - [x] Add shebang and error handling
+  - [x] Set AWS_REGION variable
+  - [x] Set ENV="prod" variable
+  - [x] Add bucket creation commands with proper configuration
+  - [x] Add versioning enablement commands
+  - [x] Add encryption configuration commands
+  - [x] Add public access block for documents bucket
+  - [x] Add verification commands to check bucket creation
+- [x] 5. Make script executable: `chmod +x backend/scripts/create_prod_s3_buckets.sh`
+- [x] 6. Run script to create production S3 buckets
+- [x] 7. Verify buckets created successfully in AWS Console
+- [x] 8. Delete script after successful creation (cleanup)
 
 ### S3 Bucket Policies
-- [ ] 9. Configure bucket policies for production:
-  - [ ] Documents bucket: Restrict access to Lambda execution role
-  - [ ] Exports bucket: Allow presigned URL access
-- [ ] 10. Configure lifecycle rules (optional but recommended):
-  - [ ] Documents bucket: Archive old files to Glacier after X days
-  - [ ] Exports bucket: Delete files after X days (e.g., 7 days)
+- [x] 9. Configure bucket policies for production:
+  - [x] Documents bucket: Restrict access to Lambda execution role
+  - [x] Exports bucket: Allow presigned URL access
+- [x] 10. Configure lifecycle rules (optional but recommended):
+  - [x] Documents bucket: Archive old files to Glacier after X days
+  - [x] Exports bucket: Delete files after X days (e.g., 7 days)
 
 ### Documentation Update
-- [ ] 11. Update `docs/s3-bucket-setup.md` with production bucket names
-- [ ] 12. Document bucket naming convention confirmation
-- [ ] 13. Add troubleshooting section for production-specific issues
+- [x] 11. Update `docs/s3-bucket-setup.md` with production bucket names
+- [x] 12. Document bucket naming convention confirmation
+- [x] 13. Add troubleshooting section for production-specific issues
 
 ---
 
