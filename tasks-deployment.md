@@ -472,19 +472,13 @@
 ## PR #8: Frontend Production Configuration (Netlify)
 
 ### Netlify Configuration
-- [ ] 1. Create `frontend/netlify.toml`:
-  - [ ] Build command: `npm run build`
-  - [ ] Publish directory: `dist`
-  - [ ] SPA redirect rules (redirect all routes to index.html)
-- [ ] 2. Update CORS configuration in backend if needed:
-  - [ ] Add Netlify domain to allowed origins in `backend/serverless.yml`
-  - [ ] Update CORS settings to allow Netlify frontend
-
-### Environment Variables
-- [ ] 3. Create `frontend/.env.production`:
-  - [ ] VITE_API_URL=[production-api-gateway-url]/prod
-  - [ ] VITE_ENVIRONMENT=production
-- [ ] 4. Note: Set VITE_API_URL in Netlify dashboard after linking project
+- [x] 1. Create `frontend/netlify.toml`:
+  - [x] Build command: `npm run build`
+  - [x] Publish directory: `dist`
+  - [x] SPA redirect rules (redirect all routes to index.html)
+- [x] 2. Update CORS configuration in backend if needed:
+  - [x] CORS already configured to allow all origins (`["*"]` in base handler and API Gateway)
+  - [x] No changes needed - Netlify will work with current CORS settings
 
 ### Deployment
 - [ ] 5. Link project in Netlify dashboard (user will handle)
@@ -615,14 +609,12 @@ serverless deploy --stage prod
 ```bash
 cd frontend
 
+# Create netlify.toml (see PR #8)
 # Create .env.production with API Gateway URL
 echo "VITE_API_URL=https://[your-api-gateway-url]/prod" > .env.production
 
-# Build
-npm run build
-
-# Deploy to Netlify (first time)
-npx netlify-cli deploy --prod --dir=dist
+# Link project in Netlify dashboard and set environment variables
+# Netlify will auto-deploy on git push
 ```
 
 ### 6. Test Production
