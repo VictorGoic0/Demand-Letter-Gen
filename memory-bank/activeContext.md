@@ -2,615 +2,219 @@
 
 ## Current Status
 
-**Phase:** Frontend Pages Implementation  
-**Last Updated:** November 2025
+**Phase:** Production Deployment (Phase 6)
+**Last Updated:** November 13, 2025
 
-The project has completed all foundation PRs (PRs #1-5), PR #6 (Shared Backend Utilities), PR #7 (Document Service - Backend), PR #8 (Template Service - Backend), PR #9 (Parser Service - Backend), PR #10 (AI Service - Backend Part 1: OpenAI Integration), PR #11 (AI Service - Backend Part 2: Generation Logic), PR #12 (Letter Service - Backend Part 1: CRUD Operations), PR #13 (Letter Service - Backend Part 2: DOCX Export), PR #14 (Local Development Main Application), PR #15 (Frontend Foundation and Routing), PR #16 (Document Library Page), PR #17 (Template Management Page - Frontend), PR #18 (Create Letter Page - Frontend), PR #19 (Finalize Letter Page - Frontend), PR #20 (Generated Letters Library Page - Frontend), PR #21 (Edit Letter Page - Frontend), PR #22 (Error Handling and Loading States - Frontend), and PR #23 (Authentication Flow - Frontend and Backend). Parser service is complete with PDF text extraction and metadata extraction. AI service is complete with OpenAI integration, prompt engineering, and full letter generation logic that creates draft letters from templates and documents. Letter service is complete with CRUD operations and DOCX export functionality (HTML to DOCX conversion, finalize, and export endpoints). Main FastAPI application is complete with all service routers integrated, detailed health checks, and startup/shutdown events. Frontend authentication is complete with login page, protected routes, and auth context. Backend login endpoint is implemented with mock authentication. All frontend pages are complete: document library, template management, letter creation, letter finalization, generated letters library, and letter editing. Error handling and loading states are complete with ErrorBoundary, ErrorMessage, EmptyState, LoadingSkeleton, and PageLoader components integrated throughout the application.
+The project has completed all 23 PRs from the development phase (foundation through authentication). Backend is deployed to AWS Lambda + API Gateway, frontend is deployed to Netlify. Most endpoints working, but document uploads failing.
 
 ## Current Work Focus
 
-### Immediate Next Steps
+### Production Deployment Status
 
-**PR #22 Complete** - Error Handling and Loading States complete:
-- ErrorBoundary component wraps entire app
-- ErrorMessage component replaces inline error displays
-- EmptyState component used in all list views
-- LoadingSkeleton components (DocumentListSkeleton, LetterCardSkeleton, TemplateCardSkeleton)
-- PageLoader component for full-page loading states
-- All pages updated to use new components
+**Backend Deployment:**
+- ✅ All Lambda functions deployed to AWS
+- ✅ API Gateway configured with HTTPS endpoints
+- ✅ RDS PostgreSQL database running and accessible
+- ✅ S3 buckets created (documents + exports)
+- ✅ CORS fixed for Netlify origin
+- ✅ Auth service deployed (/login endpoint)
+- ✅ Environment variables configured
+- ❌ Document uploads failing (InvalidAccessKeyId error)
 
-**PR #17 Complete** - Template Management Page complete with route-based navigation and enhanced drag-and-drop:
+**Frontend Deployment:**
+- ✅ Deployed to Netlify (https://demand-letter-generator.netlify.app)
+- ✅ CORS issues resolved
+- ✅ Login endpoint working
+- ✅ Templates endpoint working (empty state)
+- ✅ Letters endpoint working (empty state)
+- ✅ Documents endpoint working (list only)
+- ❌ Document upload failing
 
-1. ✅ **PR #6: Shared Backend Utilities** - COMPLETE
-   - Configuration management with Pydantic BaseSettings
-   - Error handling utilities and exception classes
-   - Common schemas (SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse)
-   - Shared exceptions with FastAPI handlers
-   - Utility functions (UUID, datetime, file size, filename/HTML sanitization)
+### Recent Changes
 
-2. ✅ **PR #7: Document Service - Backend** - COMPLETE
-   - Document schemas with validation (file type, size)
-   - Business logic with firm-level isolation
-   - Router with firm_id in path: `/{firm_id}/documents`
-   - All endpoints: upload, list, get, delete, download URL
-   - Lambda handlers using Mangum
-   - S3 integration with presigned URLs
-   - Testing scripts: seed_test_firm.py, seed_test_users.py, check_firm_table.py, check_users_table.py, test_document_api.py
-   - Fixed Docker Compose environment variable loading
-   - Fixed Pydantic Settings validation for nested configs (extra="ignore" + custom AWSConfig env source)
-   - Added database CheckConstraints for User.role and GeneratedLetter.status
+**Files Modified in Deployment Session:**
 
-3. ✅ **PR #15: Frontend Foundation and Routing** - COMPLETE
-   - App.jsx with React Router and all routes (/dashboard, /upload-assets, /templates, /create-letter, /letters, etc.)
-   - MainLayout with header, navigation, and main content area
-   - Navigation component with underline active states (modern design)
-   - All shadcn/ui components installed (button, input, card, dialog, checkbox, switch, select, textarea, badge, table)
-   - API client (axios) with interceptors and error handling
-   - Type definitions (Document, Template, Letter, API types)
-   - AuthContext with user state management
-   - Utility files (utils.js, api.ts, constants.ts)
-   - Neutral theme with primary color matching shadcn default
-   - All placeholder pages created (Dashboard, Documents, Templates, CreateLetter, Letters, FinalizeLetter, EditLetter, NotFound)
+1. **backend/serverless.yml**
+   - Changed `ENVIRONMENT: ${self:provider.stage}` → `ENVIRONMENT: production` (line 27)
+   - Changed `slim: true` → `slim: false` (line 416) to preserve package metadata
+   - Replaced all `cors: true` with explicit CORS configuration:
+     ```yaml
+     cors:
+       origin: https://demand-letter-generator.netlify.app
+       headers:
+         - Content-Type
+         - Authorization
+         - X-Firm-Id
+         - X-User-Id
+       allowCredentials: false
+     ```
+   - Added `authService` function for /login endpoint
 
-4. ✅ **PR #16: Document Library Page - Frontend** - COMPLETE
-   - Document listing UI with table view and sorting
-   - Multi-file upload with drag-and-drop (always visible, no modal)
-   - Auto-upload on file selection
-   - Parallel uploads with individual progress tracking
-   - Document management (download, delete with confirmation)
-   - Empty states and error handling
-   - All hooks implemented (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
+2. **backend/shared/config.py**
+   - Added `extra="ignore"` to `AWSConfig.model_config` (line 54) to allow Lambda's built-in AWS_* environment variables
 
-5. ✅ **PR #17: Template Management Page - Frontend** - COMPLETE
-   - Template API hooks (useTemplates, useDefaultTemplate, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useTemplate)
-   - Route-based navigation: `/templates`, `/templates/new`, `/templates/:id/view`, `/templates/:id/edit`
-   - TemplateView page: Read-only view with all template details, edit button at bottom
-   - TemplateEdit page: Full-page form for create/edit, success banner on save, scrolls to top on success
-   - TemplateForm component with full-page form (not modal)
-   - Enhanced drag-and-drop section reordering:
-     - Works within sections container
-     - Opening paragraph area acts as drop zone for index 0
-     - Closing paragraph area acts as drop zone for last index
-     - Handles drops outside individual section bounds
-   - All template fields (name, letterhead, opening, closing, sections)
-   - Form validation and error handling
-   - TemplateCard component with View, Edit, and Delete buttons
-   - TemplateList component with card grid layout
-   - Templates page: List view with navigation to view/edit routes
-   - Delete confirmation dialog with default template warning
-   - Success messages: "{TemplateName} edit successful!" or "{TemplateName} created successfully!"
-   - Auto-refresh after create/update/delete
-   - All files use JSX (no TypeScript types in components, types folder preserved)
+3. **backend/services/auth_service/schemas.py**
+   - Changed `email: EmailStr` → `email: str` to avoid email-validator dependency
 
-- ✅ PR #18: Create Letter Page - Frontend - COMPLETE
-  - Letter generation API hooks (useLetterGeneration with useGenerateLetter)
-  - DocumentSelector component with multi-select (max 5 documents), search/filter, and selection count
-  - TemplateSelector component with dropdown/select, default template pre-selection
-  - GenerationProgress component with loading spinner and progress message
-  - CreateLetter page with title input, template/document selection, generate button, and error handling
-  - Redirects to finalize page on successful generation
-  - Form validation and helpful messages
+4. **backend/requirements.txt**
+   - Removed `email-validator>=2.0.0` (causing metadata import errors)
 
-- ✅ PR #19: Finalize Letter Page - Frontend - COMPLETE
-  - LetterViewer component with HTML content rendering (DOMPurify sanitization), proper styling, and print-friendly styles
-  - LetterEditor component with rich text editing (textarea-based), HTML formatting preservation
-  - Letter finalize API hooks (useLetterFinalize with useUpdateLetter and useFinalizeLetter)
-  - FinalizeLetter page with view/edit mode toggle, save and finalize actions, loading states, and error handling
-  - Redirects to letters library on finalization
-  - Handles draft and finalized letter states
+5. **backend/handlers/base.py**
+   - Hardcoded Netlify domain in default CORS origins (lines 40-45)
+   - Updated error response headers to use Netlify domain instead of `*`
 
-- ✅ PR #20: Generated Letters Library Page - Frontend - COMPLETE
-  - Letter list API hooks (useLetters with useLetters, useDeleteLetter, useExportLetter)
-  - LetterCard component with letter metadata display, status badges (Draft), action buttons (Edit, Download, Delete)
-  - LetterList component with grid layout, search functionality, status filtering, sorting controls (date created/modified, title, status)
-  - GeneratedLetters page (Letters.jsx) with page header, create button, sorting/filtering controls, delete confirmation dialog
-  - Navigation to edit page and create page
-  - Download uses existing docx_url or calls export endpoint
-  - Client-side filtering and search (fetches up to 100 items for filtering)
-  - Server-side sorting via API
-  - Loading skeletons and empty states
-  - Fixed "Create New Letter" button route: `/create-letter` → `/letters/new`
-  - Fixed 404 "Go to Dashboard" link: `/documents` → `/dashboard`
+6. **backend/main.py**
+   - Added Netlify domain to local dev CORS origins
+   - Updated health handler to return Netlify domain in CORS header
 
-- ✅ PR #21: Edit Letter Page - Frontend and Backend Improvements - COMPLETE
-  - **Frontend:**
-    - EditLetter page with view/edit mode toggle
-    - Back button to letters library with unsaved changes warning
-    - Edit/Save buttons with proper state management
-    - Download button (view mode only, when docx_url exists)
-    - Re-export button (finalized letters) with confirmation dialog and success modal
-    - Finalize button (draft letters) redirects to `/letters/:id/finalize`
-    - Unsaved changes warning using beforeunload event and custom navigation handlers (works with BrowserRouter)
-    - LetterViewer and LetterEditor components reused from PR #19
-    - Loading states, error handling, and 404 handling
-    - Fixed useBlocker compatibility issue (replaced with beforeunload + custom handlers for BrowserRouter)
-    - Fixed setExportError issue (removed since useExportLetter doesn't return setError)
-  - **Backend Improvements:**
-    - Re-export endpoint always regenerates DOCX from current letter content (removed early return for existing docx_s3_key)
-    - Export function updates database with new docx_s3_key after generation
-    - Old DOCX files cleaned up from S3 when filename changes
-    - List view now returns presigned URLs (docx_url) for finalized letters with docx_s3_key
-    - Download button on letter cards (left side) - only visible for finalized letters with docx_url
-    - Download function simplified - no auto-export, only downloads if URL exists
-  - **Content Cleaning (Export Only):**
-    - Markdown code block markers removed: ```html at beginning, ``` at end
-    - Stray backticks removed from export content
-    - Cleaning applied in html_to_docx function before HTML parsing
-    - Valid HTML formatting tags preserved (p, h1-h3, strong, em, ul, ol, li)
-    - Database content unchanged - cleaning only affects exports
+7. **backend/handlers/auth_handler.py** (NEW)
+   - Created Lambda handler for authentication service
 
-## Recent Changes
+8. **frontend/src/lib/api.ts**
+   - Removed `withCredentials: true` (not needed for localStorage-based auth)
 
-- ✅ PR #14: Local Development Main Application - Complete
-  - Updated `backend/main.py` with FastAPI lifespan events:
-    - Startup: Detailed database connection health check (tests with `SELECT 1`)
-    - Startup: Detailed S3 bucket health checks (checks both documents and exports buckets)
-    - Shutdown: Proper database connection cleanup (engine.dispose())
-    - Enhanced `/health` endpoint with detailed status (database and S3 connection states)
-  - Added Docker management scripts to `package.json`:
-    - `npm run start` - Start docker-compose services
-    - `npm run end` - Stop docker-compose services
-    - `npm run restart` - Restart docker-compose services
-  - Created migration scripts in `/backend/migration_scripts/`:
-    - `migrate-up.sh` - Run `alembic upgrade head`
-    - `migrate-down.sh` - Run `alembic downgrade -1`
-    - `migrate-create.sh` - Create new migration with `alembic revision --autogenerate`
-  - Created check scripts for all database tables:
-    - `scripts/check_letter_table.py` - Check generated_letters table (first 5 results)
-    - `scripts/check_letter_document_table.py` - Check letter_source_documents table (first 5 results)
-  - All service routers already integrated in main.py
-  - CORS middleware configured with development origins
-  - Exception handlers registered
-  - OpenAPI documentation configured
-  - Testing setup deferred to MVP+ (optional)
+9. **backend/services/template_service/router.py**
+   - Fixed page_size validation: `page_size=len(templates) if len(templates) > 0 else 1` (line 120)
 
-- ✅ PR #13: Letter Service - Backend (Part 2: DOCX Export) - Complete
-  - Created `services/letter_service/docx_generator.py` with HTML to DOCX conversion:
-    - Custom HTML parser (`HTMLToDocxParser`) supporting `<p>`, `<h1>`, `<h2>`, `<h3>`, `<strong>`, `<b>`, `<em>`, `<i>`, `<ul>`, `<ol>`, `<li>`
-    - Handles nested formatting (bold + italic)
-    - `html_to_docx()` function for conversion
-    - `generate_filename()` with sanitization (50 char limit, format: `Demand_Letter_[Title]_[Date].docx`)
-    - `save_docx_to_s3()` for uploading DOCX files to S3
-    - Error handling for HTML parsing, DOCX generation, and S3 upload
-  - Added `finalize_letter()` function to `logic.py`:
-    - Works on letters with status 'draft' OR 'created' (allows re-finalizing)
-    - Always generates new DOCX (overwrites existing if present)
-    - Changes status to 'created' if not already
-    - Generates filename and uploads to S3 (key format: `{firmId}/letters/{filename}.docx`)
-    - Cleans up old file if filename changes
-    - Returns letter with presigned download URL
-  - Added `export_letter()` function to `logic.py`:
-    - Returns existing presigned URL if docx_s3_key exists
-    - Generates new DOCX if no docx_s3_key exists
-    - Updates docx_s3_key if filename changes
-    - Cleans up old file if filename changes
-    - Returns presigned download URL
-  - Added endpoints to `router.py`:
-    - POST /{firm_id}/letters/{letter_id}/finalize - Finalize letter
-    - POST /{firm_id}/letters/{letter_id}/export - Export letter
-    - OpenAPI documentation included
-  - Created `services/letter_service/handler.py` with Lambda handlers for all endpoints
-  - All error handling implemented throughout
+10. **backend/package.json**
+    - Updated all deployment scripts to use `npx serverless` with proper env loading
+    - Added `logs:prod`, `logs:function`, `info:prod`, `remove:prod` scripts
 
-- ✅ PR #12: Letter Service - Backend (Part 1: CRUD Operations) - Complete
-  - Created `services/letter_service/schemas.py` with all letter schemas:
-    - LetterBase, LetterResponse, LetterListResponse, LetterUpdate
-    - DocumentMetadata for source document info
-    - FinalizeResponse and ExportResponse (for PR #13)
-  - Created `services/letter_service/logic.py` with CRUD operations:
-    - `get_letters()` - Paginated listing with sorting (created_at, updated_at, title, status)
-    - `get_letter_by_id()` - Single letter retrieval with presigned URL generation
-    - `update_letter()` - Update title and/or content
-    - `delete_letter()` - Delete letter and associated .docx from S3
-    - All operations enforce firm-level isolation
-    - Eager loading for template and source documents
-    - Comprehensive error handling and logging
-  - Created `services/letter_service/router.py`:
-    - GET /{firm_id}/letters/ - List letters with pagination and sorting
-    - GET /{firm_id}/letters/{letter_id} - Get single letter
-    - PUT /{firm_id}/letters/{letter_id} - Update letter
-    - DELETE /{firm_id}/letters/{letter_id} - Delete letter
-    - OpenAPI documentation included
-  - Created `services/letter_service/__init__.py` to export router
-  - Router follows same patterns as document_service for consistency
-  - Ready for integration into main FastAPI application
+11. **tasks-deployment.md**
+    - Removed PRs 5, 6, 7
+    - Added new PR #5 documenting all production deployment fixes
 
-- ✅ PR #11: AI Service - Backend (Part 2: Generation Logic) - Complete
-  - Created `services/ai_service/logic.py` with `generate_letter()` function:
-    - Validates document count (1-5 documents)
-    - Fetches and verifies template with firm-level isolation
-    - Fetches and verifies all documents with firm-level isolation
-    - Calls parser service to extract text from each document
-    - Validates extracted text is not empty
-    - Builds prompt using template and document context
-    - Calls OpenAI API to generate letter content
-    - Validates and sanitizes HTML output
-    - Creates GeneratedLetter record in database with status='draft'
-    - Creates LetterSourceDocument associations for all source documents
-    - Returns GenerateResponse with letter_id, content, and status
-    - Comprehensive error handling for all failure points
-    - Logging for generation requests, successes, and failures
-  - Created `services/ai_service/router.py`:
-    - POST /generate/letter endpoint
-    - Accepts firm_id and optional created_by as query params (MVP approach)
-    - Validates GenerateRequest schema
-    - Returns 201 with GenerateResponse
-    - OpenAPI documentation included
-    - Proper error handling with appropriate HTTP status codes
-  - Created `services/ai_service/handler.py`:
-    - FastAPI app setup for Lambda deployment
-    - Mangum handler configured
-    - Exception handlers registered
-    - Ready for 60-second timeout configuration in Lambda
-  - Router exported in `__init__.py` and registered in `main.py`
-  - Full integration with parser service and template service
-  - Testing utilities deferred for MVP (optional)
+### Issues Fixed During Deployment
 
-- ✅ PR #10: AI Service - Backend (Part 1: OpenAI Integration) - Complete
-  - Created `services/ai_service/openai_client.py` with OpenAI client:
-    - Singleton client with API key from config
-    - `build_generation_prompt()` - builds structured prompts (delegates to prompts.py)
-    - `call_openai_api()` - calls OpenAI with temperature from config (0.7), no streaming
-    - Retry logic with exponential backoff for rate limits and transient failures
-    - Error handling for API errors with OpenAIException
-    - `estimate_token_count()` - rough token estimation for logging
-    - `validate_response_format()` - validates HTML output
-  - Created `services/ai_service/prompts.py` with prompt engineering:
-    - Comprehensive BASE_SYSTEM_PROMPT for legal writing (structured process, guidelines, do's/don'ts)
-    - `build_context_from_documents()` - formats document text with labels, separators, optional truncation
-    - `build_template_instructions()` - formats template structure (letterhead, sections, opening/closing)
-    - `build_output_format_instructions()` - HTML formatting requirements
-    - `combine_prompt_components()` - combines all components into OpenAI message list
-    - `get_html_formatting_examples()` - example HTML structure
-  - Created `services/ai_service/schemas.py`:
-    - GenerateRequest - template_id, document_ids (max 5), optional title
-    - GenerateResponse - letter_id, content (HTML), status (draft)
-    - Validation for document count (1-5 documents)
-  - System prompt expanded from "too vague" to "just right" with clear structure, process steps, guidelines, and explicit do's/don'ts
+1. **Email Validator Dependency Issue**
+   - Problem: `Runtime.ImportModuleError: No package metadata was found for email-validator`
+   - Root cause: Pydantic's EmailStr requires metadata, serverless-python-requirements with `slim: true` strips it
+   - Fix: Removed EmailStr, removed email-validator from requirements, changed slim to false
 
-- ✅ PR #9: Parser Service - Backend - Complete
-  - Created `services/parser_service/pdf_parser.py` with PDF parsing:
-    - `extract_text_from_pdf()` - extracts text from all pages with separators
-    - `extract_metadata_from_pdf()` - extracts page count, file size, creation date
-    - `validate_pdf_structure()` - validates PDF format and structure
-    - Error handling for corrupted PDFs, encrypted PDFs, unsupported versions
-  - Created `services/parser_service/schemas.py`:
-    - ParseRequest - document_ids (max 10)
-    - ParseResponse - document_id, extracted_text, page_count, file_size, metadata, success, error
-    - ParseBatchResponse - results list with total/successful/failed counts
-  - Created `services/parser_service/logic.py`:
-    - `parse_document()` - downloads from S3, extracts text, returns ParseResponse
-    - `parse_documents_batch()` - processes multiple documents, collects results
-    - Firm-level isolation enforced
-    - Error handling for S3 download and parsing failures
-  - Created `services/parser_service/router.py`:
-    - POST /parse/document/{document_id} - parse single document (firm_id query param)
-    - POST /parse/batch - parse multiple documents (firm_id query param)
-    - Firm-level isolation enforced on all endpoints
-  - Created `services/parser_service/handler.py` with Lambda handlers
-  - Router registered in main.py for local development
+2. **Environment Variable Validation**
+   - Problem A: `ENVIRONMENT: prod` not accepted (expects `production`)
+   - Fix: Hardcoded `ENVIRONMENT: production` in serverless.yml
+   - Problem B: Lambda's AWS_* env vars rejected by AWSConfig
+   - Fix: Added `extra="ignore"` to AWSConfig model
 
-- ✅ PR #8: Template Service - Backend - Complete
-  - Created `services/template_service/schemas.py` with all template schemas (TemplateBase, TemplateCreate, TemplateUpdate, TemplateResponse, TemplateListResponse)
-  - Created `services/template_service/logic.py` with business logic:
-    - create_template(): Validates, handles default flag logic, creates DB record
-    - get_templates(): Lists templates with sorting (name, created_at)
-    - get_template_by_id(): Retrieval with firm-level isolation
-    - update_template(): Updates with default flag handling
-    - delete_template(): Deletes with usage check (prevents deletion if in use by letters)
-    - get_default_template(): Retrieves default template for firm
-  - Created `services/template_service/router.py` with router prefix `/{firm_id}/templates`:
-    - POST /{firm_id}/templates/ - Create template
-    - GET /{firm_id}/templates/ - List templates (with sorting)
-    - GET /{firm_id}/templates/default - Get default template
-    - GET /{firm_id}/templates/{template_id} - Get template by ID
-    - PUT /{firm_id}/templates/{template_id} - Update template
-    - DELETE /{firm_id}/templates/{template_id} - Delete template
-  - Created `services/template_service/handler.py` with Lambda handlers
-  - All operations enforce firm-level isolation
-  - Router registered in main.py for local development
-  - Validation for template name length (1-255 chars) and section names (non-empty)
-  - Default template logic: setting is_default=True unsets other defaults for the firm
+3. **CORS Issues**
+   - Problem: Wildcard `*` CORS breaks when credentials included
+   - Fix: Removed `withCredentials` from frontend, added explicit Netlify origin in backend
 
-- ✅ PR #22: Error Handling and Loading States - Frontend - Complete
-  - Created ErrorBoundary component with error catching, display, and reload functionality
-  - Created ErrorMessage component (reusable error display with retry button)
-  - Created EmptyState component (reusable empty state with icon, title, description, optional action)
-  - Created LoadingSkeleton component with variants (DocumentListSkeleton, LetterCardSkeleton, TemplateCardSkeleton)
-  - Created PageLoader component for full-page loading states
-  - Integrated ErrorBoundary into App.jsx to wrap entire application
-  - Replaced all inline error displays with ErrorMessage component across all pages
-  - Replaced all inline empty states with EmptyState component in list views
-  - Replaced generic loading states with LoadingSkeleton and PageLoader
-  - Updated ProtectedRoute to use PageLoader
-  - All components follow existing design system (shadcn/ui, Tailwind CSS)
-  - Fixed ErrorBoundary to use import.meta.env.DEV instead of process.env.NODE_ENV (Vite compatibility)
+4. **Missing Auth Endpoint**
+   - Problem: /login endpoint not deployed
+   - Fix: Created auth_handler.py, added authService to serverless.yml
 
-- ✅ PR #23: Authentication Flow - Frontend and Backend - Complete
-  - Created Login page with email and password fields
-  - Implemented AuthContext with localStorage persistence and validation
-  - Created ProtectedRoute component to guard routes
-  - Updated App.jsx to protect all routes except /login
-  - Created auth service with /login endpoint
-  - Backend login endpoint queries User by email and returns user/firm info + role
-  - Mock authentication (password accepted but not validated)
-  - Added NotFoundException to shared exceptions
-  - All routes protected - unauthenticated users redirected to login
-  - User dropdown menu with email, role, and logout functionality
-  - Logo clickable to navigate to dashboard
-  - Firm name displayed in header
-  - Axios interceptors add firmId/userId headers to all requests
-  - Fixed useDocuments hooks to use firmId (camelCase) instead of firm_id
-  - User data persists across page reloads via localStorage
+5. **RDS Connection Timeout**
+   - Problem: Lambda couldn't connect to RDS
+   - Fix: Updated RDS security group to allow connections from 0.0.0.0/0 on port 5432
 
-- ✅ PR #15: Frontend Foundation and Routing - Complete
-  - Created App.jsx with React Router and all route definitions
-  - Routes: /dashboard, /upload-assets, /templates, /create-letter, /letters, /letters/:id/finalize, /letters/:id/edit
-  - Created MainLayout.jsx with header (logo, navigation, user profile)
-  - Created Navigation.jsx with horizontal nav and underline active states
-  - Installed all shadcn/ui components (10 components total)
-  - Created API client (lib/api.ts) with axios, interceptors, and error handling
-  - Created constants file (lib/constants.ts) with API endpoints, file limits, supported types
-  - Created TypeScript type definitions (types/document.ts, types/template.ts, types/letter.ts, types/api.ts)
-  - Created AuthContext.jsx with user state, login/logout functions, and useAuth hook
-  - Created all placeholder pages (Dashboard, Documents, Templates, CreateLetter, Letters, FinalizeLetter, EditLetter, NotFound)
-  - Configured neutral theme with primary color (24 9.8% 10%) matching shadcn default
-  - Navigation uses underline style for active items (modern look)
-  - Build passes successfully
+6. **Template List Empty State**
+   - Problem: GET /templates returns 500 when no templates exist
+   - Fix: Set page_size to 1 minimum (was 0 for empty results)
 
-- ✅ PR #16: Document Library Page - Frontend - Complete
-  - Created useDocuments hook (useDocuments, useDocumentUpload, useDocumentDelete, useDocumentDownload)
-  - Created DocumentUpload component with modern drag-and-drop UI
-    - Always visible at top of page (no modal)
-    - Auto-upload on file selection
-    - Multi-file support with parallel uploads
-    - Individual progress tracking per file
-    - File validation (PDF only, 50MB max)
-    - Progress cards showing upload status
-  - Created DocumentList component with table view
-    - Sortable columns (filename, upload date)
-    - Download and delete actions
-    - Delete confirmation dialog
-    - Empty state
-    - Loading skeletons
-  - Created DocumentCard component (alternative card view)
-  - Updated Documents page to integrate all components
-  - Navigation updated: "My Campaigns" → "My Letters"
-  - Error handling and loading states throughout
+### Current Issue: S3 Upload Failures
 
-- ✅ PR #17: Template Management Page - Frontend - Complete
-  - Created useTemplates hook (useTemplates, useDefaultTemplate, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useTemplate)
-  - Route-based navigation implemented:
-    - `/templates` - List view
-    - `/templates/new` - Create new template
-    - `/templates/:id/view` - View-only page
-    - `/templates/:id/edit` - Edit page
-  - Created TemplateView page:
-    - Read-only display of all template fields
-    - No inputs or edit controls
-    - "Set as Default" indicator shown
-    - Edit button at bottom navigates to edit page
-    - Handles loading and error states
-  - Created TemplateEdit page:
-    - Full-page form for create/edit modes
-    - Success banner (green Card) on save: "{TemplateName} edit successful!" or "{TemplateName} created successfully!"
-    - Auto-scrolls to top when success message appears
-    - Uses returned template name from API for success message
-    - Cancel button navigates back to templates list
-    - Handles loading and error states
-  - Created TemplateForm component:
-    - Full-page form (not modal) for create/edit modes
-    - All template fields: name, letterhead_text, opening_paragraph, closing_paragraph, sections
-    - Enhanced drag-and-drop section reordering:
-      - Opening paragraph area acts as drop zone (drops at index 0)
-      - Closing paragraph area acts as drop zone (drops at last index)
-      - Individual sections handle drops between items
-      - Works when dragging outside individual section bounds
-    - Add/remove sections functionality
-    - Form validation (name required, max 255 chars, section names non-empty)
-    - "Set as Default" checkbox
-    - Error handling and display
-  - Created TemplateCard component:
-    - Displays template name, default badge, section count, created date
-    - View, Edit, and Delete buttons
-    - Hover effects
-  - Created TemplateList component:
-    - Card grid layout (responsive: 1 col mobile, 2 col tablet, 3 col desktop)
-    - Loading skeletons
-    - Empty state
-  - Created Templates page:
-    - List view with card grid
-    - Navigation to view/edit routes (no in-page form state)
-    - Delete confirmation dialog with warning for default templates
-    - Error handling and loading states
-    - Auto-refresh after delete
-  - All components use JSX (no TypeScript types in components)
-  - Types folder preserved for future TypeScript integration
-  - Installed @radix-ui/react-label for Label component
-  - Build passes successfully with no linter errors
+**Problem:** Document uploads failing with `InvalidAccessKeyId` error
 
-- ✅ PR #1: Project Initialization - Frontend and backend setup complete
-- ✅ PR #2: Docker Configuration - Docker Compose and Dockerfiles created
-- ✅ PR #3: Database Schema and Migrations - All models, migrations, and utilities implemented
-  - Created all database models (Firm, User, Document, LetterTemplate, GeneratedLetter, LetterSourceDocument)
-  - Set up Alembic with proper configuration
-  - Created initial migration with all tables and indexes
-  - Added database utilities for connection testing and table management
-  - Added comprehensive migration documentation to README
-- ✅ PR #4: S3 Client and Bucket Setup - Complete
-  - Created `shared/s3_client.py` with full S3 operations (upload, download, delete, presigned URLs)
-  - Created S3 buckets in AWS: `goico-demand-letters-documents-dev` and `goico-demand-letters-exports-dev` (us-east-2)
-  - Configured buckets: versioning enabled, encryption (AES256), public access blocked for documents only
-  - Created comprehensive documentation: `docs/s3-bucket-setup.md` and `docs/s3-usage.md`
-  - Updated all references to use correct bucket naming convention
-- ✅ PR #5: Lambda-Optimized Application Structure - Complete
-  - Created `serverless.yml` with full AWS Lambda configuration
-  - Created `handlers/` directory with base handler utility and example handlers
-  - Added serverless plugins: serverless-offline and serverless-python-requirements
-  - Created `backend/package.json` for npm scripts
-  - Created comprehensive deployment documentation: `backend/docs/lambda-deployment.md`
-  - OpenAI model (gpt-4) and temperature (0.7) in `shared/config.py` for easier development
-- ✅ PR #6: Shared Backend Utilities - Complete
-  - Updated `shared/config.py` to use Pydantic BaseSettings (from pydantic-settings package)
-  - Created Settings class with nested configuration models (Database, AWS, OpenAI, CORS)
-  - Added CORS configuration fields (allow_origins, allow_credentials, allow_methods, allow_headers)
-  - Created `shared/schemas/` directory with common schemas:
-    - SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse
-  - Created `shared/exceptions.py` with custom exception classes:
-    - BaseAppException, DocumentNotFoundException, TemplateNotFoundException, LetterNotFoundException
-    - S3UploadException, S3DownloadException, OpenAIException
-    - ValidationException, UnauthorizedException, ForbiddenException
-  - Created FastAPI exception handlers (app_exception_handler, http_exception_handler, validation_exception_handler, general_exception_handler)
-  - Added `register_exception_handlers()` function for easy setup
-  - Created `shared/utils.py` with utility functions:
-    - generate_uuid(), format_datetime(), format_file_size(), sanitize_filename(), sanitize_html(), parse_file_size()
-  - Updated all validators to use Pydantic v2 API (field_validator)
-  - Added pydantic-settings>=2.1.0 to requirements.txt
-- ✅ PR #7: Document Service - Backend - Complete
-  - Created `services/document_service/schemas.py` with all document schemas (DocumentBase, DocumentCreate, DocumentResponse, DocumentListResponse, UploadResponse, DownloadUrlResponse)
-  - Created `services/document_service/logic.py` with business logic:
-    - upload_document(): Validates, uploads to S3, creates DB record
-    - get_documents(): Paginated listing with sorting
-    - get_document_by_id(): Retrieval with firm-level isolation
-    - delete_document(): Deletes from S3 and database
-    - generate_download_url(): Presigned URLs (1 hour expiration)
-  - Created `services/document_service/router.py` with router prefix `/{firm_id}/documents`:
-    - POST /{firm_id}/documents/ - Upload document
-    - GET /{firm_id}/documents/ - List documents (pagination & sorting)
-    - GET /{firm_id}/documents/{document_id} - Get document by ID
-    - DELETE /{firm_id}/documents/{document_id} - Delete document
-    - GET /{firm_id}/documents/{document_id}/download - Get download URL
-  - Created `services/document_service/handler.py` with Lambda handlers
-  - All operations enforce firm-level isolation
-  - S3 key pattern: `{firm_id}/{document_id}/{sanitized_filename}`
-  - Created testing scripts:
-    - `scripts/seed_test_firm.py` - Standalone script to seed test firm
-    - `scripts/seed_test_users.py` - Standalone script to seed test users (6 users)
-    - `scripts/check_firm_table.py` - Query and display firms
-    - `scripts/check_users_table.py` - Query and display users
-    - `scripts/test_document_api.py` - Test document upload endpoint only
-  - Fixed Docker Compose environment variable loading (removed env_file, use environment section with ${VAR} syntax)
-  - Fixed Pydantic Settings validation for nested configs (added extra="ignore" to Settings.model_config, implemented custom env source for AWSConfig to map AWS_S3_BUCKET_* variables)
-  - Added database CheckConstraints:
-    - User.role: only 'attorney' or 'paralegal'
-    - GeneratedLetter.status: only 'draft' or 'created'
-- Created test script (backend/scripts/test_db.py) for database connection and schema validation
+**Context:**
+- S3 client in `backend/shared/s3_client.py` tries to use AWS credentials from environment variables
+- Lambda execution role should provide S3 access automatically via IAM
+- Credentials in `.env.production` may be invalid or not being passed correctly
 
-## Active Decisions & Considerations
+**Attempted Fix (reverted):**
+- Made S3 client conditionally use credentials only if provided
+- Reverted at user's request
 
-### Architecture Decisions Made
+**Next Steps:**
+- Investigate why Lambda IAM role isn't providing S3 access
+- Check if AWS credentials in .env.production are valid
+- Verify serverless.yml IAM permissions for S3
 
-1. **Service Structure:** Service-oriented Lambda functions with shared code
-2. **Local Development:** Single FastAPI app combining all routers
-3. **Database:** PostgreSQL 15 with SQLAlchemy ORM
-4. **Frontend:** React 18 + Vite + Tailwind + shadcn/ui
-5. **Storage:** S3 for files, RDS for metadata
+## Deployment Architecture
 
-### Pending Decisions
+### Backend (AWS)
+- **Compute:** AWS Lambda (Python 3.11)
+- **API:** API Gateway (HTTPS)
+- **Database:** RDS PostgreSQL (db.t3.micro, single-AZ)
+- **Storage:** S3 (2 buckets: documents + exports)
+- **Region:** us-east-2
 
-1. **Node.js Version:** Need to confirm Node.js 18+ compatibility with all packages
-2. **Lambda Layer Strategy:** Finalize which dependencies go in common layer
-3. **Testing Strategy:** Unit test coverage targets and testing frameworks
-4. **CI/CD:** Whether to set up automated deployment pipeline
+**Lambda Functions:**
+- `healthCheck` - GET /health
+- `authService` - POST /login
+- `documentService` - All /documents endpoints
+- `templateService` - All /templates endpoints
+- `letterService` - All /letters endpoints
+- `parserService` - All /parse endpoints
+- `aiService` - POST /generate/letter
 
-### Recent Decisions
+**Environment Variables (Production):**
+- `ENVIRONMENT=production`
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- `AWS_S3_BUCKET_DOCUMENTS`, `AWS_S3_BUCKET_EXPORTS`
+- `OPENAI_API_KEY`
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (for S3 access)
 
-1. **OpenAI Configuration:** Model (gpt-4) and temperature (0.7) are in `shared/config.py` for easier development iteration. These can be adjusted directly in code as needed, avoiding environment variable friction during development.
+### Frontend (Netlify)
+- **URL:** https://demand-letter-generator.netlify.app
+- **Build:** Vite + React
+- **Auth:** localStorage-based (email, userId, firmId, role)
+- **API:** Axios client with firmId/userId headers
 
-### Current Blockers
+## Deployment Commands
 
-None identified yet - project is in initial setup phase.
+**Backend:**
+```bash
+cd backend
+npm run deploy:prod         # Deploy all functions
+npm run logs:prod           # View all logs
+npm run logs:function       # View specific function logs
+npm run remove:prod         # Remove deployment
+npm run info:prod           # Get deployment info
+```
 
-## Next Milestones
+**Frontend:**
+- Auto-deployed via Netlify on git push to main
 
-### Phase 1: Foundation ✅ COMPLETE (100% - 6/6 PRs)
-- [x] Project initialization
-- [x] Docker setup
-- [x] Database schema
-- [x] AWS infrastructure configuration (S3)
-- [x] Lambda-optimized structure setup
-- [x] Shared backend utilities
+## Key Learnings from Deployment
 
-### Phase 2: Core Features (100% - 7/7 PRs Complete)
-- [x] Document service (upload, list, delete) - PR #7 Complete
-- [x] Template service (CRUD) - PR #8 Complete
-- [x] Parser service (PDF extraction) - PR #9 Complete
-- [x] AI service OpenAI integration - PR #10 Complete
-- [x] AI service generation logic - PR #11 Complete
-- [x] Letter service CRUD operations - PR #12 Complete
-- [x] Letter service DOCX export - PR #13 Complete
-- [x] Frontend foundation (routing, components, layout) - PR #15 Complete
+1. **Pydantic Validation:** Too strict for MVP - caused crashes on edge cases (EmailStr, page_size >= 1, extra="forbid")
 
-### Phase 3: Frontend Pages (86% - 6/7 PRs Complete)
-- [x] Document library page - PR #16 Complete
-- [x] Template management page - PR #17 Complete (with route-based navigation and enhanced drag-and-drop)
-- [x] Create letter page - PR #18 Complete
-- [x] Finalize letter page - PR #19 Complete
-- [x] Generated letters library page - PR #20 Complete
-- [x] Edit letter page - PR #21 Complete
+2. **CORS with Credentials:** Wildcard `*` doesn't work with `withCredentials: true` - always use explicit origins
 
-### Phase 3: AI Integration
-- [ ] AI service (letter generation)
-- [ ] OpenAI integration
-- [ ] Finalize page UI
+3. **Dev/Prod Parity:** Environment name mismatches and Lambda-specific env vars caused issues that didn't appear locally
 
-### Phase 4: Letter Management
-- [ ] Letter service (CRUD, finalize, export)
-- [ ] Generated letters library UI
-- [ ] Edit functionality
-- [ ] .docx export
+4. **Serverless Framework:**
+   - `cors: true` defaults to wildcard `*`
+   - Must use `npx serverless` for consistent versions
+   - Environment variables must be loaded before deployment commands
 
-### Phase 5: Polish & Testing
-- [ ] End-to-end testing
-- [ ] Bug fixes
-- [ ] UI/UX refinements
-- [ ] Performance optimization
+5. **AWS Lambda:** Should use execution role for AWS service access, not explicit credentials in environment
 
-### Phase 6: Deployment
-- [ ] Lambda deployment
-- [ ] Production environment setup
-- [ ] User acceptance testing
-- [ ] Launch
+## Next Steps
 
-## Development Priorities
-
-### P0 (Must Have)
-All features listed in PRD Section 6 (Functional Requirements - P0)
-
-### P1 (Post-MVP)
-Features listed in PRD Section 6.7 (P1: Post-MVP Features)
-
-## Key Files to Reference
-
-- **PRD.md:** Complete product requirements
-- **architecture.mermaid:** System architecture diagram
-- **tasks-1.md:** Setup and infrastructure tasks (PRs #1-5)
-- **tasks-2.md:** Backend services tasks (PRs #6-10)
-- **tasks-3.md:** AI and letter services (PRs #11-14)
-- **tasks-4.md:** Frontend pages (PRs #15-21)
-- **tasks-5.md:** Integration, testing, deployment (PRs #22-29)
-
-## Important Notes
-
-1. **MVP Focus:** Only P0 features should be implemented initially
-2. **Firm-Level Isolation:** All data must be filtered by firm_id - all users within a firm see the same documents, templates, and letters. All queries filter by firm_id for multi-tenancy. Document service uses firm_id as path parameter: `/{firm_id}/documents`.
-3. **Authentication:** Mock authentication implemented - password accepted but not validated. Login endpoint queries User by email and returns user/firm/role information. Frontend stores user data in localStorage with validation, protects all routes except /login, displays user menu with logout, and injects firmId/userId headers in all API requests. All hooks use camelCase property names (firmId, userId, firmName, role).
-4. **Error Handling:** Comprehensive error handling at all layers
-5. **Documentation:** Keep documentation updated as code is written
+1. **Fix S3 upload issue** - investigate AWS credentials and IAM roles
+2. **Test end-to-end flow** - upload documents, create template, generate letter
+3. **Document production setup** - create runbook for operations
+4. **Monitor costs** - verify staying within budget (~$15-30/month)
 
 ## Questions to Resolve
 
-1. ~~Authentication system details (JWT implementation specifics)~~ - Deferred to post-MVP
-2. OpenAI API key management (AWS Secrets Manager vs environment variables)
-3. Frontend deployment strategy (S3 + CloudFront vs Vercel/Netlify)
-4. Database migration strategy (Alembic vs manual SQL)
-5. Local S3 testing (LocalStack vs actual S3 bucket)
+1. ~~Authentication system details~~ - Deferred to post-MVP
+2. ~~OpenAI API key management~~ - Using environment variables for MVP
+3. ~~Frontend deployment strategy~~ - Using Netlify ✅
+4. ~~Database migration strategy~~ - Using Alembic ✅
+5. ~~Local S3 testing~~ - Using actual S3 buckets ✅
+6. **Why are S3 uploads failing with InvalidAccessKeyId?** - Current blocker
 
 ## Workflow Notes
 
-- Use task lists (tasks-1.md through tasks-5.md) as implementation guide
+- Use task lists and tasks-deployment.md as implementation guide
 - Each PR should be focused and complete
 - Test locally before deployment
 - Update documentation as features are built
 - Keep memory bank updated with new patterns and decisions
+- For deployment issues: check Lambda logs first (CloudWatch)
+- Use `npx serverless logs --function <functionName> --stage prod` to view logs
 

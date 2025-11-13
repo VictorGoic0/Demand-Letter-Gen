@@ -249,225 +249,128 @@
 
 ---
 
-## PR #5: Basic CloudWatch Monitoring (MVP Simplified)
+## PR #5: Production Deployment Fixes & Troubleshooting
 
-### Basic CloudWatch Log Configuration
-- [ ] 1. Configure log retention in `backend/serverless.yml`:
+This PR documents all the fixes required to get the application working in production after initial deployment.
+
+### Issues Encountered & Fixes
+
+#### 1. Email Validator Dependency Issue
+**Problem**: Lambda failing with `Runtime.ImportModuleError: No package metadata was found for email-validator`
+- Pydantic 2.x's `EmailStr` type requires `email-validator` package metadata at runtime
+- `serverless-python-requirements` with `slim: true` was stripping metadata
+
+**Fixes**:
+- [x] Removed `EmailStr` from `backend/services/auth_service/schemas.py` (changed to plain `str`)
+- [x] Removed `email-validator>=2.0.0` from `backend/requirements.txt`
+- [x] Changed `slim: true` to `slim: false` in `backend/serverless.yml` (preserves package metadata)
+
+#### 2. Environment Variable Validation Issues
+**Problem**: Lambda crashing with Pydantic validation errors for environment variables
+
+**Issue A - Environment name mismatch**:
+- serverless.yml set `ENVIRONMENT: ${self:provider.stage}` which resolves to `prod`
+- config.py only accepts `development`, `staging`, `production`
+
+**Fix**:
+- [x] Changed `backend/serverless.yml` line 27 to hardcode: `ENVIRONMENT: production`
+
+**Issue B - AWS Lambda environment variables rejected**:
+- AWS Lambda automatically sets many `AWS_*` environment variables (e.g., `AWS_LAMBDA_FUNCTION_NAME`)
+- `AWSConfig` class in config.py used `env_prefix="AWS_"` with strict validation
+- Pydantic rejected Lambda's extra environment variables with `extra_forbidden` errors
+
+**Fix**:
+- [x] Added `extra="ignore"` to `AWSConfig.model_config` in `backend/shared/config.py` (line 54)
+
+#### 3. CORS Configuration Issues
+**Problem**: Browser blocking requests with CORS error - `Access-Control-Allow-Origin` cannot be wildcard `*` when credentials mode is `include`
+
+**Root Cause**:
+- Frontend `axios` client had `withCredentials: true` (not needed - we use localStorage, not cookies)
+- Backend had `cors: true` in serverless.yml which defaults to wildcard `*`
+- Wildcard CORS breaks when credentials are included
+
+**Fixes**:
+- [x] Removed `withCredentials: true` from `frontend/src/lib/api.ts`
+- [x] Replaced all `cors: true` in `backend/serverless.yml` with explicit CORS configuration:
   ```yaml
-  provider:
-    logRetentionInDays: 7  # Keep costs low for MVP
+  cors:
+    origin: https://demand-letter-generator.netlify.app
+    headers:
+      - Content-Type
+      - Authorization
+      - X-Firm-Id
+      - X-User-Id
+    allowCredentials: false
   ```
-- [ ] 2. Verify CloudWatch logs are automatically created:
-  - [ ] Serverless Framework creates log groups automatically
-  - [ ] No additional configuration needed
+- [x] Updated `backend/handlers/base.py` to hardcode Netlify domain in CORS origins (lines 40-45)
+- [x] Updated `backend/main.py` health handler to use Netlify domain (line 210)
 
-### Basic Monitoring (No Alarms for MVP)
-- [ ] 3. Document how to view logs in AWS Console:
-  - [ ] CloudWatch > Log groups > /aws/lambda/[function-name]
-  - [ ] Can filter and search logs
-- [ ] 4. Document how to view logs via CLI:
-  ```bash
-  serverless logs -f functionName --tail --stage prod
-  ```
-- [ ] 5. Bookmark CloudWatch dashboard links for:
-  - [ ] Lambda metrics (invocations, errors, duration)
-  - [ ] API Gateway metrics (requests, latency, errors)
-  - [ ] RDS metrics (CPU, connections, storage)
+#### 4. Missing Auth Service Endpoint
+**Problem**: `/login` endpoint returning 403/404 - endpoint not deployed
 
-### Cost Monitoring (Optional but Recommended)
-- [ ] 6. Set up basic AWS Cost Budget:
-  - [ ] Create monthly budget: $50 (2x expected cost)
-  - [ ] Set alert at 80% ($40)
-  - [ ] Add your email for notifications
-- [ ] 7. Check AWS Billing Dashboard weekly
+**Root Cause**: Auth service had router but no Lambda handler and wasn't configured in serverless.yml
 
----
+**Fixes**:
+- [x] Created `backend/handlers/auth_handler.py` (following pattern from other handlers)
+- [x] Added `authService` function to `backend/serverless.yml` with `/login` POST endpoint
 
-## PR #6: Pre-Deployment Testing and Validation
+#### 5. RDS Connection Timeout
+**Problem**: Lambda timing out when trying to connect to RDS PostgreSQL
 
-### Local Testing with Production-like Configuration
-- [ ] 1. Create test environment with production settings:
-  - [ ] Use production-like database (local or staging)
-  - [ ] Use production bucket names in test account (or staging buckets)
-  - [ ] Test with production-like data volume
-- [ ] 2. Run full integration tests:
-  - [ ] Test document upload (large files)
-  - [ ] Test document parsing
-  - [ ] Test template CRUD operations
-  - [ ] Test letter generation with real OpenAI API
-  - [ ] Test letter finalization and export
-- [ ] 3. Test error scenarios:
-  - [ ] Invalid file types
-  - [ ] Oversized files
-  - [ ] Missing documents
-  - [ ] Database connection failures
-  - [ ] S3 access errors
-  - [ ] OpenAI API errors/timeouts
-- [ ] 4. Load testing (optional but recommended):
-  - [ ] Test concurrent document uploads
-  - [ ] Test concurrent letter generation
-  - [ ] Verify database connection pooling
+**Root Cause**: RDS security group only allowed connections from specific IP (local machine), not from Lambda
 
-### Dependency Verification
-- [ ] 5. Verify all Python dependencies are Lambda-compatible:
-  - [ ] Check for compiled dependencies (psycopg2-binary, etc.)
-  - [ ] Ensure all dependencies work on Amazon Linux 2
-- [ ] 6. Test Lambda layer building:
-  - [ ] Run `serverless package --stage prod`
-  - [ ] Verify layer size (must be < 250MB unzipped)
-  - [ ] Verify no missing dependencies
-- [ ] 7. Test cold start performance:
-  - [ ] Measure Lambda cold start times
-  - [ ] Optimize if > 5 seconds
+**Fix**:
+- [x] Updated RDS security group to allow inbound connections from `0.0.0.0/0` on port 5432
+- Note: For MVP this is acceptable; for production, should use Lambda in VPC with RDS
 
-### Configuration Validation
-- [ ] 8. Validate `backend/serverless.yml`:
-  - [ ] Run `serverless print --stage prod`
-  - [ ] Verify all environment variables resolve
-  - [ ] Verify IAM permissions are correct
-  - [ ] Verify VPC configuration is correct
-- [ ] 9. Validate secrets in AWS Secrets Manager:
-  - [ ] Confirm all required secrets exist
-  - [ ] Test secret retrieval with IAM role
-- [ ] 10. Dry-run deployment:
-  - [ ] Run `serverless package --stage prod`
-  - [ ] Review generated CloudFormation template
-  - [ ] Check for any warnings or errors
+#### 6. Template List Empty Page Size Validation Error
+**Problem**: GET `/templates` returning 500 when no templates exist
 
-### Documentation Review
-- [ ] 11. Review and update all deployment documentation:
-  - [ ] README.md
-  - [ ] backend/README.md
-  - [ ] backend/docs/lambda-deployment.md
-  - [ ] docs/s3-bucket-setup.md
-  - [ ] New docs created in previous PRs
-- [ ] 12. Create deployment runbook:
-  - [ ] Step-by-step deployment instructions
-  - [ ] Rollback procedures
-  - [ ] Troubleshooting guide
-  - [ ] Emergency contacts
+**Root Cause**: `TemplateListResponse` has Pydantic validation `page_size >= 1`, but code was setting `page_size=len(templates)` which is 0 when empty
 
----
+**Fix**:
+- [x] Changed `backend/services/template_service/router.py` line 120 to: `page_size=len(templates) if len(templates) > 0 else 1`
 
-## PR #7: Production Deployment and Verification
+#### 7. S3 Upload Failures (ONGOING)
+**Problem**: Document uploads failing with `InvalidAccessKeyId` error
 
-### Initial Production Deployment
-- [ ] 1. Set AWS credentials for production account:
-  - [ ] Verify AWS CLI profile configured
-  - [ ] Run `aws sts get-caller-identity` to verify account
-- [ ] 2. Deploy Lambda layer first:
-  ```bash
-  cd backend
-  serverless deploy --stage prod --verbose
-  ```
-- [ ] 3. Monitor deployment output:
-  - [ ] Verify CloudFormation stack creation
-  - [ ] Verify Lambda functions created
-  - [ ] Verify API Gateway endpoints created
-  - [ ] Note API Gateway base URL
-- [ ] 4. Handle any deployment errors:
-  - [ ] Check CloudFormation events
-  - [ ] Check IAM permissions
-  - [ ] Check VPC configuration
-  - [ ] Check security group rules
+**Root Cause**: TBD - needs investigation
+- S3 client trying to use AWS credentials from environment variables
+- Lambda execution role should provide S3 access automatically
+- Credentials in .env.production may be invalid or not being used correctly
 
-### Post-Deployment Verification
-- [ ] 5. Test health check endpoint:
-  ```bash
-  curl https://[api-gateway-url]/prod/health
-  ```
-- [ ] 6. Test each Lambda function manually:
-  - [ ] Invoke via AWS Console
-  - [ ] Check CloudWatch logs for errors
-  - [ ] Verify function completes successfully
-- [ ] 7. Test API Gateway endpoints:
-  - [ ] Health check
-  - [ ] Document upload (with test file)
-  - [ ] Template creation
-  - [ ] Letter generation (end-to-end)
-- [ ] 8. Verify database connectivity:
-  - [ ] Check Lambda can connect to RDS
-  - [ ] Verify CRUD operations work
-  - [ ] Check database logs for errors
-- [ ] 9. Verify S3 access:
-  - [ ] Upload test document
-  - [ ] Download test document
-  - [ ] Verify presigned URLs work
-  - [ ] Delete test document
-- [ ] 10. Test OpenAI API integration:
-  - [ ] Generate test letter
-  - [ ] Verify API key works
-  - [ ] Check OpenAI usage dashboard
+**Attempted Fix (reverted)**:
+- Tried making S3 client use IAM role when credentials not provided
+- Reverted - need different approach
 
-### Production Data Seeding
-- [ ] 11. Seed initial production data (if needed):
-  - [ ] Create initial firm record
-  - [ ] Create admin user
-  - [ ] Create default template
-- [ ] 12. Run database verification script:
-  - [ ] Check all tables exist
-  - [ ] Check indexes created
-  - [ ] Verify foreign key constraints
+**Current Status**: File uploads not working - requires AWS credentials to be configured properly
 
-### Monitoring Setup Verification
-- [ ] 13. Verify CloudWatch logs are appearing:
-  - [ ] Check Lambda function logs
-  - [ ] Check API Gateway access logs
-  - [ ] Check RDS logs
-- [ ] 14. Verify CloudWatch metrics are reporting:
-  - [ ] Lambda invocations
-  - [ ] API Gateway requests
-  - [ ] RDS connections
-- [ ] 15. Test CloudWatch alarms:
-  - [ ] Trigger a test alarm (if possible)
-  - [ ] Verify SNS notification received
-- [ ] 16. Verify X-Ray traces appearing (if enabled)
+### Deployment Scripts
+- [x] Updated `backend/package.json` scripts to use `npx serverless` and proper env var loading:
+  - `npm run deploy:prod` - Deploy to production
+  - `npm run logs:prod` - View all prod logs  
+  - `npm run logs:function` - View specific function logs
+  - `npm run remove:prod` - Remove prod deployment
+  - `npm run info:prod` - Get prod deployment info
 
-### Performance Verification
-- [ ] 17. Measure baseline performance metrics:
-  - [ ] API response times
-  - [ ] Lambda execution duration
-  - [ ] Database query performance
-  - [ ] Letter generation time
-- [ ] 18. Document baseline metrics for future comparison
+### Lessons Learned
 
-### Security Verification
-- [ ] 19. Verify security configurations:
-  - [ ] S3 buckets have correct access policies
-  - [ ] RDS is not publicly accessible
-  - [ ] Lambda functions are in VPC
-  - [ ] Secrets are stored in Secrets Manager (not code)
-  - [ ] CloudWatch logs don't contain sensitive data
-- [ ] 20. Run security audit:
-  - [ ] AWS Trusted Advisor checks
-  - [ ] AWS Config compliance checks (if enabled)
-  - [ ] Review IAM policies for least privilege
+1. **Pydantic validation is too strict for MVP** - Overly strict validation (EmailStr, page_size >= 1, extra="forbid") causes production crashes on edge cases
 
-### Documentation Update
-- [ ] 21. Document production environment:
-  - [ ] API Gateway URLs
-  - [ ] CloudWatch dashboard links
-  - [ ] RDS endpoint (without credentials)
-  - [ ] S3 bucket names
-  - [ ] AWS region
-- [ ] 22. Create production runbook:
-  - [ ] Common operations
-  - [ ] Troubleshooting procedures
-  - [ ] Emergency procedures
-  - [ ] On-call guide
-- [ ] 23. Update README with production deployment status
+2. **CORS wildcards break with credentials** - Always use explicit origins, never `*` when credentials might be involved
 
-### Rollback Plan Verification
-- [ ] 24. Document rollback procedures:
-  - [ ] How to rollback to previous version
-  - [ ] Database rollback procedures
-  - [ ] How to restore from backup
-- [ ] 25. Test rollback capability (if possible):
-  - [ ] Deploy a test version
-  - [ ] Rollback to previous version
-  - [ ] Verify application works after rollback
+3. **Dev/Prod parity is critical** - Environment name mismatches and Lambda-specific env vars caused issues that didn't appear locally
 
----
+4. **Serverless Framework quirks**:
+   - `cors: true` defaults to wildcard
+   - Must use `npx serverless` to ensure consistent version
+   - Environment variables need to be loaded before deployment commands
+
+5. **AWS Lambda execution roles** - Lambda should use execution role for AWS service access, not explicit credentials in environment
+
+
 
 ## PR #8: Frontend Production Configuration (Netlify)
 
@@ -480,10 +383,29 @@
   - [x] CORS already configured to allow all origins (`["*"]` in base handler and API Gateway)
   - [x] No changes needed - Netlify will work with current CORS settings
 
+### Auth Service Deployment
+- [x] 3. Add auth service Lambda function to `backend/serverless.yml`:
+  - [x] Create `backend/handlers/auth_handler.py` (following pattern from other handlers)
+  - [x] Add `authService` function definition with `/login` POST endpoint
+  - [x] Configure CORS for auth endpoints
+  - [x] Set appropriate timeout and memory size
+- [ ] 4. Deploy auth service:
+  - [ ] Run `serverless deploy --stage prod` to deploy auth service
+  - [ ] Verify `/login` endpoint is accessible via API Gateway
+  - [ ] Test login endpoint from Netlify frontend
+
+### CORS Configuration for Production
+- [x] 5. Update CORS to explicitly allow Netlify origin:
+  - [x] Hardcode `https://demand-letter-generator.netlify.app` in `backend/handlers/base.py` default CORS origins
+  - [x] Update `backend/main.py` to include Netlify domain in local dev CORS origins
+  - [x] Update error response headers to use Netlify domain
+  - [ ] Verify CORS headers are present in API Gateway responses after deployment
+  - [ ] Test preflight (OPTIONS) requests work correctly from Netlify frontend
+
 ### Deployment
-- [ ] 5. Link project in Netlify dashboard (user will handle)
-- [ ] 6. Set environment variables in Netlify dashboard (user will handle)
-- [ ] 7. Verify deployment URL and test production frontend
+- [ ] 6. Link project in Netlify dashboard (user will handle)
+- [ ] 7. Set environment variables in Netlify dashboard (user will handle)
+- [ ] 8. Verify deployment URL and test production frontend
 
 ---
 

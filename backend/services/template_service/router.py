@@ -117,7 +117,7 @@ async def list_templates_endpoint(
             items=templates,
             total=len(templates),
             page=1,
-            page_size=len(templates),
+            page_size=len(templates) if len(templates) > 0 else 1,  # page_size must be >= 1
         )
         
     except HTTPException:

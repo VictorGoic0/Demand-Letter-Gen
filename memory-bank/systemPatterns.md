@@ -313,18 +313,81 @@ App
 - Check scripts: `scripts/check_*.py` for all database tables (first 5 results)
 - Main application with startup/shutdown events and detailed health checks
 
-### Production
-- Each service as separate Lambda function
-- API Gateway routes to appropriate Lambda
-- RDS for production database
-- S3 for document storage
-- CloudFront for frontend CDN
+### Production (AWS Lambda + Netlify)
 
-### Lambda Deployment
-- Serverless Framework for configuration
-- Lambda Layers for shared dependencies
-- Environment variables for configuration
-- Separate deployments per service (or monorepo deployment)
+**Backend Stack:**
+- AWS Lambda (Python 3.11) - Each service as separate function
+- API Gateway (HTTP API) - HTTPS endpoints with explicit CORS
+- RDS PostgreSQL (db.t3.micro, single-AZ) - Production database
+- S3 (2 buckets) - Document storage and exports
+- CloudWatch - Logs and monitoring (7-day retention)
+- Region: us-east-2
+- No VPC (Lambda has default internet access for OpenAI API)
+
+**Frontend Stack:**
+- Netlify - Static hosting with auto-deploy from git
+- Vite + React - Optimized production builds
+- URL: https://demand-letter-generator.netlify.app
+
+### Lambda Deployment (Serverless Framework)
+
+**Configuration (serverless.yml):**
+- Monorepo deployment (all functions in one stack)
+- Lambda Layers for Python dependencies (via serverless-python-requirements plugin)
+- Environment variables loaded from `.env.production` during deployment
+- IAM roles for S3 access and CloudWatch logs
+- Explicit CORS configuration (no wildcards)
+
+**Critical Settings:**
+- `ENVIRONMENT: production` (hardcoded, not `${self:provider.stage}`)
+- `slim: false` (preserves package metadata for Pydantic runtime checks)
+- `dockerizePip: true` (build dependencies in Docker for Lambda compatibility)
+- Explicit CORS origins: `https://demand-letter-generator.netlify.app`
+
+**Deployment Commands:**
+```bash
+npm run deploy:prod         # Deploy all functions (uses npx serverless)
+npm run logs:prod           # View all CloudWatch logs
+npm run logs:function       # View specific function logs
+npm run remove:prod         # Remove entire stack
+npm run info:prod           # Get deployment info
+```
+
+**Lambda Functions:**
+- `healthCheck` - GET /health
+- `authService` - POST /login
+- `documentService` - All /documents endpoints
+- `templateService` - All /templates endpoints
+- `letterService` - All /letters endpoints
+- `parserService` - All /parse endpoints
+- `aiService` - POST /generate/letter
+
+### Production CORS Configuration
+
+**Problem Solved:** Wildcard `*` CORS doesn't work when credentials mode is `include`
+
+**Solution:**
+1. **serverless.yml** - Every HTTP event has explicit CORS:
+   ```yaml
+   cors:
+     origin: https://demand-letter-generator.netlify.app
+     headers: [Content-Type, Authorization, X-Firm-Id, X-User-Id]
+     allowCredentials: false
+   ```
+2. **handlers/base.py** - Hardcoded Netlify domain in default CORS origins
+3. **main.py** - Health handler returns Netlify domain in CORS header
+4. **frontend/api.ts** - No `withCredentials` (uses localStorage, not cookies)
+
+### Environment Variables (Production Lambda)
+
+**Required in .env.production:**
+- `ENVIRONMENT=production` (must match config.py validation)
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (RDS credentials)
+- `AWS_S3_BUCKET_DOCUMENTS`, `AWS_S3_BUCKET_EXPORTS` (S3 bucket names)
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (for S3 client)
+- `OPENAI_API_KEY` (OpenAI API access)
+
+**Note:** Lambda automatically sets many `AWS_*` environment variables. The `AWSConfig` class uses `extra="ignore"` to prevent Pydantic validation errors from these extra variables.
 
 ## Key Technical Decisions
 

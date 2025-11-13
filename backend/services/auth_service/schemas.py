@@ -1,12 +1,12 @@
 """
 Schemas for authentication endpoints.
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class LoginRequest(BaseModel):
     """Request schema for login endpoint."""
-    email: EmailStr = Field(..., description="User email address")
+    email: str = Field(..., description="User email address")
     password: str = Field(..., description="User password (not validated in mock auth)")
 
 

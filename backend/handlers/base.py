@@ -36,10 +36,13 @@ def create_lambda_app(
         version=version,
     )
     
-    # Configure CORS - allow all origins for Lambda/API Gateway
-    # In production, you may want to restrict this to specific domains
+    # Configure CORS - allow Netlify production domain and localhost for development
     if cors_origins is None:
-        cors_origins = ["*"]
+        cors_origins = [
+            "https://demand-letter-generator.netlify.app",
+            "http://localhost:5173",  # Vite dev server
+            "http://localhost:3000",  # Alternative dev port
+        ]
     
     app.add_middleware(
         CORSMiddleware,
@@ -133,7 +136,7 @@ class LambdaHandler:
                 "statusCode": 500,
                 "headers": {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Origin": "https://demand-letter-generator.netlify.app",
                 },
                 "body": '{"error": "Internal server error"}',
             }

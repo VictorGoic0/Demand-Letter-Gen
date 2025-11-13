@@ -11,20 +11,20 @@ provider:
   memorySize: 512
   environment:
     # Database configuration
-    DB_HOST: ${env:DB_HOST}
+    DB_HOST: ${env:DB_HOST, ''}
     DB_PORT: ${env:DB_PORT, '5432'}
-    DB_NAME: ${env:DB_NAME}
-    DB_USER: ${env:DB_USER}
-    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME, ''}
+    DB_USER: ${env:DB_USER, ''}
+    DB_PASSWORD: ${env:DB_PASSWORD, ''}
     # AWS S3 configuration
     # Note: AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are automatically 
     # provided by Lambda execution role and cannot be manually set
-    AWS_S3_BUCKET_DOCUMENTS: ${env:AWS_S3_BUCKET_DOCUMENTS}
-    AWS_S3_BUCKET_EXPORTS: ${env:AWS_S3_BUCKET_EXPORTS}
+    AWS_S3_BUCKET_DOCUMENTS: ${env:AWS_S3_BUCKET_DOCUMENTS, ''}
+    AWS_S3_BUCKET_EXPORTS: ${env:AWS_S3_BUCKET_EXPORTS, ''}
     # OpenAI configuration
-    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY, ''}
     # Application configuration
-    ENVIRONMENT: ${self:provider.stage}
+    ENVIRONMENT: production  # Hardcode to 'production' for prod stage (config.py expects this value)
     DEBUG: ${env:DEBUG, 'false'}
     LOG_LEVEL: ${env:LOG_LEVEL, 'INFO'}
     # Serverless Framework stage (for API Gateway base path)
@@ -89,7 +89,7 @@ custom:
   pythonRequirements:
     dockerizePip: true
     layer: true
-    slim: true
+    slim: false  # Disable slim mode to preserve package metadata (required for pydantic/email-validator)
     strip: false
     zip: true
     # Exclude test dependencies and development tools
@@ -130,9 +130,33 @@ functions:
       - http:
           path: /health
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+            allowCredentials: false
     timeout: 10
     memorySize: 256
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+
+  # Auth service - handles authentication routes
+  authService:
+    handler: handlers.auth_handler.handler
+    events:
+      - http:
+          path: /login
+          method: post
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
+    timeout: 30
+    memorySize: 512
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
 
@@ -143,23 +167,58 @@ functions:
       - http:
           path: /{firm_id}/documents
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/documents
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/documents/{document_id}
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/documents/{document_id}
           method: delete
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/documents/{document_id}/download
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
     timeout: 60
     memorySize: 1024
     layers:
@@ -172,27 +231,69 @@ functions:
       - http:
           path: /{firm_id}/templates
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/templates
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/templates/default
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/templates/{template_id}
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/templates/{template_id}
           method: put
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/templates/{template_id}
           method: delete
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
     timeout: 30
     memorySize: 512
     layers:
@@ -205,27 +306,69 @@ functions:
       - http:
           path: /{firm_id}/letters
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/letters/{letter_id}
           method: get
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/letters/{letter_id}
           method: put
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/letters/{letter_id}
           method: delete
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/letters/{letter_id}/finalize
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /{firm_id}/letters/{letter_id}/export
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
     timeout: 60
     memorySize: 1024
     layers:
@@ -238,7 +381,14 @@ functions:
       - http:
           path: /generate/letter
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
     timeout: 300  # 5 minutes for AI generation
     memorySize: 2048
     layers:
@@ -251,11 +401,25 @@ functions:
       - http:
           path: /parse/document/{document_id}
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
       - http:
           path: /parse/batch
           method: post
-          cors: true
+          cors:
+            origin: https://demand-letter-generator.netlify.app
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Firm-Id
+              - X-User-Id
+            allowCredentials: false
     timeout: 60
     memorySize: 1024
     layers:

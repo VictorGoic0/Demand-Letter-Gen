@@ -94,9 +94,9 @@ cors_config = settings.cors
 # Note: FastAPI doesn't allow ["*"] with allow_credentials=True, so we use a list of common dev origins
 cors_origins = cors_config.allow_origins
 if cors_origins == ["*"] or (len(cors_origins) == 1 and cors_origins[0] == "*"):
-    # For development, allow common localhost origins
-    # In production, you should specify exact origins
+    # For development, allow common localhost origins and Netlify production domain
     cors_origins = [
+        "https://demand-letter-generator.netlify.app",
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:5174",
@@ -207,7 +207,7 @@ def health_handler(event, context):
         "statusCode": 200,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": "https://demand-letter-generator.netlify.app",
         },
         "body": json.dumps({
             "status": "healthy",

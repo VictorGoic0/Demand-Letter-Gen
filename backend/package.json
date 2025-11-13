@@ -9,12 +9,15 @@
     "serverless": "serverless",
     "deploy": "serverless deploy",
     "deploy:dev": "serverless deploy --stage dev",
-    "deploy:prod": "bash -c 'source load-env-production.sh && serverless deploy --stage prod'",
-    "deploy:prod:verbose": "bash -c 'source load-env-production.sh && serverless deploy --stage prod --verbose'",
+    "deploy:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless deploy --stage prod'",
+    "deploy:prod:verbose": "bash -c 'set -a && source .env.production && set +a && npx serverless deploy --stage prod --verbose'",
     "offline": "serverless offline",
+    "offline:prod": "serverless offline --stage prod",
     "remove": "serverless remove",
-    "info:prod": "bash -c 'source load-env-production.sh && serverless info --stage prod'",
-    "logs:prod": "serverless logs --stage prod --function"
+    "remove:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless remove --stage prod'",
+    "info:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless info --stage prod'",
+    "logs:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless logs --stage prod'",
+    "logs:function": "bash -c 'set -a && source .env.production && set +a && npx serverless logs --function'"
   },
   "devDependencies": {
     "serverless": "^3.38.0",
