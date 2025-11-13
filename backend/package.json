@@ -9,9 +9,12 @@
     "serverless": "serverless",
     "deploy": "serverless deploy",
     "deploy:dev": "serverless deploy --stage dev",
-    "deploy:prod": "serverless deploy --stage prod",
+    "deploy:prod": "bash -c 'source load-env-production.sh && serverless deploy --stage prod'",
+    "deploy:prod:verbose": "bash -c 'source load-env-production.sh && serverless deploy --stage prod --verbose'",
     "offline": "serverless offline",
-    "remove": "serverless remove"
+    "remove": "serverless remove",
+    "info:prod": "bash -c 'source load-env-production.sh && serverless info --stage prod'",
+    "logs:prod": "serverless logs --stage prod --function"
   },
   "devDependencies": {
     "serverless": "^3.38.0",

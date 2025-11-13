@@ -194,6 +194,29 @@ app.include_router(letter_router)  # firm_id is in the router prefix
 register_exception_handlers(app)
 
 
+# Lambda health handler
+def health_handler(event, context):
+    """
+    Simple health check handler for Lambda.
+    Returns basic health status without database/S3 checks for faster response.
+    """
+    import json
+    import os
+    
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+        "body": json.dumps({
+            "status": "healthy",
+            "service": "demand-letter-generator",
+            "environment": os.getenv("ENVIRONMENT", "unknown"),
+        })
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

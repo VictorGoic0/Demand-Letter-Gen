@@ -65,10 +65,15 @@ def create_handler(app: FastAPI) -> Mangum:
     Returns:
         Mangum handler instance
     """
+    import os
+    # Get stage from environment (set by Serverless Framework)
+    stage = os.getenv("SERVERLESS_STAGE", os.getenv("STAGE", "dev"))
+    api_gateway_base_path = f"/{stage}"
+    
     return Mangum(
         app,
         lifespan="off",  # Disable lifespan events for Lambda
-        api_gateway_base_path="/dev",  # Adjust based on your API Gateway stage
+        api_gateway_base_path=api_gateway_base_path,
     )
 
 

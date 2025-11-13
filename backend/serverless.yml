@@ -16,16 +16,19 @@ provider:
     DB_NAME: ${env:DB_NAME}
     DB_USER: ${env:DB_USER}
     DB_PASSWORD: ${env:DB_PASSWORD}
-    # AWS configuration
-    AWS_REGION: ${env:AWS_REGION, 'us-east-2'}
-    S3_BUCKET_DOCUMENTS: ${env:S3_BUCKET_DOCUMENTS}
-    S3_BUCKET_EXPORTS: ${env:S3_BUCKET_EXPORTS}
+    # AWS S3 configuration
+    # Note: AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are automatically 
+    # provided by Lambda execution role and cannot be manually set
+    AWS_S3_BUCKET_DOCUMENTS: ${env:AWS_S3_BUCKET_DOCUMENTS}
+    AWS_S3_BUCKET_EXPORTS: ${env:AWS_S3_BUCKET_EXPORTS}
     # OpenAI configuration
     OPENAI_API_KEY: ${env:OPENAI_API_KEY}
     # Application configuration
     ENVIRONMENT: ${self:provider.stage}
     DEBUG: ${env:DEBUG, 'false'}
     LOG_LEVEL: ${env:LOG_LEVEL, 'INFO'}
+    # Serverless Framework stage (for API Gateway base path)
+    SERVERLESS_STAGE: ${self:provider.stage}
   logRetentionInDays: 7  # Keep costs low for MVP
   apiGateway:
     binaryMediaTypes:
@@ -42,12 +45,11 @@ provider:
         - s3:DeleteObject
         - s3:ListBucket
       Resource:
-        # Note: Bucket names are provided via environment variables at runtime
-        # These ARNs will be resolved during deployment
-        - 'arn:aws:s3:::${env:S3_BUCKET_DOCUMENTS}/*'
-        - 'arn:aws:s3:::${env:S3_BUCKET_DOCUMENTS}'
-        - 'arn:aws:s3:::${env:S3_BUCKET_EXPORTS}/*'
-        - 'arn:aws:s3:::${env:S3_BUCKET_EXPORTS}'
+        # Production bucket ARNs (hardcoded since env vars can't be used in IAM policies)
+        - 'arn:aws:s3:::goico-demand-letters-documents-prod/*'
+        - 'arn:aws:s3:::goico-demand-letters-documents-prod'
+        - 'arn:aws:s3:::goico-demand-letters-exports-prod/*'
+        - 'arn:aws:s3:::goico-demand-letters-exports-prod'
     - Effect: Allow
       Action:
         - logs:CreateLogGroup
@@ -119,43 +121,143 @@ custom:
 #   - { Ref: PythonRequirementsLambdaLayer }
 
 # Lambda Functions
-# Note: Functions will be defined here as services are implemented
-# Example structure:
-#
-# functions:
-#   documentUpload:
-#     handler: handlers.document_handler.handler
-#     events:
-#       - http:
-#           path: documents/upload
-#           method: post
-#           cors: true
-#     layers:
-#       - { Ref: PythonRequirementsLambdaLayer }
-#     timeout: 30
-#     memorySize: 512
-#
-#   templateList:
-#     handler: handlers.template_handler.handler
-#     events:
-#       - http:
-#           path: templates
-#           method: get
-#           cors: true
-#     layers:
-#       - { Ref: PythonRequirementsLambdaLayer }
-#     timeout: 30
-#     memorySize: 512
-#
-#   letterGenerate:
-#     handler: handlers.letter_handler.handler
-#     events:
-#       - http:
-#           path: letters/generate
-#           method: post
-#           cors: true
-#     layers:
-#       - { Ref: PythonRequirementsLambdaLayer }
-#     timeout: 60  # Longer timeout for AI generation
-#     memorySize: 1024
+# Each service has one Lambda function that handles all routes for that service via Mangum
+functions:
+  # Health check endpoint
+  healthCheck:
+    handler: main.health_handler
+    events:
+      - http:
+          path: /health
+          method: get
+          cors: true
+    timeout: 10
+    memorySize: 256
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+
+  # Document service - handles all document routes
+  documentService:
+    handler: handlers.document_handler.handler
+    events:
+      - http:
+          path: /{firm_id}/documents
+          method: post
+          cors: true
+      - http:
+          path: /{firm_id}/documents
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/documents/{document_id}
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/documents/{document_id}
+          method: delete
+          cors: true
+      - http:
+          path: /{firm_id}/documents/{document_id}/download
+          method: get
+          cors: true
+    timeout: 60
+    memorySize: 1024
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+
+  # Template service - handles all template routes
+  templateService:
+    handler: handlers.template_handler.handler
+    events:
+      - http:
+          path: /{firm_id}/templates
+          method: post
+          cors: true
+      - http:
+          path: /{firm_id}/templates
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/templates/default
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/templates/{template_id}
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/templates/{template_id}
+          method: put
+          cors: true
+      - http:
+          path: /{firm_id}/templates/{template_id}
+          method: delete
+          cors: true
+    timeout: 30
+    memorySize: 512
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+
+  # Letter service - handles all letter routes
+  letterService:
+    handler: handlers.letter_handler.handler
+    events:
+      - http:
+          path: /{firm_id}/letters
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/letters/{letter_id}
+          method: get
+          cors: true
+      - http:
+          path: /{firm_id}/letters/{letter_id}
+          method: put
+          cors: true
+      - http:
+          path: /{firm_id}/letters/{letter_id}
+          method: delete
+          cors: true
+      - http:
+          path: /{firm_id}/letters/{letter_id}/finalize
+          method: post
+          cors: true
+      - http:
+          path: /{firm_id}/letters/{letter_id}/export
+          method: post
+          cors: true
+    timeout: 60
+    memorySize: 1024
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+
+  # AI service - handles letter generation
+  aiService:
+    handler: handlers.ai_handler.handler
+    events:
+      - http:
+          path: /generate/letter
+          method: post
+          cors: true
+    timeout: 300  # 5 minutes for AI generation
+    memorySize: 2048
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+
+  # Parser service - handles document parsing
+  parserService:
+    handler: handlers.parser_handler.handler
+    events:
+      - http:
+          path: /parse/document/{document_id}
+          method: post
+          cors: true
+      - http:
+          path: /parse/batch
+          method: post
+          cors: true
+    timeout: 60
+    memorySize: 1024
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
 
