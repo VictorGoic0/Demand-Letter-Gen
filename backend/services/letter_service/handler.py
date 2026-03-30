@@ -1,8 +1,10 @@
 """
 Lambda handler for letter service.
 """
-from mangum import Mangum
+
 from fastapi import FastAPI
+from mangum import Mangum
+
 from shared.exceptions import register_exception_handlers
 
 from .router import router
@@ -67,4 +69,3 @@ def export_handler(event, context):
     """
     handler = Mangum(app, lifespan="off")
     return handler(event, context)
-

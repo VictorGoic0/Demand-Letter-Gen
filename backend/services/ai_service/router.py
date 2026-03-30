@@ -1,23 +1,25 @@
 """
 FastAPI router for AI service endpoints.
 """
+
 import logging
-from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from shared.database import get_db
 from shared.exceptions import (
-    ValidationException,
-    TemplateNotFoundException,
     DocumentNotFoundException,
     ForbiddenException,
     OpenAIException,
     ParserException,
+    TemplateNotFoundException,
+    ValidationException,
 )
-from .schemas import GenerateRequest, GenerateResponse
+
 from .logic import generate_letter
+from .schemas import GenerateRequest, GenerateResponse
 
 logger = logging.getLogger(__name__)
 
@@ -34,19 +36,21 @@ router = APIRouter(prefix="/generate", tags=["ai"])
 )
 async def generate_letter_endpoint(
     firm_id: UUID = Query(..., description="Firm ID (query parameter for MVP)"),
-    created_by: Optional[UUID] = Query(None, description="User ID who is creating the letter (optional)"),
+    created_by: UUID | None = Query(
+        None, description="User ID who is creating the letter (optional)"
+    ),
     request: GenerateRequest = ...,
     db: Session = Depends(get_db),
 ):
     """
     Generate a demand letter using AI.
-    
+
     - **firm_id**: Firm ID (query parameter)
     - **created_by**: Optional user ID (query parameter)
     - **template_id**: Template ID to use for generation
     - **document_ids**: List of document IDs (1-5 documents)
     - **title**: Optional title for the letter
-    
+
     Returns the generated letter with ID, content, and status.
     """
     try:
@@ -57,31 +61,30 @@ async def generate_letter_endpoint(
             request=request,
         )
         return result
-        
+
     except ValidationException as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=e.detail or e.message,
-        )
+        ) from e
     except (TemplateNotFoundException, DocumentNotFoundException) as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=e.detail or e.message,
-        )
+        ) from e
     except ForbiddenException as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=e.detail or e.message,
-        )
+        ) from e
     except (OpenAIException, ParserException) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e.detail or e.message,
-        )
+        ) from e
     except Exception as e:
-        logger.error(f"Unexpected error generating letter: {str(e)}")
+        logger.error(f"Unexpected error generating letter: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while generating the letter",
-        )
-
+        ) from e

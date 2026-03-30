@@ -1,11 +1,14 @@
 """
 GeneratedLetter model for AI-generated demand letters.
 """
+
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, CheckConstraint
+
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from shared.base import Base
 
 
@@ -15,6 +18,7 @@ class GeneratedLetter(Base):
     Letters can be in 'draft' or 'created' status.
     When finalized, a .docx file is generated and stored in S3.
     """
+
     __tablename__ = "generated_letters"
 
     id = Column(
@@ -66,11 +70,10 @@ class GeneratedLetter(Base):
         backref="letters",
         lazy="dynamic",
     )
-    
+
     __table_args__ = (
-        CheckConstraint("status IN ('draft', 'created')", name='check_letter_status'),
+        CheckConstraint("status IN ('draft', 'created')", name="check_letter_status"),
     )
 
     def __repr__(self):
         return f"<GeneratedLetter(id={self.id}, title={self.title}, status={self.status})>"
-

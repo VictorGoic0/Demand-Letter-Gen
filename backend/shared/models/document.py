@@ -1,11 +1,14 @@
 """
 Document model for uploaded source documents.
 """
+
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, BigInteger, DateTime, ForeignKey
+
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from shared.base import Base
 
 
@@ -14,6 +17,7 @@ class Document(Base):
     Represents an uploaded source document (e.g., medical records, police reports).
     Documents are stored in S3 and referenced by their S3 key.
     """
+
     __tablename__ = "documents"
 
     id = Column(
@@ -45,4 +49,3 @@ class Document(Base):
 
     def __repr__(self):
         return f"<Document(id={self.id}, filename={self.filename}, firm_id={self.firm_id})>"
-

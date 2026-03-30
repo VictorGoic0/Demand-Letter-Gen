@@ -3,13 +3,23 @@ Main FastAPI application for local development.
 This file is used for local development with uvicorn.
 For Lambda deployment, each service has its own handler.
 """
+
 import logging
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+
+from services.ai_service import router as ai_router
+from services.auth_service import router as auth_router
+from services.document_service import router as document_router
+from services.letter_service import router as letter_router
+from services.parser_service import router as parser_router
+from services.template_service import router as template_router
 from shared.config import get_settings
-from shared.database import engine, SessionLocal
+from shared.database import SessionLocal, engine
+from shared.exceptions import register_exception_handlers
 from shared.s3_client import get_s3_client
 
 logger = logging.getLogger(__name__)
@@ -26,7 +36,7 @@ async def lifespan(app: FastAPI):
     try:
         if engine is None:
             raise RuntimeError("Database engine is not initialized")
-        
+
         # Test database connection with a simple query
         db = SessionLocal()
         try:
@@ -40,19 +50,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"❌ Database health check failed: {e}")
         raise
-    
+
     # Startup: Check S3 buckets
     try:
         settings = get_settings()
         s3_client = get_s3_client()
-        
+
         # Check documents bucket
         documents_bucket = settings.aws.s3_bucket_documents
         if s3_client.check_bucket_exists(documents_bucket):
             logger.info(f"✅ S3 documents bucket accessible: {documents_bucket}")
         else:
             logger.warning(f"⚠️  S3 documents bucket not accessible: {documents_bucket}")
-        
+
         # Check exports bucket
         exports_bucket = settings.aws.s3_bucket_exports
         if s3_client.check_bucket_exists(exports_bucket):
@@ -62,11 +72,11 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"❌ S3 health check failed: {e}")
         # Don't raise - S3 might not be critical for local dev
-    
+
     logger.info("✅ Application startup complete")
-    
+
     yield
-    
+
     # Shutdown: Cleanup
     logger.info("Shutting down application...")
     try:
@@ -133,7 +143,7 @@ async def health():
         "database": "unknown",
         "s3": "unknown",
     }
-    
+
     # Check database
     try:
         if engine is None:
@@ -145,22 +155,22 @@ async def health():
                 db.execute(text("SELECT 1"))
                 health_status["database"] = "connected"
             except Exception as e:
-                health_status["database"] = f"error: {str(e)}"
+                health_status["database"] = f"error: {e!s}"
                 health_status["status"] = "unhealthy"
             finally:
                 db.close()
     except Exception as e:
-        health_status["database"] = f"error: {str(e)}"
+        health_status["database"] = f"error: {e!s}"
         health_status["status"] = "unhealthy"
-    
+
     # Check S3
     try:
         settings = get_settings()
         s3_client = get_s3_client()
-        
+
         documents_ok = s3_client.check_bucket_exists(settings.aws.s3_bucket_documents)
         exports_ok = s3_client.check_bucket_exists(settings.aws.s3_bucket_exports)
-        
+
         if documents_ok and exports_ok:
             health_status["s3"] = "connected"
         elif documents_ok or exports_ok:
@@ -168,19 +178,10 @@ async def health():
         else:
             health_status["s3"] = "error"
     except Exception as e:
-        health_status["s3"] = f"error: {str(e)}"
-    
+        health_status["s3"] = f"error: {e!s}"
+
     return health_status
 
-
-# Import and include routers from services
-from services.document_service import router as document_router
-from services.auth_service import router as auth_router
-from services.template_service import router as template_router
-from services.parser_service import router as parser_router
-from services.ai_service import router as ai_router
-from services.letter_service import router as letter_router
-from shared.exceptions import register_exception_handlers
 
 # Include routers
 app.include_router(auth_router)
@@ -202,22 +203,24 @@ def health_handler(event, context):
     """
     import json
     import os
-    
+
     return {
         "statusCode": 200,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "https://demand-letter-generator.netlify.app",
         },
-        "body": json.dumps({
-            "status": "healthy",
-            "service": "demand-letter-generator",
-            "environment": os.getenv("ENVIRONMENT", "unknown"),
-        })
+        "body": json.dumps(
+            {
+                "status": "healthy",
+                "service": "demand-letter-generator",
+                "environment": os.getenv("ENVIRONMENT", "unknown"),
+            }
+        ),
     }
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
 
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

@@ -11,8 +11,10 @@ Make sure:
     2. A firm exists (run seed_test_firm.py first)
     3. Virtual environment is activated (if using venv)
 """
+
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Add backend directory to path
@@ -29,11 +31,10 @@ sys.path.insert(0, backend_dir)
 # else:
 #     load_dotenv(dev_env)
 #     print("📝 Loading from .env")
-load_dotenv(os.path.join(backend_dir, '.env'))
+load_dotenv(os.path.join(backend_dir, ".env"))
 
 from shared.database import SessionLocal
 from shared.models import Firm, User
-
 
 # Hardcoded test users
 TEST_USERS = [
@@ -53,19 +54,19 @@ def seed_users():
         print("\n" + "=" * 60)
         print("Seeding Test Users")
         print("=" * 60)
-        
+
         # Get or create test firm
         firm = db.query(Firm).filter(Firm.name == "Test Law Firm").first()
         if not firm:
             print("❌ Test firm not found. Please run seed_test_firm.py first.")
             return None
-        
+
         print(f"Using firm: {firm.name} (ID: {firm.id})")
-        
+
         # Create users
         created_users = []
         skipped_users = []
-        
+
         for user_data in TEST_USERS:
             # Check if user already exists
             existing_user = db.query(User).filter(User.email == user_data["email"]).first()
@@ -73,7 +74,7 @@ def seed_users():
                 print(f"⏭️  User already exists: {user_data['name']} ({user_data['email']})")
                 skipped_users.append(existing_user)
                 continue
-            
+
             user = User(
                 firm_id=firm.id,
                 name=user_data["name"],
@@ -82,22 +83,22 @@ def seed_users():
             )
             db.add(user)
             created_users.append(user)
-        
+
         db.commit()
-        
+
         # Refresh to get IDs
         for user in created_users:
             db.refresh(user)
-        
+
         print(f"\n✅ Created {len(created_users)} new users:")
         for user in created_users:
             print(f"   - {user.name} ({user.email}) - {user.role}")
-        
+
         if skipped_users:
             print(f"\n⏭️  Skipped {len(skipped_users)} existing users")
-        
+
         return created_users + skipped_users
-        
+
     except Exception as e:
         print(f"❌ Error creating users: {e}")
         db.rollback()
@@ -117,4 +118,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Failed: {e}")
         sys.exit(1)
-

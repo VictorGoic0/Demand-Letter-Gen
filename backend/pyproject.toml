@@ -39,9 +39,13 @@ strict = true
 # Mirrors the overrides block in the JS oxlint config.
 [tool.ruff.lint.per-file-ignores]
 "services/**/*.py" = ["TID251"]
-"alembic/**/*.py" = ["TID251"]
-"scripts/**/*.py" = ["TID251"]
+"alembic/**/*.py" = ["TID251", "E402"]
+"scripts/**/*.py" = ["TID251", "E402"]
 "shared/models/**/*.py" = ["TID251"]
+"main.py" = ["TID251"]
+"shared/db_utils.py" = ["TID251"]
+"shared/exceptions.py" = ["N818"]
+"services/auth_service/schemas.py" = ["N815"]
 
 [tool.ruff.format]
 quote-style = "double"

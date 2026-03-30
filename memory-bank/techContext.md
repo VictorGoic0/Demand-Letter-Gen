@@ -29,7 +29,7 @@
 
 **Development Tools:**
 - TypeScript (recommended but optional)
-- ESLint 9.36.0
+- oxlint (with `oxlint-plugin-eslint`, type-aware via `oxlint-tsgolint` when `typeAware` is enabled in `.oxlintrc.json`)
 - Autoprefixer 10.4.20
 - PostCSS 8.4.47
 - @vitejs/plugin-react 5.0.4
@@ -75,7 +75,7 @@ alembic>=1.12.0  # Database migrations
 
 ### Prerequisites
 - Docker & Docker Compose
-- Python 3.11
+- Python 3.11+ (local venv under `backend/.venv` — create with `python3 -m venv .venv`, install `requirements.txt` + `requirements-dev.txt`; not committed, listed in `.gitignore`; full backend setup in `backend/README.md`)
 - Node.js 18+ (for frontend)
 
 ### Local Development Setup
@@ -347,6 +347,7 @@ serverless deploy
 ### Code Quality
 
 **Backend:**
+- Ruff (`ruff check`, `ruff format`) per `backend/pyproject.toml`; run from activated `backend/.venv` or use `npm run lint` / `lint:fix` / `format` in `backend/`
 - Type hints (Python)
 - Pydantic v2 models for validation (field_validator, json_schema_extra)
 - Pydantic BaseSettings (from pydantic-settings) for configuration
@@ -357,7 +358,7 @@ serverless deploy
 
 **Frontend:**
 - TypeScript (optional but recommended)
-- ESLint for linting
+- oxlint for linting (`npm run lint`, `npm run lint:fix`)
 - Component-based architecture
 - Custom hooks for API calls
 

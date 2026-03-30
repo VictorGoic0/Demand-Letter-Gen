@@ -1,9 +1,11 @@
 """
 Lambda handler for letter service endpoints.
 """
+
+import logging
+
 from handlers.base import LambdaHandler
 from services.letter_service.router import router
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,4 +18,3 @@ handler_instance = LambdaHandler(
 
 # Export the handler function for serverless.yml
 handler = handler_instance
-

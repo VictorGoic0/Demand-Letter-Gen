@@ -1,15 +1,17 @@
 """
 Database utility functions for initialization and management.
 """
+
 from sqlalchemy import text
-from shared.database import engine
+
 from shared.base import Base
+from shared.database import engine
 
 
 def check_database_connection() -> bool:
     """
     Check if database connection is available.
-    
+
     Returns:
         True if connection is successful, False otherwise.
     """
@@ -50,7 +52,7 @@ def init_database():
     """
     if not check_database_connection():
         raise ConnectionError("Cannot connect to database. Check your connection settings.")
-    
+
     create_all_tables()
     print("Database tables created successfully.")
 
@@ -58,7 +60,7 @@ def init_database():
 if __name__ == "__main__":
     # Allow running this script directly for database initialization
     import sys
-    
+
     if len(sys.argv) > 1 and sys.argv[1] == "drop":
         print("WARNING: This will drop all tables and delete all data!")
         response = input("Are you sure? (yes/no): ")
@@ -69,4 +71,3 @@ if __name__ == "__main__":
             print("Cancelled.")
     else:
         init_database()
-

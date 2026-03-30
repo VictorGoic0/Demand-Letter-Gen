@@ -11,8 +11,10 @@ Make sure:
     1. Docker Compose is running (database)
     2. Virtual environment is activated (if using venv)
 """
+
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Add backend directory to path
@@ -20,10 +22,10 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, backend_dir)
 
 # Load environment variables
-load_dotenv(os.path.join(backend_dir, '.env'))
+load_dotenv(os.path.join(backend_dir, ".env"))
 
 from shared.database import SessionLocal
-from shared.models import LetterSourceDocument, GeneratedLetter, Document
+from shared.models import Document, GeneratedLetter, LetterSourceDocument
 
 
 def check_letter_documents():
@@ -33,30 +35,30 @@ def check_letter_documents():
         print("\n" + "=" * 60)
         print("Letter Source Documents Table Query (First 5)")
         print("=" * 60)
-        
+
         associations = db.query(LetterSourceDocument).limit(5).all()
-        
+
         if not associations:
             print("No letter-document associations found in database.")
             return
-        
+
         print(f"\nFound {len(associations)} association(s) (showing first 5):\n")
-        
+
         for assoc in associations:
             # Get letter title
             letter = db.query(GeneratedLetter).filter(GeneratedLetter.id == assoc.letter_id).first()
             letter_title = letter.title if letter else "Unknown"
-            
+
             # Get document filename
             document = db.query(Document).filter(Document.id == assoc.document_id).first()
             doc_filename = document.filename if document else "Unknown"
-            
+
             print(f"Letter ID: {assoc.letter_id}")
             print(f"Letter Title: {letter_title}")
             print(f"Document ID: {assoc.document_id}")
             print(f"Document Filename: {doc_filename}")
             print("-" * 60)
-        
+
     except Exception as e:
         print(f"❌ Error querying letter-document associations: {e}")
         raise
@@ -72,4 +74,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Failed: {e}")
         sys.exit(1)
-

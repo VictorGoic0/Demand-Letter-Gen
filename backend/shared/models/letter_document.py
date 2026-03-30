@@ -2,8 +2,10 @@
 LetterSourceDocument junction table for many-to-many relationship
 between generated letters and source documents.
 """
+
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
+
 from shared.base import Base
 
 
@@ -12,6 +14,7 @@ class LetterSourceDocument(Base):
     Junction table model for the many-to-many relationship
     between GeneratedLetter and Document.
     """
+
     __tablename__ = "letter_source_documents"
 
     letter_id = Column(
@@ -27,4 +30,3 @@ class LetterSourceDocument(Base):
 
     def __repr__(self):
         return f"<LetterSourceDocument(letter_id={self.letter_id}, document_id={self.document_id})>"
-

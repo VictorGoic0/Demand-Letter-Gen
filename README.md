@@ -60,61 +60,18 @@ The Demand Letter Generator is an AI-driven solution designed to streamline the 
 
 2. **Set up environment variables**
 
-   Backend (create `backend/.env`):
-   ```env
-   DB_HOST=postgres
-   DB_NAME=demand_letters
-   DB_USER=dev_user
-   DB_PASSWORD=dev_password
-   OPENAI_API_KEY=your_openai_key
-   AWS_ACCESS_KEY_ID=your_aws_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret
-   AWS_REGION=us-east-2
-   S3_BUCKET_DOCUMENTS=your_documents_bucket
-   S3_BUCKET_EXPORTS=your_exports_bucket
-   ```
+   Backend: create `backend/.env` (full variable list and examples: **[backend/README.md](backend/README.md)**).
 
    Frontend (create `frontend/.env`):
    ```env
    VITE_API_URL=http://localhost:8000
    ```
 
-3. **Start services with Docker Compose**
-   ```bash
-   cd backend
-   docker-compose up
-   ```
+3. **Backend: Docker, database, migrations, venv, and API**
 
-4. **Run database migrations**
-   ```bash
-   cd backend
-   alembic upgrade head
-   ```
+   Follow **[backend/README.md](backend/README.md)** — virtualenv, `docker-compose`, `alembic upgrade head`, optional `test_db.py`, and `uvicorn` for local API.
 
-5. **Test database connection and schema** (optional)
-   
-   **Option A: Run from host (requires venv with dependencies):**
-   ```bash
-   cd backend
-   source venv/bin/activate  # If using venv
-   python test_db.py
-   ```
-   
-   **Option B: Run from Docker container (dependencies already installed):**
-   ```bash
-   cd backend
-   docker-compose exec backend python test_db.py
-   ```
-   
-   This script will verify:
-   - Database connection
-   - All tables exist
-   - Table columns are correct
-   - Indexes are created
-   - Foreign key constraints
-   - Basic CRUD operations
-
-6. **Access the application**
+4. **Access the application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
@@ -128,32 +85,26 @@ npm install
 npm run dev
 ```
 
-**Backend:**
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+**Backend:** venv, install, run API, lint — see **[backend/README.md](backend/README.md)**.
 
 ## Project Structure
 
 ```
 .
-├── backend/              # Python FastAPI backend
-│   ├── services/        # Service modules (document, template, parser, AI, letter)
-│   ├── shared/          # Shared utilities (database, S3, config)
-│   ├── main.py          # Local development entry point
-│   └── requirements.txt # Python dependencies
-├── frontend/            # React frontend
+├── backend/              # Python FastAPI backend (see backend/README.md)
+│   ├── services/         # Service modules (document, template, parser, AI, letter)
+│   ├── shared/           # Shared utilities (database, S3, config)
+│   ├── main.py           # Local development entry point
+│   ├── docker-compose.yml
+│   └── requirements.txt
+├── frontend/             # React frontend
 │   ├── src/
-│   │   ├── components/  # React components
-│   │   ├── pages/       # Page components
-│   │   ├── hooks/       # Custom React hooks
-│   │   └── utils/       # Utility functions
-│   └── package.json     # Node dependencies
-├── memory-bank/         # Project documentation and context
-└── backend/
-    └── docker-compose.yml   # Local development setup
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   └── utils/
+│   └── package.json
+└── memory-bank/          # Project documentation and context
 ```
 
 ## Architecture
@@ -180,69 +131,7 @@ The application uses PostgreSQL with the following main tables:
 
 ## Database Migrations
 
-The project uses Alembic for database schema versioning and migrations.
-
-### Running Migrations
-
-**Apply all pending migrations:**
-```bash
-cd backend
-alembic upgrade head
-```
-
-**Apply migrations to a specific revision:**
-```bash
-alembic upgrade <revision_id>
-```
-
-**Rollback to previous migration:**
-```bash
-alembic downgrade -1
-```
-
-**Rollback to a specific revision:**
-```bash
-alembic downgrade <revision_id>
-```
-
-**View current migration status:**
-```bash
-alembic current
-```
-
-**View migration history:**
-```bash
-alembic history
-```
-
-### Creating New Migrations
-
-**Auto-generate migration from model changes:**
-```bash
-cd backend
-alembic revision --autogenerate -m "Description of changes"
-```
-
-**Create empty migration (manual):**
-```bash
-alembic revision -m "Description of changes"
-```
-
-### Migration Workflow
-
-1. Make changes to models in `backend/shared/models/`
-2. Generate migration: `alembic revision --autogenerate -m "your message"`
-3. Review the generated migration file in `backend/alembic/versions/`
-4. Apply migration: `alembic upgrade head`
-5. Test the changes
-
-### Important Notes
-
-- Always review auto-generated migrations before applying them
-- Test migrations on a development database first
-- Never edit existing migration files that have been applied to production
-- Create new migrations for schema changes instead of modifying old ones
-- The database URL is configured from environment variables (see `backend/alembic/env.py`)
+Alembic commands, autogenerate workflow, and scripts live in **[backend/README.md](backend/README.md)**.
 
 ## S3 Bucket Setup
 
@@ -278,20 +167,7 @@ For detailed S3 bucket setup instructions, including bucket configuration (versi
 
 ## Deployment
 
-### Production Deployment
-
-Deployment is handled via the Serverless Framework:
-
-```bash
-cd backend
-serverless deploy
-```
-
-See `backend/serverless.yml` for configuration details.
-
-### Environment Setup
-
-Ensure all required environment variables are configured in your AWS Lambda environment or `.env` file for local development.
+Production backend deploy (Serverless, env loading): **[backend/README.md](backend/README.md)** and `backend/serverless.yml`.
 
 ## Contributing
 

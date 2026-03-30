@@ -1,8 +1,9 @@
 """
 Prompt engineering functions for building AI prompts for demand letter generation.
 """
+
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Base system prompt for demand letter generation
 BASE_SYSTEM_PROMPT = """You are an expert legal writer specializing in personal injury demand letters.
 Your role is to draft professional, persuasive demand letters that attorneys can use in settlement negotiations.
-You have access to source documents (medical records, police reports, bills, etc.) and a firm-specific template 
+You have access to source documents (medical records, police reports, bills, etc.) and a firm-specific template
 that defines the structure and style for the letter.
 
 PROCESS TO FOLLOW:
@@ -76,72 +77,72 @@ OUTPUT FORMAT:
 
 
 def build_context_from_documents(
-    parsed_documents: List[Dict[str, Any]],
-    max_length: Optional[int] = None,
+    parsed_documents: list[dict[str, Any]],
+    max_length: int | None = None,
 ) -> str:
     """
     Build context string from parsed documents.
-    
+
     Args:
         parsed_documents: List of parsed documents with extracted_text and metadata
         max_length: Optional maximum length for context (truncate if needed)
-        
+
     Returns:
         Formatted context string with document labels and separators
     """
     context_parts = []
-    
+
     for idx, doc in enumerate(parsed_documents, 1):
         doc_text = doc.get("extracted_text", "")
         doc_id = doc.get("document_id", f"Document {idx}")
-        
+
         # Add document label
         context_parts.append(f"### Document {idx} (ID: {doc_id})")
         context_parts.append("")
-        
+
         # Add document text
         context_parts.append(doc_text)
         context_parts.append("")
         context_parts.append("---")
         context_parts.append("")
-    
+
     context = "\n".join(context_parts)
-    
+
     # Truncate if max_length is specified
     if max_length and len(context) > max_length:
         logger.warning(f"Context truncated from {len(context)} to {max_length} characters")
         context = context[:max_length] + "\n\n[Content truncated due to length limits...]"
-    
+
     return context
 
 
 def build_template_instructions(
-    template_data: Dict[str, Any],
+    template_data: dict[str, Any],
 ) -> str:
     """
     Build template instructions from template data.
-    
+
     Args:
         template_data: Template data with letterhead, sections, opening/closing paragraphs
-        
+
     Returns:
         Formatted template instructions string
     """
     instructions = []
-    
+
     instructions.append("## TEMPLATE STRUCTURE")
     instructions.append("")
-    
+
     if template_data.get("letterhead_text"):
         instructions.append("**Letterhead:**")
         instructions.append(template_data["letterhead_text"])
         instructions.append("")
-    
+
     if template_data.get("opening_paragraph"):
         instructions.append("**Opening Paragraph:**")
         instructions.append(template_data["opening_paragraph"])
         instructions.append("")
-    
+
     if template_data.get("sections"):
         sections = template_data["sections"]
         if isinstance(sections, list):
@@ -152,19 +153,19 @@ def build_template_instructions(
         else:
             instructions.append(f"**Sections:** {sections}")
             instructions.append("")
-    
+
     if template_data.get("closing_paragraph"):
         instructions.append("**Closing Paragraph:**")
         instructions.append(template_data["closing_paragraph"])
         instructions.append("")
-    
+
     return "\n".join(instructions)
 
 
 def build_output_format_instructions() -> str:
     """
     Build instructions for HTML output format.
-    
+
     Returns:
         Formatted instructions string
     """
@@ -181,58 +182,62 @@ Output only the HTML content of the letter, without any additional explanation o
 
 
 def combine_prompt_components(
-    template_data: Dict[str, Any],
-    parsed_documents: List[Dict[str, Any]],
-    max_context_length: Optional[int] = None,
-) -> List[Dict[str, str]]:
+    template_data: dict[str, Any],
+    parsed_documents: list[dict[str, Any]],
+    max_context_length: int | None = None,
+) -> list[dict[str, str]]:
     """
     Combine all prompt components into a message list for OpenAI API.
-    
+
     Args:
         template_data: Template data with structure and formatting
         parsed_documents: List of parsed documents with extracted text
         max_context_length: Optional maximum length for document context
-        
+
     Returns:
         List of message dictionaries for OpenAI Chat API
     """
     messages = []
-    
+
     # System prompt
-    messages.append({
-        "role": "system",
-        "content": BASE_SYSTEM_PROMPT,
-    })
-    
+    messages.append(
+        {
+            "role": "system",
+            "content": BASE_SYSTEM_PROMPT,
+        }
+    )
+
     # Build user prompt
     user_prompt_parts = []
-    
+
     # Template instructions
     user_prompt_parts.append(build_template_instructions(template_data))
     user_prompt_parts.append("")
-    
+
     # Document context
     user_prompt_parts.append("## SOURCE DOCUMENTS")
     user_prompt_parts.append("")
     user_prompt_parts.append(build_context_from_documents(parsed_documents, max_context_length))
     user_prompt_parts.append("")
-    
+
     # Output format instructions
     user_prompt_parts.append(build_output_format_instructions())
-    
+
     user_prompt = "\n".join(user_prompt_parts)
-    messages.append({
-        "role": "user",
-        "content": user_prompt,
-    })
-    
+    messages.append(
+        {
+            "role": "user",
+            "content": user_prompt,
+        }
+    )
+
     return messages
 
 
 def get_html_formatting_examples() -> str:
     """
     Get examples of expected HTML output format.
-    
+
     Returns:
         Example HTML formatting string
     """
@@ -259,4 +264,3 @@ Use semantic HTML tags appropriately:
 - strong, em for emphasis
 - ul, ol, li for lists
 - Keep formatting clean and professional"""
-

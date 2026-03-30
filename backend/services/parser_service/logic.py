@@ -1,22 +1,24 @@
 """
 Business logic for parser service operations.
 """
-import logging
+
 import io
-from typing import List, Optional
+import logging
 from uuid import UUID
+
 from sqlalchemy.orm import Session
 
-from shared.models.document import Document
+from shared.config import get_settings
 from shared.exceptions import (
     DocumentNotFoundException,
-    S3DownloadException,
     ForbiddenException,
     ParserException,
+    S3DownloadException,
 )
+from shared.models.document import Document
 from shared.s3_client import get_s3_client
-from shared.config import get_settings
-from .pdf_parser import extract_text_from_pdf, extract_metadata_from_pdf
+
+from .pdf_parser import extract_metadata_from_pdf, extract_text_from_pdf
 from .schemas import ParseResponse
 
 logger = logging.getLogger(__name__)
@@ -29,15 +31,15 @@ def parse_document(
 ) -> ParseResponse:
     """
     Parse a single document by downloading it from S3 and extracting text.
-    
+
     Args:
         db: Database session
         document_id: Document ID to parse
         firm_id: Firm ID to verify ownership
-        
+
     Returns:
         ParseResponse with extracted text and metadata
-        
+
     Raises:
         DocumentNotFoundException: If document not found
         ForbiddenException: If document doesn't belong to firm
@@ -47,27 +49,27 @@ def parse_document(
     try:
         settings = get_settings()
         s3_client = get_s3_client()
-        
+
         # Get document and verify ownership
         document = db.query(Document).filter(Document.id == document_id).first()
-        
+
         if not document:
             raise DocumentNotFoundException(document_id=str(document_id))
-        
+
         # Verify firm-level isolation
         if document.firm_id != firm_id:
             raise ForbiddenException(
                 message="Access denied",
                 detail="Document does not belong to this firm",
             )
-        
+
         # Verify document is a PDF
         if document.mime_type != "application/pdf":
             raise ParserException(
                 message="Unsupported file type",
                 detail=f"Only PDF files can be parsed. Document type: {document.mime_type}",
             )
-        
+
         # Download file from S3 to memory
         try:
             file_obj = io.BytesIO()
@@ -79,27 +81,27 @@ def parse_document(
             file_content = file_obj.getvalue()
             logger.info(f"Downloaded document from S3: {document.s3_key}")
         except Exception as e:
-            logger.error(f"Failed to download document from S3: {str(e)}")
+            logger.error(f"Failed to download document from S3: {e!s}")
             raise S3DownloadException(
                 message="Failed to download document from S3",
                 detail=str(e),
-            )
-        
+            ) from e
+
         # Extract text from PDF
         try:
             extracted_text = extract_text_from_pdf(file_content)
         except Exception as e:
-            logger.error(f"Failed to extract text from PDF: {str(e)}")
+            logger.error(f"Failed to extract text from PDF: {e!s}")
             raise ParserException(
                 message="Failed to extract text from PDF",
                 detail=str(e),
-            )
-        
+            ) from e
+
         # Extract metadata from PDF
         try:
             metadata = extract_metadata_from_pdf(file_content)
         except Exception as e:
-            logger.warning(f"Failed to extract metadata from PDF: {str(e)}")
+            logger.warning(f"Failed to extract metadata from PDF: {e!s}")
             # Metadata extraction failure is not critical, use basic info
             metadata = {
                 "page_count": 0,
@@ -107,7 +109,7 @@ def parse_document(
                 "creation_date": None,
                 "modification_date": None,
             }
-        
+
         # Build response
         return ParseResponse(
             document_id=document_id,
@@ -118,40 +120,40 @@ def parse_document(
             success=True,
             error=None,
         )
-        
+
     except (DocumentNotFoundException, ForbiddenException, S3DownloadException, ParserException):
         raise
     except Exception as e:
-        logger.error(f"Error parsing document: {str(e)}")
+        logger.error(f"Error parsing document: {e!s}")
         raise ParserException(
             message="Failed to parse document",
             detail=str(e),
-        )
+        ) from e
 
 
 def parse_documents_batch(
     db: Session,
-    document_ids: List[UUID],
+    document_ids: list[UUID],
     firm_id: UUID,
-) -> List[ParseResponse]:
+) -> list[ParseResponse]:
     """
     Parse multiple documents in batch.
-    
+
     Args:
         db: Database session
         document_ids: List of document IDs to parse
         firm_id: Firm ID to verify ownership
-        
+
     Returns:
         List of ParseResponse objects (one per document)
-        
+
     Raises:
         DocumentNotFoundException: If any document not found
         ForbiddenException: If any document doesn't belong to firm
     """
     try:
         results = []
-        
+
         # Process each document
         for document_id in document_ids:
             try:
@@ -161,10 +163,10 @@ def parse_documents_batch(
                     firm_id=firm_id,
                 )
                 results.append(result)
-                
+
             except (DocumentNotFoundException, ForbiddenException) as e:
                 # For batch operations, we include failed results in the response
-                logger.warning(f"Failed to parse document {document_id}: {str(e)}")
+                logger.warning(f"Failed to parse document {document_id}: {e!s}")
                 results.append(
                     ParseResponse(
                         document_id=document_id,
@@ -178,7 +180,7 @@ def parse_documents_batch(
                 )
             except Exception as e:
                 # Include parsing errors in results
-                logger.error(f"Error parsing document {document_id}: {str(e)}")
+                logger.error(f"Error parsing document {document_id}: {e!s}")
                 results.append(
                     ParseResponse(
                         document_id=document_id,
@@ -190,11 +192,10 @@ def parse_documents_batch(
                         error=str(e),
                     )
                 )
-        
+
         logger.info(f"Batch parsing completed: {len(results)} documents processed")
         return results
-        
-    except Exception as e:
-        logger.error(f"Error in batch parsing: {str(e)}")
-        raise
 
+    except Exception as e:
+        logger.error(f"Error in batch parsing: {e!s}")
+        raise

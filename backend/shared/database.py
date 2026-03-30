@@ -1,12 +1,13 @@
 """
 Database configuration and session management.
 """
+
 import os
-from typing import Generator
-from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import sessionmaker, Session
+from collections.abc import Generator
+
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
-from shared.base import Base
 
 # Database URL from environment variables
 # Use .env as the source of truth for all database configuration
@@ -45,10 +46,11 @@ def get_db() -> Generator[Session, None, None]:
     Yields a database session and ensures it's closed after use.
     """
     if SessionLocal is None:
-        raise RuntimeError("Database session factory is not initialized. Check your database configuration.")
+        raise RuntimeError(
+            "Database session factory is not initialized. Check your database configuration."
+        )
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-

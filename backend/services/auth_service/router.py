@@ -1,14 +1,17 @@
 """
 FastAPI router for authentication endpoints.
 """
+
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from shared.database import get_db
 from shared.exceptions import NotFoundException
-from .schemas import LoginRequest, LoginResponse
+
 from .logic import login_user
+from .schemas import LoginRequest, LoginResponse
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +32,10 @@ async def login_endpoint(
 ):
     """
     Login endpoint.
-    
+
     - **email**: User email address
     - **password**: User password (not validated in mock auth)
-    
+
     Returns user and firm information if user exists.
     """
     try:
@@ -42,11 +45,10 @@ async def login_endpoint(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
-        logger.error(f"Unexpected error during login: {str(e)}")
+        logger.error(f"Unexpected error during login: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred during login",
-        )
-
+        ) from e

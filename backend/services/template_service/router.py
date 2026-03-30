@@ -1,28 +1,29 @@
 """
 FastAPI router for template service endpoints.
 """
+
 import logging
-from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from shared.database import get_db
-from shared.exceptions import register_exception_handlers
-from .schemas import (
-    TemplateResponse,
-    TemplateListResponse,
-    TemplateCreate,
-    TemplateUpdate,
-)
+
 from .logic import (
     create_template,
-    get_templates,
-    get_template_by_id,
-    update_template,
     delete_template,
     get_default_template,
+    get_template_by_id,
+    get_templates,
+    update_template,
+)
+from .schemas import (
+    TemplateCreate,
+    TemplateListResponse,
+    TemplateResponse,
+    TemplateUpdate,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,16 +42,18 @@ router = APIRouter(prefix="/{firm_id}/templates", tags=["templates"])
 async def create_template_endpoint(
     firm_id: UUID,
     template_data: TemplateCreate,
-    created_by: Optional[UUID] = Query(None, description="User ID who created the template (optional)"),
+    created_by: UUID | None = Query(
+        None, description="User ID who created the template (optional)"
+    ),
     db: Session = Depends(get_db),
 ):
     """
     Create a new template.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **template_data**: Template creation data (request body)
     - **created_by**: Optional user ID (query parameter)
-    
+
     Returns template data on success.
     """
     try:
@@ -61,9 +64,9 @@ async def create_template_endpoint(
             template_data=template_data,
         )
         return template
-        
+
     except Exception as e:
-        logger.error(f"Error in create endpoint: {str(e)}")
+        logger.error(f"Error in create endpoint: {e!s}")
         raise
 
 
@@ -76,17 +79,17 @@ async def create_template_endpoint(
 )
 async def list_templates_endpoint(
     firm_id: UUID,
-    sort_by: Optional[str] = Query(None, description="Field to sort by (name, created_at)"),
+    sort_by: str | None = Query(None, description="Field to sort by (name, created_at)"),
     sort_order: str = Query("asc", description="Sort order (asc, desc)"),
     db: Session = Depends(get_db),
 ):
     """
     List templates for a firm.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **sort_by**: Field to sort by (name, created_at)
     - **sort_order**: Sort order (asc, desc)
-    
+
     Returns list of templates.
     """
     try:
@@ -96,14 +99,14 @@ async def list_templates_endpoint(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="sort_by must be 'name' or 'created_at'",
             )
-        
+
         # Validate sort_order
         if sort_order not in ["asc", "desc"]:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="sort_order must be 'asc' or 'desc'",
             )
-        
+
         # Get templates
         templates = get_templates(
             db=db,
@@ -111,7 +114,7 @@ async def list_templates_endpoint(
             sort_by=sort_by,
             sort_order=sort_order,
         )
-        
+
         # Create paginated response (no pagination for templates, but use same response structure)
         return TemplateListResponse.create(
             items=templates,
@@ -119,15 +122,15 @@ async def list_templates_endpoint(
             page=1,
             page_size=len(templates) if len(templates) > 0 else 1,  # page_size must be >= 1
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in list endpoint: {str(e)}")
+        logger.error(f"Error in list endpoint: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve templates",
-        )
+        ) from e
 
 
 @router.get(
@@ -143,9 +146,9 @@ async def get_default_template_endpoint(
 ):
     """
     Get the default template for a firm.
-    
+
     - **firm_id**: Firm ID (path parameter)
-    
+
     Returns default template or 404 if not found.
     """
     try:
@@ -153,19 +156,19 @@ async def get_default_template_endpoint(
             db=db,
             firm_id=firm_id,
         )
-        
+
         if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No default template found for this firm",
             )
-        
+
         return template
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in get default endpoint: {str(e)}")
+        logger.error(f"Error in get default endpoint: {e!s}")
         raise
 
 
@@ -183,10 +186,10 @@ async def get_template_endpoint(
 ):
     """
     Get a template by ID.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **template_id**: Template ID (path parameter)
-    
+
     Returns template data.
     """
     try:
@@ -196,9 +199,9 @@ async def get_template_endpoint(
             firm_id=firm_id,
         )
         return template
-        
+
     except Exception as e:
-        logger.error(f"Error in get endpoint: {str(e)}")
+        logger.error(f"Error in get endpoint: {e!s}")
         raise
 
 
@@ -217,11 +220,11 @@ async def update_template_endpoint(
 ):
     """
     Update a template.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **template_id**: Template ID (path parameter)
     - **template_data**: Template update data (request body)
-    
+
     Returns updated template data.
     """
     try:
@@ -232,9 +235,9 @@ async def update_template_endpoint(
             template_data=template_data,
         )
         return template
-        
+
     except Exception as e:
-        logger.error(f"Error in update endpoint: {str(e)}")
+        logger.error(f"Error in update endpoint: {e!s}")
         raise
 
 
@@ -251,10 +254,10 @@ async def delete_template_endpoint(
 ):
     """
     Delete a template.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **template_id**: Template ID (path parameter)
-    
+
     Returns 204 No Content on success, or 422 if template is in use.
     """
     try:
@@ -264,8 +267,7 @@ async def delete_template_endpoint(
             firm_id=firm_id,
         )
         return Response(status_code=status.HTTP_204_NO_CONTENT)
-        
-    except Exception as e:
-        logger.error(f"Error in delete endpoint: {str(e)}")
-        raise
 
+    except Exception as e:
+        logger.error(f"Error in delete endpoint: {e!s}")
+        raise

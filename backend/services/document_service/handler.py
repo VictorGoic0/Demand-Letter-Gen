@@ -1,9 +1,12 @@
 """
 Lambda handler for document service.
 """
+
 import logging
-from handlers.base import create_lambda_app, create_handler
+
+from handlers.base import create_handler, create_lambda_app
 from shared.exceptions import register_exception_handlers
+
 from .router import router
 
 logger = logging.getLogger(__name__)
@@ -46,4 +49,3 @@ def delete_handler(event, context):
 def download_handler(event, context):
     """Lambda handler for generating download URL."""
     return handler(event, context)
-

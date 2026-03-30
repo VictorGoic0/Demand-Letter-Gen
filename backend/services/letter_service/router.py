@@ -1,30 +1,30 @@
 """
 FastAPI router for letter service endpoints.
 """
+
 import logging
-from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from shared.database import get_db
-from shared.schemas import PaginatedResponse
-from shared.exceptions import register_exception_handlers
-from .schemas import (
-    LetterResponse,
-    LetterListResponse,
-    LetterUpdate,
-    FinalizeResponse,
-    ExportResponse,
-)
+
 from .logic import (
-    get_letters,
-    get_letter_by_id,
-    update_letter,
     delete_letter,
-    finalize_letter,
     export_letter,
+    finalize_letter,
+    get_letter_by_id,
+    get_letters,
+    update_letter,
+)
+from .schemas import (
+    ExportResponse,
+    FinalizeResponse,
+    LetterListResponse,
+    LetterResponse,
+    LetterUpdate,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,19 +44,21 @@ async def list_letters_endpoint(
     firm_id: UUID,
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(20, ge=1, le=100, description="Number of items per page"),
-    sort_by: Optional[str] = Query(None, description="Field to sort by (created_at, updated_at, title, status)"),
+    sort_by: str | None = Query(
+        None, description="Field to sort by (created_at, updated_at, title, status)"
+    ),
     sort_order: str = Query("desc", description="Sort order (asc, desc)"),
     db: Session = Depends(get_db),
 ):
     """
     List letters for a firm.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **page**: Page number (default: 1)
     - **page_size**: Items per page (default: 20, max: 100)
     - **sort_by**: Field to sort by (created_at, updated_at, title, status)
     - **sort_order**: Sort order (asc, desc)
-    
+
     Returns paginated list of letters.
     """
     try:
@@ -66,14 +68,14 @@ async def list_letters_endpoint(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="sort_by must be one of: created_at, updated_at, title, status",
             )
-        
+
         # Validate sort_order
         if sort_order not in ["asc", "desc"]:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="sort_order must be 'asc' or 'desc'",
             )
-        
+
         # Get letters
         letters, total = get_letters(
             db=db,
@@ -83,7 +85,7 @@ async def list_letters_endpoint(
             sort_by=sort_by,
             sort_order=sort_order,
         )
-        
+
         # Create paginated response
         return LetterListResponse.create(
             items=letters,
@@ -91,15 +93,15 @@ async def list_letters_endpoint(
             page=page,
             page_size=page_size,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in list endpoint: {str(e)}")
+        logger.error(f"Error in list endpoint: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve letters",
-        )
+        ) from e
 
 
 @router.get(
@@ -116,10 +118,10 @@ async def get_letter_endpoint(
 ):
     """
     Get a letter by ID.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **letter_id**: Letter ID (path parameter)
-    
+
     Returns letter data with presigned URL if .docx exists.
     """
     try:
@@ -129,9 +131,9 @@ async def get_letter_endpoint(
             firm_id=firm_id,
         )
         return letter
-        
+
     except Exception as e:
-        logger.error(f"Error in get endpoint: {str(e)}")
+        logger.error(f"Error in get endpoint: {e!s}")
         raise
 
 
@@ -150,11 +152,11 @@ async def update_letter_endpoint(
 ):
     """
     Update a letter.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **letter_id**: Letter ID (path parameter)
     - **letter_update**: Letter update data (title and/or content)
-    
+
     Returns updated letter data.
     """
     try:
@@ -166,9 +168,9 @@ async def update_letter_endpoint(
             content=letter_update.content,
         )
         return letter
-        
+
     except Exception as e:
-        logger.error(f"Error in update endpoint: {str(e)}")
+        logger.error(f"Error in update endpoint: {e!s}")
         raise
 
 
@@ -185,10 +187,10 @@ async def delete_letter_endpoint(
 ):
     """
     Delete a letter.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **letter_id**: Letter ID (path parameter)
-    
+
     Returns 204 No Content on success.
     """
     try:
@@ -198,9 +200,9 @@ async def delete_letter_endpoint(
             firm_id=firm_id,
         )
         return Response(status_code=status.HTTP_204_NO_CONTENT)
-        
+
     except Exception as e:
-        logger.error(f"Error in delete endpoint: {str(e)}")
+        logger.error(f"Error in delete endpoint: {e!s}")
         raise
 
 
@@ -218,10 +220,10 @@ async def finalize_letter_endpoint(
 ):
     """
     Finalize a letter.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **letter_id**: Letter ID (path parameter)
-    
+
     Generates DOCX file, uploads to S3, updates status to 'created', and returns letter with download URL.
     """
     try:
@@ -230,16 +232,16 @@ async def finalize_letter_endpoint(
             letter_id=letter_id,
             firm_id=firm_id,
         )
-        
+
         # Build response
         return FinalizeResponse(
             letter=letter,
             download_url=letter.docx_url,
             message="Letter finalized successfully",
         )
-        
+
     except Exception as e:
-        logger.error(f"Error in finalize endpoint: {str(e)}")
+        logger.error(f"Error in finalize endpoint: {e!s}")
         raise
 
 
@@ -257,10 +259,10 @@ async def export_letter_endpoint(
 ):
     """
     Export a letter.
-    
+
     - **firm_id**: Firm ID (path parameter)
     - **letter_id**: Letter ID (path parameter)
-    
+
     Always regenerates the DOCX from current letter content and returns a new presigned URL.
     This ensures re-export always reflects the latest content changes.
     """
@@ -270,7 +272,7 @@ async def export_letter_endpoint(
             letter_id=letter_id,
             firm_id=firm_id,
         )
-        
+
         # Build response
         return ExportResponse(
             download_url=download_url,
@@ -278,8 +280,7 @@ async def export_letter_endpoint(
             letter_id=letter_id,
             message="Letter exported successfully",
         )
-        
-    except Exception as e:
-        logger.error(f"Error in export endpoint: {str(e)}")
-        raise
 
+    except Exception as e:
+        logger.error(f"Error in export endpoint: {e!s}")
+        raise

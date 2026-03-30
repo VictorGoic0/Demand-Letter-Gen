@@ -12,9 +12,11 @@ Make sure:
     3. AWS credentials are configured in .env file
     4. Virtual environment is activated (if using venv)
 """
+
+import io
 import os
 import sys
-import io
+
 from dotenv import load_dotenv
 
 # Add backend directory to path
@@ -22,15 +24,16 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, backend_dir)
 
 # Load environment variables
-load_dotenv(os.path.join(backend_dir, '.env'))
+load_dotenv(os.path.join(backend_dir, ".env"))
 
-from shared.database import SessionLocal
-from shared.models import Firm, User
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.testclient import TestClient
+
 from services.document_service.router import router as document_router
+from shared.database import SessionLocal
 from shared.exceptions import register_exception_handlers
+from shared.models import Firm, User
 
 
 def create_test_app():
@@ -40,7 +43,7 @@ def create_test_app():
         description="Test API for document service",
         version="1.0.0",
     )
-    
+
     # Configure CORS
     app.add_middleware(
         CORSMiddleware,
@@ -49,13 +52,13 @@ def create_test_app():
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Include document router
     app.include_router(document_router)
-    
+
     # Register exception handlers
     register_exception_handlers(app)
-    
+
     return app
 
 
@@ -128,36 +131,34 @@ def test_upload_document(client, firm_id, user_id=None):
     print("\n" + "=" * 60)
     print("Testing Document Upload")
     print("=" * 60)
-    
+
     pdf_content = create_test_pdf()
-    
-    files = {
-        "file": ("test_document.pdf", io.BytesIO(pdf_content), "application/pdf")
-    }
-    
+
+    files = {"file": ("test_document.pdf", io.BytesIO(pdf_content), "application/pdf")}
+
     params = {}
     if user_id:
         params["uploaded_by"] = str(user_id)
-    
+
     response = client.post(
         f"/{firm_id}/documents/",
         files=files,
         params=params,
     )
-    
+
     print(f"Status Code: {response.status_code}")
-    
+
     if response.status_code == 201:
         data = response.json()
-        print(f"✅ Document uploaded successfully!")
+        print("✅ Document uploaded successfully!")
         print(f"   Document ID: {data['document']['id']}")
         print(f"   Filename: {data['document']['filename']}")
         print(f"   File Size: {data['document']['file_size']} bytes")
         print(f"   MIME Type: {data['document']['mime_type']}")
         print(f"   Uploaded At: {data['document']['uploaded_at']}")
-        return data['document']['id']
+        return data["document"]["id"]
     else:
-        print(f"❌ Upload failed:")
+        print("❌ Upload failed:")
         print(f"   Response: {response.text}")
         return None
 
@@ -175,42 +176,43 @@ def main():
     print("  - Firm and users are seeded (run seed_test_firm.py and seed_test_users.py)")
     print("  - AWS credentials are configured in .env file")
     print("=" * 60)
-    
+
     db = SessionLocal()
-    
+
     try:
         # Get test firm
         firm = db.query(Firm).filter(Firm.name == "Test Law Firm").first()
         if not firm:
             print("\n❌ Test firm not found. Please run seed_test_firm.py first.")
             return 1
-        
+
         # Get first user
         user = db.query(User).filter(User.firm_id == firm.id).first()
         if not user:
             print("\n❌ No users found for test firm. Please run seed_test_users.py first.")
             return 1
-        
+
         print(f"\nUsing firm: {firm.name} (ID: {firm.id})")
         print(f"Using user: {user.name} (ID: {user.id})")
-        
+
         # Create test app and client
         app = create_test_app()
         client = TestClient(app)
-        
+
         # Test upload
         document_id = test_upload_document(client, firm.id, user.id)
-        
+
         if document_id:
             print("\n✅ Upload test passed!")
             return 0
         else:
             print("\n❌ Upload test failed!")
             return 1
-        
+
     except Exception as e:
         print(f"\n❌ Error during testing: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
     finally:

@@ -1,10 +1,10 @@
 """
 Custom exception classes and exception handlers for FastAPI.
 """
-from typing import Optional
+
 from fastapi import Request, status
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .schemas import ErrorResponse
@@ -12,11 +12,12 @@ from .schemas import ErrorResponse
 
 class BaseAppException(Exception):
     """Base exception class for application exceptions."""
+
     def __init__(
         self,
         message: str,
-        detail: Optional[str] = None,
-        code: Optional[str] = None,
+        detail: str | None = None,
+        code: str | None = None,
         status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
     ):
         self.message = message
@@ -28,7 +29,8 @@ class BaseAppException(Exception):
 
 class NotFoundException(BaseAppException):
     """Raised when a resource is not found."""
-    def __init__(self, message: str = "Resource not found", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "Resource not found", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "The requested resource does not exist",
@@ -38,8 +40,9 @@ class NotFoundException(BaseAppException):
 
 class DocumentNotFoundException(BaseAppException):
     """Raised when a document is not found."""
-    def __init__(self, document_id: Optional[str] = None, detail: Optional[str] = None):
-        message = f"Document not found"
+
+    def __init__(self, document_id: str | None = None, detail: str | None = None):
+        message = "Document not found"
         if document_id:
             message = f"Document with ID '{document_id}' not found"
         super().__init__(
@@ -51,8 +54,9 @@ class DocumentNotFoundException(BaseAppException):
 
 class TemplateNotFoundException(BaseAppException):
     """Raised when a template is not found."""
-    def __init__(self, template_id: Optional[str] = None, detail: Optional[str] = None):
-        message = f"Template not found"
+
+    def __init__(self, template_id: str | None = None, detail: str | None = None):
+        message = "Template not found"
         if template_id:
             message = f"Template with ID '{template_id}' not found"
         super().__init__(
@@ -64,8 +68,9 @@ class TemplateNotFoundException(BaseAppException):
 
 class LetterNotFoundException(BaseAppException):
     """Raised when a letter is not found."""
-    def __init__(self, letter_id: Optional[str] = None, detail: Optional[str] = None):
-        message = f"Letter not found"
+
+    def __init__(self, letter_id: str | None = None, detail: str | None = None):
+        message = "Letter not found"
         if letter_id:
             message = f"Letter with ID '{letter_id}' not found"
         super().__init__(
@@ -77,7 +82,8 @@ class LetterNotFoundException(BaseAppException):
 
 class S3UploadException(BaseAppException):
     """Raised when an S3 upload operation fails."""
-    def __init__(self, message: str = "S3 upload failed", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "S3 upload failed", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "Failed to upload file to S3",
@@ -87,7 +93,8 @@ class S3UploadException(BaseAppException):
 
 class S3DownloadException(BaseAppException):
     """Raised when an S3 download operation fails."""
-    def __init__(self, message: str = "S3 download failed", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "S3 download failed", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "Failed to download file from S3",
@@ -97,7 +104,8 @@ class S3DownloadException(BaseAppException):
 
 class OpenAIException(BaseAppException):
     """Raised when an OpenAI API operation fails."""
-    def __init__(self, message: str = "OpenAI API error", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "OpenAI API error", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "Failed to communicate with OpenAI API",
@@ -107,7 +115,8 @@ class OpenAIException(BaseAppException):
 
 class ParserException(BaseAppException):
     """Raised when a PDF parsing operation fails."""
-    def __init__(self, message: str = "PDF parsing failed", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "PDF parsing failed", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "Failed to parse PDF document",
@@ -117,7 +126,8 @@ class ParserException(BaseAppException):
 
 class ValidationException(BaseAppException):
     """Raised when validation fails."""
-    def __init__(self, message: str = "Validation failed", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "Validation failed", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "The provided data is invalid",
@@ -127,7 +137,8 @@ class ValidationException(BaseAppException):
 
 class UnauthorizedException(BaseAppException):
     """Raised when authentication is required or fails."""
-    def __init__(self, message: str = "Unauthorized", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "Unauthorized", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "Authentication required",
@@ -137,7 +148,8 @@ class UnauthorizedException(BaseAppException):
 
 class ForbiddenException(BaseAppException):
     """Raised when access is forbidden."""
-    def __init__(self, message: str = "Forbidden", detail: Optional[str] = None):
+
+    def __init__(self, message: str = "Forbidden", detail: str | None = None):
         super().__init__(
             message=message,
             detail=detail or "You do not have permission to access this resource",
@@ -148,11 +160,11 @@ class ForbiddenException(BaseAppException):
 async def app_exception_handler(request: Request, exc: BaseAppException) -> JSONResponse:
     """
     Handler for custom application exceptions.
-    
+
     Args:
         request: FastAPI request object
         exc: Application exception instance
-        
+
     Returns:
         JSONResponse with error details
     """
@@ -170,11 +182,11 @@ async def app_exception_handler(request: Request, exc: BaseAppException) -> JSON
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """
     Handler for HTTP exceptions.
-    
+
     Args:
         request: FastAPI request object
         exc: HTTP exception instance
-        
+
     Returns:
         JSONResponse with error details
     """
@@ -189,14 +201,16 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
     )
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
     """
     Handler for request validation errors.
-    
+
     Args:
         request: FastAPI request object
         exc: Validation exception instance
-        
+
     Returns:
         JSONResponse with validation error details
     """
@@ -206,9 +220,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         field = ".".join(str(loc) for loc in error["loc"])
         message = error["msg"]
         error_messages.append(f"{field}: {message}")
-    
+
     detail = "; ".join(error_messages)
-    
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=ErrorResponse(
@@ -223,18 +237,19 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """
     Handler for unhandled exceptions.
-    
+
     Args:
         request: FastAPI request object
         exc: Exception instance
-        
+
     Returns:
         JSONResponse with error details
     """
     import logging
+
     logger = logging.getLogger(__name__)
     logger.exception(f"Unhandled exception: {exc}")
-    
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ErrorResponse(
@@ -249,19 +264,18 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 def register_exception_handlers(app):
     """
     Register all exception handlers with a FastAPI app.
-    
+
     Args:
         app: FastAPI application instance
     """
     # Register custom application exceptions
     app.add_exception_handler(BaseAppException, app_exception_handler)
-    
+
     # Register HTTP exceptions
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-    
+
     # Register validation exceptions
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
-    
+
     # Register general exception handler (should be last)
     app.add_exception_handler(Exception, general_exception_handler)
-

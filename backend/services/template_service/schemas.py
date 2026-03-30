@@ -1,22 +1,28 @@
 """
 Pydantic schemas for template service API requests and responses.
 """
-from typing import Optional, List
+
 from datetime import datetime
+from typing import Any, ClassVar
 from uuid import UUID
+
 from pydantic import BaseModel, Field, field_validator
+
 from shared.schemas import PaginatedResponse
 
 
 class TemplateBase(BaseModel):
     """Base schema for template data."""
+
     name: str = Field(..., description="Template name")
-    letterhead_text: Optional[str] = Field(default=None, description="Letterhead text")
-    opening_paragraph: Optional[str] = Field(default=None, description="Opening paragraph text")
-    closing_paragraph: Optional[str] = Field(default=None, description="Closing paragraph text")
-    sections: Optional[List[str]] = Field(default=None, description="List of section names")
-    is_default: bool = Field(default=False, description="Whether this is the default template for the firm")
-    
+    letterhead_text: str | None = Field(default=None, description="Letterhead text")
+    opening_paragraph: str | None = Field(default=None, description="Opening paragraph text")
+    closing_paragraph: str | None = Field(default=None, description="Closing paragraph text")
+    sections: list[str] | None = Field(default=None, description="List of section names")
+    is_default: bool = Field(
+        default=False, description="Whether this is the default template for the firm"
+    )
+
     @field_validator("name")
     @classmethod
     def validate_name(cls, v):
@@ -27,7 +33,7 @@ class TemplateBase(BaseModel):
         if len(v) > 255:
             raise ValueError("Template name cannot exceed 255 characters")
         return v
-    
+
     @field_validator("sections")
     @classmethod
     def validate_sections(cls, v):
@@ -44,18 +50,22 @@ class TemplateBase(BaseModel):
 
 class TemplateCreate(TemplateBase):
     """Schema for template creation."""
+
     pass
 
 
 class TemplateUpdate(BaseModel):
     """Schema for template update (all fields optional)."""
-    name: Optional[str] = Field(default=None, description="Template name")
-    letterhead_text: Optional[str] = Field(default=None, description="Letterhead text")
-    opening_paragraph: Optional[str] = Field(default=None, description="Opening paragraph text")
-    closing_paragraph: Optional[str] = Field(default=None, description="Closing paragraph text")
-    sections: Optional[List[str]] = Field(default=None, description="List of section names")
-    is_default: Optional[bool] = Field(default=None, description="Whether this is the default template for the firm")
-    
+
+    name: str | None = Field(default=None, description="Template name")
+    letterhead_text: str | None = Field(default=None, description="Letterhead text")
+    opening_paragraph: str | None = Field(default=None, description="Opening paragraph text")
+    closing_paragraph: str | None = Field(default=None, description="Closing paragraph text")
+    sections: list[str] | None = Field(default=None, description="List of section names")
+    is_default: bool | None = Field(
+        default=None, description="Whether this is the default template for the firm"
+    )
+
     @field_validator("name")
     @classmethod
     def validate_name(cls, v):
@@ -67,7 +77,7 @@ class TemplateUpdate(BaseModel):
             if len(v) > 255:
                 raise ValueError("Template name cannot exceed 255 characters")
         return v
-    
+
     @field_validator("sections")
     @classmethod
     def validate_sections(cls, v):
@@ -84,21 +94,22 @@ class TemplateUpdate(BaseModel):
 
 class TemplateResponse(BaseModel):
     """Schema for template response."""
+
     id: UUID = Field(..., description="Template ID")
     firm_id: UUID = Field(..., description="Firm ID that owns the template")
     name: str = Field(..., description="Template name")
-    letterhead_text: Optional[str] = Field(default=None, description="Letterhead text")
-    opening_paragraph: Optional[str] = Field(default=None, description="Opening paragraph text")
-    closing_paragraph: Optional[str] = Field(default=None, description="Closing paragraph text")
-    sections: Optional[List[str]] = Field(default=None, description="List of section names")
+    letterhead_text: str | None = Field(default=None, description="Letterhead text")
+    opening_paragraph: str | None = Field(default=None, description="Opening paragraph text")
+    closing_paragraph: str | None = Field(default=None, description="Closing paragraph text")
+    sections: list[str] | None = Field(default=None, description="List of section names")
     is_default: bool = Field(..., description="Whether this is the default template for the firm")
-    created_by: Optional[UUID] = Field(default=None, description="User ID who created the template")
+    created_by: UUID | None = Field(default=None, description="User ID who created the template")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
-    
+
     class Config:
         from_attributes = True
-        json_schema_extra = {
+        json_schema_extra: ClassVar[dict[str, Any]] = {
             "example": {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "firm_id": "123e4567-e89b-12d3-a456-426614174001",
@@ -117,5 +128,5 @@ class TemplateResponse(BaseModel):
 
 class TemplateListResponse(PaginatedResponse[TemplateResponse]):
     """Schema for paginated template list response."""
-    pass
 
+    pass

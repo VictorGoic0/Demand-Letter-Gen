@@ -1,9 +1,12 @@
 """
 Lambda handler for parser service.
 """
+
 import logging
-from handlers.base import create_lambda_app, create_handler
+
+from handlers.base import create_handler, create_lambda_app
 from shared.exceptions import register_exception_handlers
+
 from .router import router
 
 logger = logging.getLogger(__name__)
@@ -31,4 +34,3 @@ def parse_handler(event, context):
 def batch_handler(event, context):
     """Lambda handler for batch document parsing."""
     return handler(event, context)
-

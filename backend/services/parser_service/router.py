@@ -1,20 +1,23 @@
 """
 FastAPI router for parser service endpoints.
 """
+
 import logging
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from shared.database import get_db
-from .schemas import (
-    ParseRequest,
-    ParseResponse,
-    ParseBatchResponse,
-)
+
 from .logic import (
     parse_document,
     parse_documents_batch,
+)
+from .schemas import (
+    ParseBatchResponse,
+    ParseRequest,
+    ParseResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,10 +40,10 @@ async def parse_document_endpoint(
 ):
     """
     Parse a single document.
-    
+
     - **document_id**: Document ID (path parameter)
     - **firm_id**: Firm ID (query parameter)
-    
+
     Returns parsed text and metadata.
     """
     try:
@@ -50,9 +53,9 @@ async def parse_document_endpoint(
             firm_id=firm_id,
         )
         return result
-        
+
     except Exception as e:
-        logger.error(f"Error in parse document endpoint: {str(e)}")
+        logger.error(f"Error in parse document endpoint: {e!s}")
         raise
 
 
@@ -70,10 +73,10 @@ async def parse_batch_endpoint(
 ):
     """
     Parse multiple documents in batch.
-    
+
     - **document_ids**: List of document IDs to parse (max 10)
     - **firm_id**: Firm ID (query parameter)
-    
+
     Returns batch results with success/failure status for each document.
     """
     try:
@@ -83,37 +86,36 @@ async def parse_batch_endpoint(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="At least one document ID is required",
             )
-        
+
         if len(request.document_ids) > 10:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Maximum 10 documents allowed per batch request",
             )
-        
+
         # Parse documents
         results = parse_documents_batch(
             db=db,
             document_ids=request.document_ids,
             firm_id=firm_id,
         )
-        
+
         # Calculate statistics
         successful = sum(1 for r in results if r.success)
         failed = len(results) - successful
-        
+
         return ParseBatchResponse(
             results=results,
             total=len(results),
             successful=successful,
             failed=failed,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in parse batch endpoint: {str(e)}")
+        logger.error(f"Error in parse batch endpoint: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to parse documents",
-        )
-
+        ) from e

@@ -1,8 +1,10 @@
 """
 Lambda handler for AI service.
 """
-from mangum import Mangum
+
 from fastapi import FastAPI
+from mangum import Mangum
+
 from shared.exceptions import register_exception_handlers
 
 from .router import router
@@ -24,9 +26,8 @@ register_exception_handlers(app)
 def generate_handler(event, context):
     """
     Lambda handler for letter generation endpoint.
-    
+
     Configured with 60 second timeout for AI generation.
     """
     handler = Mangum(app, lifespan="off")
     return handler(event, context)
-

@@ -1,21 +1,21 @@
 """
 Document service for managing uploaded documents.
 """
-from .router import router
+
 from .handler import (
-    upload_handler,
-    list_handler,
-    get_handler,
     delete_handler,
     download_handler,
+    get_handler,
+    list_handler,
+    upload_handler,
 )
+from .router import router
 
 __all__ = [
-    "router",
-    "upload_handler",
-    "list_handler",
-    "get_handler",
     "delete_handler",
     "download_handler",
+    "get_handler",
+    "list_handler",
+    "router",
+    "upload_handler",
 ]
-

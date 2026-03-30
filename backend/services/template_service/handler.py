@@ -1,9 +1,12 @@
 """
 Lambda handler for template service.
 """
+
 import logging
-from handlers.base import create_lambda_app, create_handler
+
+from handlers.base import create_handler, create_lambda_app
 from shared.exceptions import register_exception_handlers
+
 from .router import router
 
 logger = logging.getLogger(__name__)
@@ -51,4 +54,3 @@ def update_handler_func(event, context):
 def delete_handler_func(event, context):
     """Lambda handler for deleting a template."""
     return handler(event, context)
-

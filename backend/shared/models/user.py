@@ -1,11 +1,14 @@
 """
 User model for authentication and authorization.
 """
+
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, CheckConstraint
+
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from shared.base import Base
 
 
@@ -14,6 +17,7 @@ class User(Base):
     Represents a user within a firm.
     Users belong to a firm and have a role (e.g., 'attorney', 'paralegal').
     """
+
     __tablename__ = "users"
 
     id = Column(
@@ -32,10 +36,8 @@ class User(Base):
     name = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False)  # 'attorney' or 'paralegal'
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    
-    __table_args__ = (
-        CheckConstraint("role IN ('attorney', 'paralegal')", name='check_user_role'),
-    )
+
+    __table_args__ = (CheckConstraint("role IN ('attorney', 'paralegal')", name="check_user_role"),)
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
@@ -48,4 +50,3 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, firm_id={self.firm_id})>"
-

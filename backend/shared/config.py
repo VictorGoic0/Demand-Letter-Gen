@@ -1,28 +1,31 @@
 """
 Centralized configuration management with environment variable validation using Pydantic.
 """
-import os
-from typing import Optional, Dict, Any, List
-from pydantic import Field, field_validator, ConfigDict
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
 import logging
+import os
+from typing import Any
+
+from pydantic import ConfigDict, Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseConfig(BaseSettings):
     """Database configuration."""
+
     host: str = Field(default="localhost")
     port: int = Field(default=5432)
     name: str = Field(default="demand_letters")
     user: str = Field(default="dev_user")
     password: str = Field(default="dev_password")
-    
+
     @property
     def url(self) -> str:
         """Get database connection URL."""
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
-    
+
     model_config = SettingsConfigDict(
         env_prefix="DB_",
         case_sensitive=False,
@@ -31,12 +34,13 @@ class DatabaseConfig(BaseSettings):
 
 class AWSConfig(BaseSettings):
     """AWS configuration."""
-    access_key_id: Optional[str] = Field(default=None)
-    secret_access_key: Optional[str] = Field(default=None)
+
+    access_key_id: str | None = Field(default=None)
+    secret_access_key: str | None = Field(default=None)
     region: str = Field(default="us-east-2")
     s3_bucket_documents: str
     s3_bucket_exports: str
-    
+
     @field_validator("s3_bucket_documents", "s3_bucket_exports")
     @classmethod
     def validate_bucket_names(cls, v):
@@ -44,7 +48,7 @@ class AWSConfig(BaseSettings):
         if not v or not v.strip():
             raise ValueError("S3 bucket name cannot be empty")
         return v.strip()
-    
+
     model_config = SettingsConfigDict(
         case_sensitive=False,
         # Use custom source to read AWS_S3_BUCKET_* variables
@@ -53,7 +57,7 @@ class AWSConfig(BaseSettings):
         env_nested_delimiter="__",
         extra="ignore",  # Ignore Lambda's built-in AWS_* environment variables
     )
-    
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -64,9 +68,8 @@ class AWSConfig(BaseSettings):
         file_secret_settings,
     ):
         """Customize settings sources to map AWS_S3_BUCKET_* env vars."""
-        import os
-        
-        def custom_env_source() -> Dict[str, Any]:
+
+        def custom_env_source() -> dict[str, Any]:
             """Map AWS_* environment variables to field names."""
             result = {}
             # Read all AWS_ prefixed vars
@@ -77,7 +80,7 @@ class AWSConfig(BaseSettings):
                     field_name = key[4:].lower()  # Remove AWS_ prefix and lowercase
                     result[field_name] = value
             return result
-        
+
         # Use custom source before dotenv (so .env file can override)
         return (
             init_settings,
@@ -89,10 +92,11 @@ class AWSConfig(BaseSettings):
 
 class OpenAIConfig(BaseSettings):
     """OpenAI configuration."""
+
     api_key: str = Field(...)
     model: str = Field(default="gpt-4")
     temperature: float = Field(default=0.7)
-    
+
     @field_validator("temperature")
     @classmethod
     def validate_temperature(cls, v):
@@ -100,7 +104,7 @@ class OpenAIConfig(BaseSettings):
         if not 0 <= v <= 2:
             raise ValueError("Temperature must be between 0 and 2")
         return v
-    
+
     model_config = SettingsConfigDict(
         env_prefix="OPENAI_",
         case_sensitive=False,
@@ -109,23 +113,20 @@ class OpenAIConfig(BaseSettings):
 
 class CORSConfig(BaseSettings):
     """CORS configuration."""
-    allow_origins: List[str] = Field(
-        default=["*"],
-        description="List of allowed CORS origins. Use '*' for all origins."
+
+    allow_origins: list[str] = Field(
+        default=["*"], description="List of allowed CORS origins. Use '*' for all origins."
     )
     allow_credentials: bool = Field(
-        default=True,
-        description="Whether to allow credentials in CORS requests."
+        default=True, description="Whether to allow credentials in CORS requests."
     )
-    allow_methods: List[str] = Field(
-        default=["*"],
-        description="List of allowed HTTP methods. Use '*' for all methods."
+    allow_methods: list[str] = Field(
+        default=["*"], description="List of allowed HTTP methods. Use '*' for all methods."
     )
-    allow_headers: List[str] = Field(
-        default=["*"],
-        description="List of allowed headers. Use '*' for all headers."
+    allow_headers: list[str] = Field(
+        default=["*"], description="List of allowed headers. Use '*' for all headers."
     )
-    
+
     @field_validator("allow_origins", mode="before")
     @classmethod
     def parse_origins(cls, v):
@@ -135,7 +136,7 @@ class CORSConfig(BaseSettings):
                 return ["*"]
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
-    
+
     @field_validator("allow_methods", mode="before")
     @classmethod
     def parse_methods(cls, v):
@@ -145,7 +146,7 @@ class CORSConfig(BaseSettings):
                 return ["*"]
             return [method.strip().upper() for method in v.split(",") if method.strip()]
         return v
-    
+
     @field_validator("allow_headers", mode="before")
     @classmethod
     def parse_headers(cls, v):
@@ -155,7 +156,7 @@ class CORSConfig(BaseSettings):
                 return ["*"]
             return [header.strip() for header in v.split(",") if header.strip()]
         return v
-    
+
     model_config = SettingsConfigDict(
         env_prefix="CORS_",
         case_sensitive=False,
@@ -164,16 +165,17 @@ class CORSConfig(BaseSettings):
 
 class Settings(BaseSettings):
     """Application settings with all configuration."""
+
     environment: str = Field(default="development", env="ENVIRONMENT")
     debug: bool = Field(default=False, env="DEBUG")
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
-    
+
     # Note: Nested BaseSettings models are instantiated in __init__
-    database: Optional[DatabaseConfig] = None
-    aws: Optional[AWSConfig] = None
-    openai: Optional[OpenAIConfig] = None
-    cors: Optional[CORSConfig] = None
-    
+    database: DatabaseConfig | None = None
+    aws: AWSConfig | None = None
+    openai: OpenAIConfig | None = None
+    cors: CORSConfig | None = None
+
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, v):
@@ -184,7 +186,7 @@ class Settings(BaseSettings):
                 f"Invalid environment: {v}. Must be one of: {', '.join(valid_environments)}"
             )
         return v.lower()
-    
+
     @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, v):
@@ -195,7 +197,7 @@ class Settings(BaseSettings):
                 f"Invalid log level: {v}. Must be one of: {', '.join(valid_log_levels)}"
             )
         return v.upper()
-    
+
     def __init__(self, **kwargs):
         """Initialize Settings and load nested configurations."""
         super().__init__(**kwargs)
@@ -208,17 +210,17 @@ class Settings(BaseSettings):
             self.openai = OpenAIConfig()
         if self.cors is None:
             self.cors = CORSConfig()
-    
+
     @property
     def is_production(self) -> bool:
         """Check if running in production environment."""
         return self.environment == "production"
-    
+
     @property
     def is_development(self) -> bool:
         """Check if running in development environment."""
         return self.environment == "development"
-    
+
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -230,20 +232,21 @@ class Settings(BaseSettings):
 
 class ConfigError(Exception):
     """Raised when configuration is invalid or missing required values."""
+
     pass
 
 
 # Global settings instance
-_settings_instance: Optional[Settings] = None
+_settings_instance: Settings | None = None
 
 
 def get_settings() -> Settings:
     """
     Get or create the global settings instance (singleton).
-    
+
     Returns:
         Settings instance
-        
+
     Raises:
         ConfigError: If settings cannot be loaded
     """
@@ -251,10 +254,12 @@ def get_settings() -> Settings:
     if _settings_instance is None:
         try:
             _settings_instance = Settings()
-            logger.info(f"Settings loaded successfully for environment: {_settings_instance.environment}")
+            logger.info(
+                f"Settings loaded successfully for environment: {_settings_instance.environment}"
+            )
         except Exception as e:
-            logger.error(f"Failed to load settings: {str(e)}")
-            raise ConfigError(f"Failed to load settings: {str(e)}")
+            logger.error(f"Failed to load settings: {e!s}")
+            raise ConfigError(f"Failed to load settings: {e!s}") from e
     return _settings_instance
 
 
@@ -262,7 +267,7 @@ def reload_settings() -> Settings:
     """
     Reload settings from environment variables.
     Useful for testing or when environment changes.
-    
+
     Returns:
         New Settings instance
     """
@@ -271,13 +276,13 @@ def reload_settings() -> Settings:
     return get_settings()
 
 
-def get_config_summary(settings: Settings) -> Dict[str, Any]:
+def get_config_summary(settings: Settings) -> dict[str, Any]:
     """
     Get a summary of the settings (safe for logging, excludes secrets).
-    
+
     Args:
         settings: Settings instance
-        
+
     Returns:
         Dictionary with settings summary
     """
@@ -295,7 +300,9 @@ def get_config_summary(settings: Settings) -> Dict[str, Any]:
             "region": settings.aws.region,
             "s3_bucket_documents": settings.aws.s3_bucket_documents,
             "s3_bucket_exports": settings.aws.s3_bucket_exports,
-            "credentials_configured": bool(settings.aws.access_key_id and settings.aws.secret_access_key),
+            "credentials_configured": bool(
+                settings.aws.access_key_id and settings.aws.secret_access_key
+            ),
         },
         "openai": {
             "model": settings.openai.model,
