@@ -1,257 +1,134 @@
 # Docker Setup for Local Development
 
-This guide describes the Docker setup used for local development of the Demand Letter Generator. Compose files live under `api/` (e.g. `api/docker-compose.yml`).
+The backend runs as a **FastAPI + uvicorn** process. **`api/docker-compose.yml`** starts **PostgreSQL 15** and the **API** in one stack. The API image is built from **`api/Dockerfile`**.
+
+The webapp (Vite/React) is not containerized here; run it separately. See the repository root README for the frontend.
 
 ## Overview
 
-The Docker setup includes:
-- **PostgreSQL 15**: Database service for local development
-- **Backend**: FastAPI application with hot reload enabled
-
-**Note:** The webapp runs locally without Docker. See the main README for webapp setup instructions.
+| Service | Role |
+|---------|------|
+| `postgres` | PostgreSQL 15, database `demand_letters`, user `dev_user` |
+| `api` | FastAPI app (`main:app`), hot reload in Compose, port **8000** |
 
 ## Prerequisites
 
-- Docker Desktop (or Docker Engine + Docker Compose)
-- Environment variables configured (see below)
+- Docker Engine + Docker Compose (v2)
+- An **`api/.env`** file (copy from **`api/.env.example`**)
 
-## Environment Variables
+Compose loads **`api/.env`** from the same directory as `docker-compose.yml` for variable substitution (e.g. `${OPENAI_API_KEY}`).
 
-Before starting the services, ensure you have the following environment variables set in your shell or `.env` file:
+## Environment variables
 
-```bash
+Create **`api/.env`** (see **`api/.env.example`**). Minimum for a working stack:
+
+```env
 OPENAI_API_KEY=your_openai_key_here
 AWS_ACCESS_KEY_ID=your_aws_key_here
 AWS_SECRET_ACCESS_KEY=your_aws_secret_here
 AWS_REGION=us-east-2
-S3_BUCKET_DOCUMENTS=your_documents_bucket_name
-S3_BUCKET_EXPORTS=your_exports_bucket_name
+AWS_S3_BUCKET_DOCUMENTS=your_documents_bucket_name
+AWS_S3_BUCKET_EXPORTS=your_exports_bucket_name
 ```
 
-You can create a `.env` file in the `api/` directory (same directory as `docker-compose.yml`) with these variables, and Docker Compose will automatically load them.
+`docker-compose.yml` also sets **`DB_HOST=postgres`**, **`DB_NAME`**, **`DB_USER`**, **`DB_PASSWORD`**, and defaults for **`CORS_ALLOW_ORIGINS`** suitable for local Vite/React. Override **`CORS_ALLOW_ORIGINS`** in `.env` if your frontend runs on another origin.
 
-## Starting Services
+## Starting services
 
-**Note:** All docker-compose commands should be run from the `api/` directory.
-
-To start all services:
+Run all commands from **`api/`**:
 
 ```bash
 cd api
-docker-compose up
+docker compose up
 ```
 
-To start services in detached mode (background):
+Detached mode:
+
+```bash
+docker compose up -d
+```
+
+Rebuild after Dockerfile or dependency changes:
+
+```bash
+docker compose up --build
+```
+
+## Stopping services
+
+```bash
+docker compose down
+```
+
+Remove volumes (wipes PostgreSQL data):
+
+```bash
+docker compose down -v
+```
+
+## Logs
+
+```bash
+docker compose logs
+docker compose logs api
+docker compose logs postgres
+docker compose logs -f api
+```
+
+## Accessing services
+
+| Service | URL / connection |
+|---------|------------------|
+| API | http://localhost:8000 |
+| OpenAPI docs | http://localhost:8000/docs |
+| PostgreSQL (host) | `localhost:5432`, db `demand_letters`, user `dev_user`, password `dev_password` |
+
+## Database migrations
+
+After the stack is up:
 
 ```bash
 cd api
-docker-compose up -d
+docker compose exec api alembic upgrade head
 ```
 
-To start services and rebuild containers:
+Or from the host with venv and `DB_HOST=localhost` if only Postgres is running in Docker.
 
-```bash
-cd api
-docker-compose up --build
-```
+## Production image (no hot reload)
 
-## Stopping Services
+The **`Dockerfile`** default **`CMD`** runs:
 
-To stop all services:
+`uvicorn main:app --host 0.0.0.0 --port 8000`
 
-```bash
-cd api
-docker-compose down
-```
-
-To stop services and remove volumes (this will delete database data):
-
-```bash
-cd api
-docker-compose down -v
-```
-
-## Viewing Logs
-
-To view logs from all services:
-
-```bash
-cd api
-docker-compose logs
-```
-
-To view logs from a specific service:
-
-```bash
-cd api
-docker-compose logs api
-docker-compose logs postgres
-```
-
-To follow logs in real-time:
-
-```bash
-cd api
-docker-compose logs -f
-```
-
-To follow logs from a specific service:
-
-```bash
-cd api
-docker-compose logs -f api
-```
-
-## Rebuilding Containers
-
-If you make changes to Dockerfiles or need to rebuild:
-
-```bash
-cd api
-docker-compose build
-```
-
-To rebuild without cache:
-
-```bash
-cd api
-docker-compose build --no-cache
-```
-
-To rebuild and restart services:
-
-```bash
-cd api
-docker-compose up --build
-```
-
-## Accessing Services
-
-Once services are running:
-
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **PostgreSQL**: localhost:5432
-  - Database: `demand_letters`
-  - User: `dev_user`
-  - Password: `dev_password`
-
-## Database Migrations
-
-After starting the services, run database migrations:
-
-```bash
-# Enter the api container
-cd api
-docker-compose exec api bash
-
-# Run migrations
-alembic upgrade head
-
-# Or run from host (if alembic is installed locally)
-cd api
-alembic upgrade head
-```
+Compose overrides this for development with **`--reload`**. For deployment, build the same image and pass environment variables (or secrets) appropriate to your host (ECS, Fly.io, bare VM, etc.).
 
 ## Troubleshooting
 
-### Port Already in Use
+### Port already in use
 
-If you get an error that port 5432 or 8000 is already in use:
+If **5432** or **8000** is taken, stop the conflicting process or change the **ports** mapping in `docker-compose.yml`.
 
-1. Check what's using the port:
-   ```bash
-   # For PostgreSQL (5432)
-   lsof -i :5432
-   
-   # For Backend (8000)
-   lsof -i :8000
-   ```
+### API cannot reach Postgres
 
-2. Either stop the conflicting service or change the port mapping in `api/docker-compose.yml`
+Ensure `postgres` is healthy: `docker compose ps`. The API **`depends_on`** waits for the Postgres healthcheck.
 
-**Note:** PostgreSQL uses port 5432 on the host (instead of the default 5432) to allow multiple PostgreSQL Docker containers from different projects to run simultaneously. If 5432 is also in use, you can change it to any other available port (e.g., 5434, 5435) in the docker-compose.yml file.
+### Environment variables not applied
 
-### Database Connection Issues
+- Put variables in **`api/.env`** (same folder as `docker-compose.yml`).
+- Restart: `docker compose down && docker compose up`.
 
-If the API service can't connect to PostgreSQL:
+### Healthcheck failures
 
-1. Ensure PostgreSQL service is healthy:
-   ```bash
-   cd api
-   docker-compose ps
-   ```
+The API service healthcheck uses **`curl`** against **`http://localhost:8000/health`**. The **`Dockerfile`** installs **`curl`**. If startup fails (e.g. missing **`OPENAI_API_KEY`** or invalid S3 config), check **`docker compose logs api`**.
 
-2. Check PostgreSQL logs:
-   ```bash
-   cd api
-   docker-compose logs postgres
-   ```
+## Development workflow
 
-3. Wait for PostgreSQL to be ready (healthcheck should pass)
+1. `cd api && cp .env.example .env` and edit **`.env`**
+2. `docker compose up -d`
+3. `docker compose exec api alembic upgrade head`
+4. Edit code — hot reload is enabled via the Compose **command** override
+5. `docker compose down` when finished
 
-### Backend Not Reloading
+## Historical note
 
-If code changes aren't being picked up:
-
-1. Ensure volume mounts are correct in `api/docker-compose.yml`
-2. Check that the API service is running with `--reload` flag
-3. Check API logs for errors:
-   ```bash
-   cd api
-   docker-compose logs -f api
-   ```
-
-### Container Won't Start
-
-1. Check logs for errors:
-   ```bash
-   cd api
-   docker-compose logs
-   ```
-
-2. Verify Docker has enough resources allocated (Docker Desktop > Settings > Resources)
-
-3. Try rebuilding without cache:
-   ```bash
-   cd api
-   docker-compose build --no-cache
-   docker-compose up
-   ```
-
-### Database Data Persistence
-
-Database data is stored in a Docker volume named `postgres_data`. To completely reset the database:
-
-```bash
-cd api
-docker-compose down -v
-docker-compose up
-```
-
-**Warning:** This will delete all data in the database.
-
-### Environment Variables Not Loading
-
-If environment variables aren't being picked up:
-
-1. Ensure variables are set in your shell or `.env` file
-2. Check that `.env` file is in the `api/` directory (same directory as `docker-compose.yml`)
-3. Restart services after adding/changing variables:
-   ```bash
-   cd api
-   docker-compose down
-   docker-compose up
-   ```
-
-## Development Workflow
-
-1. Start services: `cd api && docker-compose up -d`
-2. Run migrations: `cd api && alembic upgrade head`
-3. Make code changes (hot reload is enabled)
-4. View logs: `cd api && docker-compose logs -f api`
-5. Stop services when done: `cd api && docker-compose down`
-
-## Production Build
-
-For production Lambda deployments, use `api/Dockerfile.lambda` which creates an optimized multi-stage build for AWS Lambda. This is used during the serverless deployment process, not for local development.
+The project previously deployed the API to **AWS Lambda** via Serverless. That path is removed; see **`docs/remove-lambda.md`** and **`docs/lambda-deployment.md`** (archived reference).

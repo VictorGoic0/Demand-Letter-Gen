@@ -22,12 +22,11 @@ api/
     schemas/               ← Shared Pydantic schemas
       common.py            ← SuccessResponse, ErrorResponse, PaginatedResponse, PaginationParams
 
-  services/                ← One folder per service. Each service is a self-contained deployable unit.
+  services/                ← One folder per service.
     <service_name>/
       router.py            ← FastAPI APIRouter. Thin: validate input, call logic, return response.
       logic.py             ← All business logic. Receives a db Session; returns data or raises exceptions.
       schemas.py           ← Pydantic request/response models specific to this service.
-      handler.py           ← Mangum Lambda handler that wraps the FastAPI app for deployment.
       __init__.py
 
   alembic/                 ← Database migrations only. No business logic.
@@ -35,14 +34,15 @@ api/
     env.py                 ← Migration runner. Reads DB config from .env directly via os.getenv.
 
   scripts/                 ← Utility scripts: check_*.py, seed_*.py, test_*.py, migrate-*.sh (Alembic wrappers)
-  main.py                  ← Local dev only: combines all routers into one FastAPI app.
+  main.py                  ← Real application entrypoint. Combines all routers. Run with uvicorn.
+  Dockerfile               ← Container entrypoint for deployment.
 ```
 
 **Hard rules:**
 - `shared/` never imports from `services/`
 - `router.py` never contains business logic — it calls `logic.py` functions only
 - `logic.py` never imports from `router.py`
-- `handler.py` is Lambda wiring only — no logic, no routes
+- There is no `handler.py` — Lambda was removed; deployment is a standard uvicorn/Docker process
 - Models are only imported directly in `services/` and `alembic/` — all other callers go through a service function (enforced by ruff `TID251`)
 
 ---
@@ -78,7 +78,7 @@ settings.database.host/port/name/user/password
 settings.aws.region
 settings.aws.s3_bucket_documents
 settings.aws.s3_bucket_exports
-settings.aws.access_key_id    # None in Lambda (uses IAM role instead)
+settings.aws.access_key_id    # Optional — omit to use boto3 default credential chain (instance profile, ECS role, ~/.aws/credentials)
 settings.aws.secret_access_key
 
 settings.openai.api_key
@@ -191,7 +191,7 @@ raise LetterNotFoundException(letter_id=str(letter_id))
 | `OpenAIException` | 500 | OpenAI API failure |
 | `ParserException` | 500 | PDF parsing failure |
 
-All handlers are registered via `register_exception_handlers(app)` in `main.py` and each `handler.py`. Do not add new `app.add_exception_handler()` calls anywhere else.
+All handlers are registered via `register_exception_handlers(app)` in `main.py` only. Do not add new `app.add_exception_handler()` calls anywhere else.
 
 ---
 
@@ -249,7 +249,7 @@ Never modify database schema by hand or via raw SQL in application code. All sch
 
 ## S3 Access — Always via `get_s3_client()`
 
-Never instantiate a boto3 client directly. Use the `get_s3_client()` singleton from `shared/s3_client.py`, which handles local vs. Lambda credential detection automatically (IAM role in Lambda, explicit credentials locally).
+Never instantiate a boto3 client directly. Use the `get_s3_client()` singleton from `shared/s3_client.py`, which handles credentials automatically: uses explicit credentials from `get_settings().aws` if set, otherwise falls back to boto3's default credential chain (instance profile, ECS task role, `~/.aws/credentials`).
 
 ```python
 # ❌ BAD
@@ -273,9 +273,9 @@ Model and temperature are set in `shared/config.py` (`settings.openai.model`, `s
 
 ## Adding a New Service
 
-1. Create `services/<name>/` with `router.py`, `logic.py`, `schemas.py`, `handler.py`, `__init__.py`
+1. Create `services/<name>/` with `router.py`, `logic.py`, `schemas.py`, `__init__.py`
 2. Router prefix: `/{firm_id}/<resource_plural>`
-3. Register the router in `main.py` (local dev)
-4. Create a new Lambda function entry in `serverless.yml`
-5. Create a `handler.py` following the existing handler pattern (Mangum wrapping a FastAPI app)
-6. Add service-specific dependencies to `requirements.txt` if needed
+3. Register the router in `main.py` with `app.include_router(...)`
+4. Add service-specific dependencies to `requirements.txt` if needed
+
+No `handler.py`. No `serverless.yml` entry. The service is live the moment its router is registered in `main.py`.

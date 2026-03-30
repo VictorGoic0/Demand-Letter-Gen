@@ -55,7 +55,7 @@ class AWSConfig(BaseSettings):
         env_prefix="AWS_",
         # Override env var names for S3 buckets
         env_nested_delimiter="__",
-        extra="ignore",  # Ignore Lambda's built-in AWS_* environment variables
+        extra="ignore",  # Ignore unknown AWS_* keys from the environment (custom env source maps many vars)
     )
 
     @classmethod

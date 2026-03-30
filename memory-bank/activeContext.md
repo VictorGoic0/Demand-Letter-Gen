@@ -2,10 +2,12 @@
 
 ## Current Status
 
-**Phase:** Production Deployment (Phase 6)
-**Last Updated:** November 13, 2025
+**Phase:** Backend runtime migration (Lambda removed)
+**Last Updated:** March 30, 2026
 
-The project has completed all 23 PRs from the development phase (foundation through authentication). The API is deployed to AWS Lambda + API Gateway; the webapp is deployed to Netlify. Most endpoints working, but document uploads failing.
+The API no longer targets AWS Lambda. It runs as a standard FastAPI + uvicorn process; **local development uses `api/docker-compose.yml`** (PostgreSQL + API) and **`api/Dockerfile`**. Serverless Framework, `handlers/`, per-service `handler.py`, and **mangum** were removed per **`docs/remove-lambda.md`**. CORS origins come from **`CORS_ALLOW_ORIGINS`** (see **`api/.env.example`**). S3 uses explicit credentials from settings when set, otherwise boto3’s default credential chain.
+
+The webapp may still deploy to Netlify; configure the frontend **`VITE_API_URL`** to whatever host runs the API container or process.
 
 ## Current Work Focus
 

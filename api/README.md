@@ -1,12 +1,11 @@
 # Demand Letter Generator — Backend
 
-Python 3.11+ FastAPI services, AWS Lambda deployment (Serverless), PostgreSQL (Alembic), S3, OpenAI.
+Python 3.11+ FastAPI application, PostgreSQL (Alembic), S3, OpenAI. Runs as a standard ASGI process (uvicorn); local development uses Docker Compose for PostgreSQL and the API together.
 
 ## Prerequisites
 
-- **Docker & Docker Compose** — local PostgreSQL and optional containerized API
+- **Docker & Docker Compose** — recommended for PostgreSQL + API together
 - **Python 3.11+** — use a **project virtual environment** (do not install packages globally)
-- **Node.js 18+** — Serverless CLI and `npm` scripts in this folder
 
 ## Virtual environment (required for host-side commands)
 
@@ -20,11 +19,13 @@ pip install --upgrade pip
 pip install -r requirements.txt -r requirements-dev.txt
 ```
 
-Keep the venv activated when running **Python**, **Alembic**, **uvicorn**, **ruff**, or **`npm run lint` / `lint:fix` / `format`** here — those scripts invoke tools installed in the venv.
+Keep the venv activated when running **Python**, **Alembic**, **uvicorn**, or **ruff**.
 
 ## Environment variables
 
-Create **`api/.env`** for local development (see also `shared/config.py` / `get_settings()`). Example:
+Copy **`api/.env.example`** to **`api/.env`** and fill in values. Docker Compose reads **`api/.env`** automatically for variable substitution (same directory as `docker-compose.yml`).
+
+Key variables (see `shared/config.py` / `get_settings()`):
 
 ```env
 ENVIRONMENT=development
@@ -37,32 +38,33 @@ DB_NAME=demand_letters
 DB_USER=dev_user
 DB_PASSWORD=dev_password
 
-AWS_ACCESS_KEY_ID=<key>
-AWS_SECRET_ACCESS_KEY=<key>
 AWS_REGION=us-east-2
-S3_BUCKET_DOCUMENTS=<documents-bucket>
-S3_BUCKET_EXPORTS=<exports-bucket>
+AWS_S3_BUCKET_DOCUMENTS=<documents-bucket>
+AWS_S3_BUCKET_EXPORTS=<exports-bucket>
+AWS_ACCESS_KEY_ID=<optional>
+AWS_SECRET_ACCESS_KEY=<optional>
 
 OPENAI_API_KEY=<key>
 OPENAI_MODEL=gpt-4
 OPENAI_TEMPERATURE=0.7
 
-CORS_ALLOW_ORIGINS=*
+CORS_ALLOW_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
-**Production deploy:** load secrets before Serverless commands, e.g. `source load-env-production.sh` (expects `api/.env.production`), then `npm run deploy:prod`. See [`../docs/lambda-deployment.md`](../docs/lambda-deployment.md) and `serverless.yml`.
+For production, set **`CORS_ALLOW_ORIGINS`** to your real frontend origins (comma-separated). Do not hardcode origins in Python.
 
 ## Local development
 
-### Option A: Docker Compose (database + API)
+### Docker Compose (PostgreSQL + API)
 
 From `api/`:
 
 ```bash
-docker-compose up
+cp .env.example .env   # then edit .env
+docker compose up --build
 ```
 
-Apply migrations (with venv activated, or `docker-compose exec`):
+Apply migrations (with venv activated on the host, or `docker compose exec`):
 
 ```bash
 alembic upgrade head
@@ -71,16 +73,27 @@ alembic upgrade head
 - API: http://localhost:8000  
 - Docs: http://localhost:8000/docs  
 
-### Option B: API on the host (uvicorn)
+See **[../docs/docker-local-setup.md](../docs/docker-local-setup.md)** for details.
 
-With Postgres reachable (e.g. Compose up for `postgres` only, or local DB) and `.env` set:
+### API on the host (uvicorn)
+
+With PostgreSQL reachable (e.g. Compose running only `postgres`) and `api/.env` pointing at `DB_HOST=localhost`:
 
 ```bash
 source .venv/bin/activate
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-`main.py` is the **local dev** all-in-one app; Lambda uses per-service `handler.py` files.
+`main.py` is the application entrypoint — it registers all routers.
+
+### Production-style container (no reload)
+
+The **`Dockerfile`** default command runs uvicorn without `--reload`. Compose overrides that for local dev.
+
+```bash
+docker build -t dlg-api .
+docker run --env-file .env -p 8000:8000 dlg-api
+```
 
 ## Database migrations (Alembic)
 
@@ -106,7 +119,7 @@ Review generated files in `alembic/versions/` before applying. Never edit migrat
 
 ## Linting and formatting
 
-Uses **Ruff** (`pyproject.toml`). Workflow matches `.cursor/rules/linting.mdc`:
+Uses **Ruff** (`pyproject.toml`):
 
 ```bash
 source .venv/bin/activate
@@ -115,42 +128,25 @@ ruff check --fix .
 ruff format .
 ```
 
-Or:
-
-```bash
-npm run lint
-npm run lint:fix
-npm run format
-```
-
-## Optional checks
-
-**DB connectivity / schema (`test_db.py`):**
-
-```bash
-source .venv/bin/activate
-python test_db.py
-```
-
-Or from the API container: `docker-compose exec api python test_db.py`.
-
 ## Layout (high level)
 
 | Path | Role |
 |------|------|
-| `main.py` | Local FastAPI app wiring all routers |
-| `services/` | Per-service `router.py`, `logic.py`, `schemas.py`, `handler.py` |
+| `main.py` | FastAPI app — wires all routers, lifespan, CORS |
+| `services/` | Per-service `router.py`, `logic.py`, `schemas.py` |
 | `shared/` | Config (`get_settings()`), DB (`get_db()`), S3, exceptions, models |
 | `alembic/` | Migrations |
-| `handlers/` | Shared Lambda handler utilities |
 | `scripts/` | Checks, seeds, tests, Alembic wrappers (`migrate-*.sh`) |
-| `serverless.yml` | Lambda functions and API Gateway |
+| `Dockerfile` | Container image for the API |
+| `docker-compose.yml` | PostgreSQL + API for local development |
 
 Architecture rules are documented in **`.cursor/rules/api-patterns.mdc`** (firm scoping, no direct `os.getenv` in services — use `get_settings()`, S3 via `get_s3_client()`, etc.).
 
 ## Related docs
 
 - [Docker local setup](../docs/docker-local-setup.md)  
-- [Lambda deployment](../docs/lambda-deployment.md)  
+- [Remove Lambda migration notes](../docs/remove-lambda.md)  
 - [S3 usage](../docs/s3-usage.md)  
 - [S3 bucket setup](../docs/s3-bucket-setup.md)  
+
+Historical Lambda + Serverless deployment notes are archived in **[lambda-deployment.md](../docs/lambda-deployment.md)** (superseded by Docker).

@@ -10,6 +10,8 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
+from shared.config import get_settings
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -26,34 +28,25 @@ class S3Client:
         """
         Initialize S3 client with AWS credentials.
 
-        In Lambda: Uses IAM role automatically
-        In local dev: Uses explicit credentials from env vars
+        If access key and secret are both set, they are passed explicitly.
+        Otherwise boto3 uses the default credential chain (instance profile, ECS task role,
+        environment variables, shared credentials file).
 
         Args:
-            aws_access_key_id: AWS access key ID (defaults to env var)
-            aws_secret_access_key: AWS secret access key (defaults to env var)
-            region_name: AWS region name (defaults to env var)
+            aws_access_key_id: AWS access key ID from application settings
+            aws_secret_access_key: AWS secret access key from application settings
+            region_name: AWS region name
         """
-        # Detect if running in Lambda
-        is_lambda = "AWS_EXECUTION_ENV" in os.environ
-
-        if is_lambda:
-            # Lambda environment - use IAM role (no credentials)
-            self.region_name = region_name or os.getenv("AWS_REGION", "us-east-2")
-            self.client = boto3.client("s3", region_name=self.region_name)
-            logger.info("S3 client initialized with IAM role for Lambda")
+        self.region_name = region_name or "us-east-2"
+        kwargs: dict[str, Any] = {"region_name": self.region_name}
+        if aws_access_key_id and aws_secret_access_key:
+            kwargs["aws_access_key_id"] = aws_access_key_id
+            kwargs["aws_secret_access_key"] = aws_secret_access_key
+            self.client = boto3.client("s3", **kwargs)
+            logger.info("S3 client initialized with explicit credentials from settings")
         else:
-            # Local development - use explicit credentials
-            self.aws_access_key_id = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
-            self.aws_secret_access_key = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
-            self.region_name = region_name or os.getenv("AWS_REGION", "us-east-2")
-            self.client = boto3.client(
-                "s3",
-                aws_access_key_id=self.aws_access_key_id,
-                aws_secret_access_key=self.aws_secret_access_key,
-                region_name=self.region_name,
-            )
-            logger.info("S3 client initialized with explicit credentials for local dev")
+            self.client = boto3.client("s3", **kwargs)
+            logger.info("S3 client initialized using default AWS credential chain")
 
     def upload_file(
         self,
@@ -445,5 +438,10 @@ def get_s3_client() -> S3Client:
     """
     global _s3_client_instance
     if _s3_client_instance is None:
-        _s3_client_instance = S3Client()
+        settings = get_settings()
+        _s3_client_instance = S3Client(
+            aws_access_key_id=settings.aws.access_key_id,
+            aws_secret_access_key=settings.aws.secret_access_key,
+            region_name=settings.aws.region,
+        )
     return _s3_client_instance

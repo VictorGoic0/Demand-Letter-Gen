@@ -1,6 +1,12 @@
-# Lambda Deployment Guide
+# Lambda Deployment Guide (archived)
 
-This guide covers the Lambda-optimized application structure, local testing, and deployment procedures.
+> **Superseded (2026):** The backend no longer deploys to AWS Lambda. The API runs as a standard FastAPI + uvicorn process; local development uses **`api/docker-compose.yml`** and **`api/Dockerfile`**. See **`remove-lambda.md`**, **`docker-local-setup.md`**, and **`api/README.md`** for the current model.
+>
+> This document is kept as a historical reference for the old Serverless/Lambda layout.
+
+---
+
+This guide covered the Lambda-optimized application structure, local testing, and deployment procedures.
 
 ## Overview
 

@@ -44,8 +44,7 @@
 **Key Dependencies:**
 ```python
 fastapi>=0.104.1
-uvicorn[standard]>=0.24.0  # Local development only
-mangum>=0.17.0  # FastAPI to Lambda adapter
+uvicorn[standard]>=0.24.0
 sqlalchemy>=2.0.23
 pydantic>=2.5.0
 pydantic-settings>=2.1.0  # BaseSettings for configuration management
@@ -60,13 +59,13 @@ alembic>=1.12.0  # Database migrations
 
 ### Infrastructure
 
-**AWS Services:**
-- **Lambda:** Python 3.11 runtime, serverless compute
-- **API Gateway:** HTTP endpoints for Lambda functions
+**Local / deployment:**
+- **Docker Compose** (`api/docker-compose.yml`): PostgreSQL 15 + API (uvicorn with reload in dev)
+- **Dockerfile** (`api/Dockerfile`): production-style API image (uvicorn, no reload by default)
+
+**AWS (optional for app features):**
 - **S3:** Document storage (PDFs and .docx files)
-- **RDS:** PostgreSQL 15 for relational database
-- **CloudWatch:** Logging and monitoring
-- **IAM:** Access control and permissions
+- **IAM / credentials:** Explicit keys via env or instance/task role via boto3 default chain
 
 **External APIs:**
 - **OpenAI API:** GPT-4 or GPT-3.5-turbo for letter generation
@@ -96,10 +95,7 @@ alembic>=1.12.0  # Database migrations
   - `migrate-up.sh` - Run `alembic upgrade head`
   - `migrate-down.sh` - Run `alembic downgrade -1`
   - `migrate-create.sh` - Create new migration with message
-- Docker management via npm scripts in `package.json`:
-  - `npm run start` - Start docker-compose services
-  - `npm run end` - Stop docker-compose services
-  - `npm run restart` - Restart docker-compose services
+- Start stack: `cd api && docker compose up` (see `api/README.md`, `docs/docker-local-setup.md`); stop with `docker compose down`
 - All scripts use `.env` for configuration
 
 **Environment Variables:**
@@ -122,8 +118,8 @@ DB_PASSWORD=dev_password
 AWS_ACCESS_KEY_ID=<key>
 AWS_SECRET_ACCESS_KEY=<key>
 AWS_REGION=us-east-2
-S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
-S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
+AWS_S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
+AWS_S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
 
 # OpenAI
 OPENAI_API_KEY=<key>
@@ -170,7 +166,7 @@ VITE_API_URL=http://localhost:8000
 
 ### Serverless Framework
 
-**Configuration:** `serverless.yml` in `api/` directory
+**Configuration:** Environment variables and `api/.env` (see `api/.env.example`, `shared/config.py`)
 
 **Key Settings:**
 - Service name: demand-letter-generator

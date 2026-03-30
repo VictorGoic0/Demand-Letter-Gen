@@ -34,11 +34,9 @@ The Demand Letter Generator is an AI-driven solution designed to streamline the 
 - OpenAI API
 
 ### Infrastructure
-- AWS Lambda (serverless functions)
-- AWS S3 (document storage)
-- AWS RDS (PostgreSQL database)
-- API Gateway
-- CloudWatch
+- Docker / Docker Compose (local PostgreSQL + API)
+- AWS S3 (document storage; optional local testing against real buckets)
+- PostgreSQL 15
 
 ## Getting Started
 
@@ -94,7 +92,7 @@ npm run dev
 ├── api/              # Python FastAPI API (see api/README.md)
 │   ├── services/         # Service modules (document, template, parser, AI, letter)
 │   ├── shared/           # Shared utilities (database, S3, config)
-│   ├── main.py           # Local development entry point
+│   ├── main.py           # FastAPI application entrypoint
 │   ├── docker-compose.yml
 │   └── requirements.txt
 ├── webapp/             # React webapp
@@ -115,15 +113,13 @@ npm run dev
 
 ## Architecture
 
-The application follows a service-oriented architecture with AWS Lambda functions:
+The backend is organized as FastAPI **routers** under `api/services/` (document, template, parser, AI, letter, auth). A single **`main.py`** registers all routers and runs under **uvicorn** (locally or in Docker).
 
-- **Document Service:** Handles document uploads and management
-- **Template Service:** Manages letter templates
-- **Parser Service:** Extracts text from PDF documents
-- **AI Service:** Generates demand letters using OpenAI
-- **Letter Service:** Manages generated letters and .docx export
-
-Each service is deployed as a separate Lambda function but shares common dependencies through Lambda Layers.
+- **Document Service:** Document uploads and management
+- **Template Service:** Letter templates
+- **Parser Service:** PDF text extraction
+- **AI Service:** Demand letter generation (OpenAI)
+- **Letter Service:** Generated letters and .docx export
 
 ## Database Schema
 
@@ -165,15 +161,15 @@ The application uses AWS S3 for document storage. You need to create two S3 buck
    Add to your `api/.env` file:
    ```env
    AWS_REGION=us-east-2
-   S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
-   S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
+   AWS_S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
+   AWS_S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
    ```
 
 For detailed S3 bucket setup instructions, including bucket configuration (versioning, encryption), see [S3 Bucket Setup Guide](docs/s3-bucket-setup.md).
 
 ## Deployment
 
-Production API deploy (Serverless, env loading): **[api/README.md](api/README.md)** and `api/serverless.yml`.
+Run the API as a container or process: **[api/README.md](api/README.md)**, **`api/Dockerfile`**, and **`api/docker-compose.yml`**. Environment variables are documented in **`api/.env.example`**.
 
 ## Contributing
 
@@ -206,6 +202,6 @@ For questions or issues, please open an issue in the repository or contact the d
 
 ## Acknowledgments
 
-- Built with React, FastAPI, and AWS Serverless technologies
+- Built with React, FastAPI, and Docker-backed local infrastructure
 - Powered by OpenAI for AI-driven letter generation
 

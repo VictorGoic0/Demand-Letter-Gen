@@ -1,7 +1,7 @@
 """
-Main FastAPI application for local development.
-This file is used for local development with uvicorn.
-For Lambda deployment, each service has its own handler.
+Demand Letter Generator API — FastAPI application entrypoint.
+
+Run locally: `uvicorn main:app --reload` or use Docker Compose (`api/docker-compose.yml`).
 """
 
 import logging
@@ -95,18 +95,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configure CORS from settings
-# For development, allow all origins by default (can be overridden via CORS_ALLOW_ORIGINS env var)
+# Configure CORS from settings (CORS_ALLOW_ORIGINS env var).
+# Wildcard "*" is expanded to common local dev origins because FastAPI does not allow
+# ["*"] with allow_credentials=True. Production/staging must set explicit origins in env.
 settings = get_settings()
 cors_config = settings.cors
 
-# Handle wildcard origins
-# Note: FastAPI doesn't allow ["*"] with allow_credentials=True, so we use a list of common dev origins
 cors_origins = cors_config.allow_origins
 if cors_origins == ["*"] or (len(cors_origins) == 1 and cors_origins[0] == "*"):
-    # For development, allow common localhost origins and Netlify production domain
     cors_origins = [
-        "https://demand-letter-generator.netlify.app",
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:5174",
@@ -193,31 +190,6 @@ app.include_router(letter_router)  # firm_id is in the router prefix
 
 # Register exception handlers
 register_exception_handlers(app)
-
-
-# Lambda health handler
-def health_handler(event, context):
-    """
-    Simple health check handler for Lambda.
-    Returns basic health status without database/S3 checks for faster response.
-    """
-    import json
-    import os
-
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "https://demand-letter-generator.netlify.app",
-        },
-        "body": json.dumps(
-            {
-                "status": "healthy",
-                "service": "demand-letter-generator",
-                "environment": os.getenv("ENVIRONMENT", "unknown"),
-            }
-        ),
-    }
 
 
 if __name__ == "__main__":

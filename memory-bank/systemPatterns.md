@@ -2,13 +2,12 @@
 
 ## Architecture Overview
 
-**Pattern:** Service-oriented Lambda functions with shared dependencies
+**Pattern:** Modular FastAPI services (routers) with shared `shared/` layer
 
-The system uses a hybrid approach:
-- **Local Development:** Single FastAPI application with all service routers combined
-- **Production:** Each service deployed as separate Lambda function with API Gateway
+- **Runtime:** One FastAPI app (`main.py`) registers all service routers; runs under **uvicorn** locally or in Docker.
+- **Local stack:** `api/docker-compose.yml` runs PostgreSQL + API; `api/Dockerfile` builds the API image.
 
-This provides clean separation of concerns without full microservices complexity.
+Service folders stay the source of truth for routes and business logic; there is no separate Lambda handler layer.
 
 ## Service Architecture
 
@@ -36,8 +35,9 @@ api/
     seed_*.py         # Seed scripts (test_firm, test_users)
     test_*.py         # Test scripts (db_connection, upload_document_api)
     migrate-*.sh      # migrate-up.sh, migrate-down.sh, migrate-create.sh
-  package.json        # npm scripts (start, restart, end, serverless commands)
-  main.py             # Local dev: combines all routers with health checks
+  Dockerfile          # API container (uvicorn)
+  docker-compose.yml  # Postgres + API for local development
+  main.py             # FastAPI entrypoint: all routers, lifespan, CORS
 ```
 
 ### Service Responsibilities
@@ -310,81 +310,21 @@ App
 - Check scripts: `scripts/check_*.py` for all database tables (first 5 results)
 - Main application with startup/shutdown events and detailed health checks
 
-### Production (AWS Lambda + Netlify)
+### Production / hosted deployment
 
-**Backend Stack:**
-- AWS Lambda (Python 3.11) - Each service as separate function
-- API Gateway (HTTP API) - HTTPS endpoints with explicit CORS
-- RDS PostgreSQL (db.t3.micro, single-AZ) - Production database
-- S3 (2 buckets) - Document storage and exports
-- CloudWatch - Logs and monitoring (7-day retention)
-- Region: us-east-2
-- No VPC (Lambda has default internet access for OpenAI API)
+**Backend:** Run the API container or process anywhere that supports Docker or Python (ECS, Fly.io, VM, etc.). Configure **`CORS_ALLOW_ORIGINS`** to the deployed frontend origin(s). **`api/Dockerfile`** defaults to `uvicorn main:app` without reload.
 
-**Frontend Stack:**
-- Netlify - Static hosting with auto-deploy from git
-- Vite + React - Optimized production builds
-- URL: https://demand-letter-generator.netlify.app
+**Data:** PostgreSQL (managed or self-hosted) plus S3 buckets for documents/exports; credentials via env or IAM role (boto3 default chain when keys are omitted).
 
-### Lambda Deployment (Serverless Framework)
+**Frontend:** May remain on Netlify or another static host; point **`VITE_API_URL`** at the API base URL.
 
-**Configuration (serverless.yml):**
-- Monorepo deployment (all functions in one stack)
-- Lambda Layers for Python dependencies (via serverless-python-requirements plugin)
-- Environment variables loaded from `.env.production` during deployment
-- IAM roles for S3 access and CloudWatch logs
-- Explicit CORS configuration (no wildcards)
+### CORS
 
-**Critical Settings:**
-- `ENVIRONMENT: production` (hardcoded, not `${self:provider.stage}`)
-- `slim: false` (preserves package metadata for Pydantic runtime checks)
-- `dockerizePip: true` (build dependencies in Docker for Lambda compatibility)
-- Explicit CORS origins: `https://demand-letter-generator.netlify.app`
+**Wildcard `*`:** FastAPI does not allow `["*"]` with `allow_credentials=True`. When `CORS_ALLOW_ORIGINS` is `*`, **`main.py`** expands to common localhost origins for development. Production must set explicit comma-separated origins in environment variables — no hardcoded domains in Python.
 
-**Deployment Commands:**
-```bash
-npm run deploy:prod         # Deploy all functions (uses npx serverless)
-npm run logs:prod           # View all CloudWatch logs
-npm run logs:function       # View specific function logs
-npm run remove:prod         # Remove entire stack
-npm run info:prod           # Get deployment info
-```
+### Environment variables (API)
 
-**Lambda Functions:**
-- `healthCheck` - GET /health
-- `authService` - POST /login
-- `documentService` - All /documents endpoints
-- `templateService` - All /templates endpoints
-- `letterService` - All /letters endpoints
-- `parserService` - All /parse endpoints
-- `aiService` - POST /generate/letter
-
-### Production CORS Configuration
-
-**Problem Solved:** Wildcard `*` CORS doesn't work when credentials mode is `include`
-
-**Solution:**
-1. **serverless.yml** - Every HTTP event has explicit CORS:
-   ```yaml
-   cors:
-     origin: https://demand-letter-generator.netlify.app
-     headers: [Content-Type, Authorization, X-Firm-Id, X-User-Id]
-     allowCredentials: false
-   ```
-2. **handlers/base.py** - Hardcoded Netlify domain in default CORS origins
-3. **main.py** - Health handler returns Netlify domain in CORS header
-4. **`webapp/src/lib/api.ts`** - No `withCredentials` (uses localStorage, not cookies)
-
-### Environment Variables (Production Lambda)
-
-**Required in .env.production:**
-- `ENVIRONMENT=production` (must match config.py validation)
-- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (RDS credentials)
-- `AWS_S3_BUCKET_DOCUMENTS`, `AWS_S3_BUCKET_EXPORTS` (S3 bucket names)
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (for S3 client)
-- `OPENAI_API_KEY` (OpenAI API access)
-
-**Note:** Lambda automatically sets many `AWS_*` environment variables. The `AWSConfig` class uses `extra="ignore"` to prevent Pydantic validation errors from these extra variables.
+See **`api/.env.example`**. Required for a full stack include **`OPENAI_API_KEY`**, **`AWS_S3_BUCKET_DOCUMENTS`**, **`AWS_S3_BUCKET_EXPORTS`**, and database settings. **`AWSConfig`** keeps `extra="ignore"` because the custom env source maps many `AWS_*` keys.
 
 ## Key Technical Decisions
 
@@ -396,7 +336,7 @@ npm run info:prod           # Get deployment info
 6. **Environment Configuration:** `.env` files are source of truth for most configuration. OpenAI model and temperature are in `shared/config.py` for easier development iteration.
 7. **Scripts Organization:** 
    - Utility and migration wrapper scripts in `api/scripts/` (check, seed, test scripts, and `migrate-*.sh` for Alembic)
-   - Docker management via npm scripts in `package.json` (npm run start, end, restart)
+   - Docker: `docker compose` from `api/` (see `api/README.md`, `docs/docker-local-setup.md`)
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
 9. **HTML to DOCX Conversion:** Custom HTML parser built using Python's `html.parser` module, converting to python-docx Document objects. Supports common tags with nested formatting support. Filename generation with sanitization (50 char limit).
 10. **DOCX Export Strategy:** S3 key format `{firmId}/letters/{filename}.docx` (no letter_id in path). Old files cleaned up when filenames change. Finalize always generates new DOCX (overwrites existing). Re-export always regenerates DOCX from current content (ensures latest changes are reflected). List view returns presigned URLs (docx_url) for finalized letters. Download button only visible for finalized letters with docx_url.

@@ -3,9 +3,13 @@
 ## Project Status
 
 **Overall Progress:** ~79% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export + Re-export Improvements), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete, Create Letter Page Complete, Finalize Letter Page Complete, Generated Letters Library Page Complete, Edit Letter Page Complete (Frontend + Backend Improvements), Error Handling and Loading States Complete, Authentication Flow Complete (23/29 PRs Complete)  
-**Last Updated:** November 2025
+**Last Updated:** March 2026
 
 ## What Works
+
+### Recent (2026)
+
+- ✅ Backend runtime migration: Lambda / Serverless / Mangum removed; single FastAPI app + Docker Compose + `Dockerfile` per **`docs/remove-lambda.md`**.
 
 ### Completed
 - ✅ PRD finalized and approved
