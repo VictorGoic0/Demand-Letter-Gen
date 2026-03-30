@@ -1,0 +1,166 @@
+---
+
+description: React component structure and data-fetching conventions for the Demand Letter Generator frontend
+
+globs: frontend/src/**/*.{js,jsx,ts,tsx}
+
+alwaysApply: false
+
+---
+
+# React Component Patterns
+
+## Page Components Are Thin Orchestrators
+
+Pages live in `src/pages/`. Their only jobs are: call hooks, derive minimal local state, and pass everything down to presentational children. They must not contain significant JSX logic, styling blocks, or UI sub-components inline.
+
+```jsx
+// ❌ BAD — page doing too much
+export function Letters() {
+  const [letters, setLetters] = useState([]);
+  useEffect(() => { /* inline fetch */ }, []);
+  return (
+    <div>
+      <input onChange={...} />
+      <table>{letters.map(l => <tr>...</tr>)}</table>
+    </div>
+  );
+}
+
+// ✅ GOOD — page delegates to focused children
+export function Letters() {
+  const { letters, loading, error, refetch } = useLetters(sortBy, sortOrder);
+  const [sortBy, setSortBy] = useState('created_at');
+  return <LetterList letters={letters} loading={loading} onSort={setSortBy} />;
+}
+```
+
+## Sub-Components Do One Thing
+
+UI components live in `src/components/` organized by domain (e.g. `Letters/`, `Templates/`, `Documents/`, `CreateLetter/`). Shared primitives live in `src/components/ui/`. Each component should have a single, named responsibility.
+
+```jsx
+// ❌ BAD — catch-all component
+function LetterCard({ letter, onEdit, onDelete, onDownload, showBadge, isLoading }) { ... }
+
+// ✅ GOOD — focused components composed together
+function LetterCard({ letter }: { letter: Letter }) { ... }
+function LetterActions({ onEdit, onDelete, onDownload }: LetterActionsProps) { ... }
+function LetterStatusBadge({ status }: { status: string }) { ... }
+```
+
+## Co-location Rule
+
+If a sub-component is used by only one page, it may be co-located in `src/components/<Domain>/` alongside other domain components. If it is used in two or more places, it belongs in `src/components/ui/` or a shared domain folder.
+
+---
+
+# Data Fetching — Custom Hooks Per Resource
+
+Each API resource has its own custom hook(s) in `src/hooks/`. Hooks use a hand-rolled `useState` + `useEffect` + axios pattern (no TanStack Query). Page components call hooks; they **never** call `api` directly.
+
+```js
+// ✅ Existing hooks — use these, don't bypass them
+useLetters(sortBy, sortOrder, statusFilter, searchQuery)  // GET /{firmId}/letters/
+useDeleteLetter()                                         // DELETE /{firmId}/letters/:id
+useExportLetter()                                         // POST /{firmId}/letters/:id/export
+useDocuments(sortBy, sortOrder)                           // GET /{firmId}/documents/
+useDocumentUpload()                                       // POST /{firmId}/documents/
+useDocumentDelete()                                       // DELETE /{firmId}/documents/:id
+useDocumentDownload()                                     // GET /{firmId}/documents/:id/download
+useTemplates()                                            // GET /{firmId}/templates/
+useLetterGeneration()                                     // POST /generate/letter
+useLetterFinalize()                                       // POST /{firmId}/letters/:id/finalize
+```
+
+### Hook Shape Convention
+
+All data-fetching hooks return `{ data, loading, error, refetch }` or a similar named shape. Mutation hooks return `{ mutate, loading, error }`. Keep naming consistent.
+
+```js
+// ✅ GOOD
+const { letters, loading, error, refetch } = useLetters();
+const { deleteLetter, deleting, error } = useDeleteLetter();
+
+// ❌ BAD — calling the axios client directly from a component
+const res = await api.get(`/${firmId}/letters/`);
+```
+
+### firmId Always Comes from useAuth
+
+Every hook reads `user.firmId` from `useAuth()`. Never pass `firmId` as a prop or read it from `localStorage` directly in a component.
+
+```js
+// ✅ GOOD — hook handles auth context internally
+export function useDocuments() {
+  const { user } = useAuth();
+  // ...uses user.firmId for the API path
+}
+
+// ❌ BAD — component reaching into auth state for API calls
+const firmId = localStorage.getItem('firmId');
+const res = await api.get(`/${firmId}/documents/`);
+```
+
+---
+
+# shadcn/ui — Always Use the Existing Component
+
+The project has a full set of shadcn/ui components in `src/components/ui/`. Always use these instead of building raw HTML equivalents or reaching for Radix UI primitives directly.
+
+| Need | Use |
+|---|---|
+| Clickable action | `<Button>` (with `variant` and `size` props) |
+| Text input | `<Input>` |
+| Multi-line input | `<Textarea>` |
+| Dropdown/select | `<Select>`, `<SelectTrigger>`, `<SelectContent>`, `<SelectItem>` |
+| Modal / confirmation | `<Dialog>`, `<DialogContent>`, `<DialogHeader>`, `<DialogFooter>` |
+| Context menu / actions | `<DropdownMenu>` and its sub-components |
+| Toggle | `<Switch>` |
+| Checkbox | `<Checkbox>` |
+| Field label | `<Label>` |
+| Status tag | `<Badge>` |
+| Content card | `<Card>`, `<CardHeader>`, `<CardContent>`, `<CardFooter>` |
+| Data table | `<Table>`, `<TableHeader>`, `<TableBody>`, `<TableRow>`, `<TableCell>` |
+| Empty resource state | `<EmptyState>` |
+| Full-page loading | `<PageLoader>` |
+| Inline loading rows | `<LoadingSkeleton>` |
+| Inline API error | `<ErrorMessage error={error} onRetry={refetch}>` |
+
+```jsx
+// ❌ BAD — raw HTML when a shadcn component exists
+<button className="px-4 py-2 bg-blue-500 text-white rounded">Save</button>
+<input type="text" className="border rounded p-2" />
+
+// ✅ GOOD
+<Button variant="default">Save</Button>
+<Input placeholder="Search..." />
+```
+
+---
+
+# Icons — lucide-react Only
+
+All icons come from `lucide-react`. Never write inline `<svg>` elements (enforced by oxlint). Import the named icon component directly.
+
+```jsx
+// ❌ BAD
+<svg xmlns="..." viewBox="..."><path .../></svg>
+
+// ✅ GOOD
+import { Plus, Trash2, Download, Pencil } from 'lucide-react';
+<Plus className="h-4 w-4" />
+```
+
+---
+
+# Helper Functions — Co-location vs. Shared Utils
+
+Prefer WET over DRY: one duplication is intentional and acceptable. The rule triggers at **three instances** — when the same helper appears in a third file, extract it to `src/lib/` and import from there.
+
+Existing shared utilities:
+- `src/lib/api.ts` — axios instance with interceptors (firmId/userId headers, 401 redirect)
+- `src/lib/utils.js` — `cn()` for class merging
+- `src/lib/constants.ts` — `API_BASE_URL` and other constants
+
+New util files go in `src/lib/` named by concern (e.g. `format.ts` for display formatting, `dates.ts` for date helpers).

@@ -1,0 +1,47 @@
+---
+
+description: Linting standards and auto-fix workflow for frontend (oxlint) and backend (ruff)
+
+globs: **/*.{js,jsx,ts,tsx,py}
+
+alwaysApply: false
+
+---
+
+# Linting Workflow
+
+## Frontend (`frontend/`)
+
+After any substantive edit to a `.js`, `.jsx`, `.ts`, or `.tsx` file:
+
+1. Run `npm run lint:fix` in `frontend/` — runs `oxlint --fix --fix-suggestions --fix-dangerously`
+2. Use `ReadLints` on edited files to catch anything oxlint can't auto-fix
+3. Fix remaining errors manually
+4. Never leave a task marked complete with outstanding lint errors
+
+## Backend (`backend/`)
+
+After any substantive edit to a `.py` file:
+
+1. Run `npm run lint:fix` in `backend/` — runs `ruff check --fix .`
+2. Run `npm run format` in `backend/` — runs `ruff format .`
+3. Use `ReadLints` on edited files to catch anything ruff can't auto-fix
+4. Fix remaining errors manually
+5. Never leave a task marked complete with outstanding lint errors
+
+# No Conditional Spread
+
+Never use `...(condition && { key: value })` to build objects conditionally. It is hard to read and obscures intent.
+
+```typescript
+// ❌ BAD
+const payload = {
+  ...(data.name !== undefined && { name: data.name }),
+  ...(data.status !== undefined && { status: data.status }),
+};
+
+// ✅ GOOD
+const payload: Record<string, unknown> = {};
+if (data.name !== undefined) payload.name = data.name;
+if (data.status !== undefined) payload.status = data.status;
+```

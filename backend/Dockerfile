@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt
-COPY requirements.txt .
+# Copy requirements
+COPY requirements.txt requirements-dev.txt ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (runtime + dev tools like ruff)
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
 
 # Copy application code
 COPY . .

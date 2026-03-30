@@ -17,7 +17,11 @@
     "remove:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless remove --stage prod'",
     "info:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless info --stage prod'",
     "logs:prod": "bash -c 'set -a && source .env.production && set +a && npx serverless logs --stage prod'",
-    "logs:function": "bash -c 'set -a && source .env.production && set +a && npx serverless logs --function'"
+    "logs:function": "bash -c 'set -a && source .env.production && set +a && npx serverless logs --function'",
+    "lint": "ruff check .",
+    "lint:fix": "ruff check --fix .",
+    "format": "ruff format .",
+    "format:check": "ruff format --check ."
   },
   "devDependencies": {
     "serverless": "^3.38.0",
