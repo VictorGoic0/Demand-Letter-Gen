@@ -17,7 +17,7 @@ export function UserMenu() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    void navigate('/login');
   };
 
   if (!user) {

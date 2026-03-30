@@ -36,6 +36,7 @@
     "autoprefixer": "10.4.20",
     "oxlint": "^1.57.0",
     "oxlint-plugin-eslint": "^1.57.0",
+    "oxlint-tsgolint": "^0.18.1",
     "postcss": "8.4.47",
     "tailwindcss": "3.4.17"
   }

@@ -25,15 +25,15 @@ export function Templates() {
   const { deleteTemplate, deleting } = useDeleteTemplate();
 
   const handleCreateClick = () => {
-    navigate('/templates/new');
+    void navigate('/templates/new');
   };
 
   const handleViewClick = (template) => {
-    navigate(`/templates/${template.id}/view`);
+    void navigate(`/templates/${template.id}/view`);
   };
 
   const handleEditClick = (template) => {
-    navigate(`/templates/${template.id}/edit`);
+    void navigate(`/templates/${template.id}/edit`);
   };
 
   const handleDeleteClick = (template) => {

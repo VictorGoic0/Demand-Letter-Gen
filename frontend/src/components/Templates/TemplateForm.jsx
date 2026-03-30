@@ -50,8 +50,8 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     if (!validate()) {
       return;
@@ -62,7 +62,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
       letterhead_text: letterheadText.trim() || undefined,
       opening_paragraph: openingParagraph.trim() || undefined,
       closing_paragraph: closingParagraph.trim() || undefined,
-      sections: sections.filter(s => s.trim()).length > 0 ? sections.filter(s => s.trim()) : undefined,
+      sections: sections.filter(section => section.trim()).length > 0 ? sections.filter(section => section.trim()) : undefined,
       is_default: isDefault,
     };
 
@@ -78,7 +78,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
   };
 
   const handleRemoveSection = (index) => {
-    const newSections = sections.filter((_, i) => i !== index);
+    const newSections = sections.filter((section, idx) => idx !== index);
     setSections(newSections);
     // Clear error for removed section
     const newErrors = { ...errors };
@@ -103,14 +103,14 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
     setDraggedIndex(index);
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e, dropIndex) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent parent handlers from firing
+  const handleDrop = (event, dropIndex) => {
+    event.preventDefault();
+    event.stopPropagation(); // Prevent parent handlers from firing
     
     if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null);
@@ -126,9 +126,9 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
     setDraggedIndex(null);
   };
 
-  const handleDropAtStart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDropAtStart = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     
     if (draggedIndex === null || draggedIndex === 0) {
       setDraggedIndex(null);
@@ -144,9 +144,9 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
     setDraggedIndex(null);
   };
 
-  const handleDropAtEnd = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDropAtEnd = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     
     if (draggedIndex === null || draggedIndex === sections.length - 1) {
       setDraggedIndex(null);
@@ -176,8 +176,8 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
         <Input
           id="name"
           value={name}
-          onChange={(e) => {
-            setName(e.target.value);
+          onChange={(event) => {
+            setName(event.target.value);
             if (errors.name) {
               const newErrors = { ...errors };
               delete newErrors.name;
@@ -201,7 +201,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
         <Textarea
           id="letterhead"
           value={letterheadText}
-          onChange={(e) => setLetterheadText(e.target.value)}
+          onChange={(event) => setLetterheadText(event.target.value)}
           placeholder="Law Firm Name&#10;Address&#10;Phone Number"
           rows={4}
         />
@@ -220,7 +220,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
         <Textarea
           id="opening"
           value={openingParagraph}
-          onChange={(e) => setOpeningParagraph(e.target.value)}
+          onChange={(event) => setOpeningParagraph(event.target.value)}
           placeholder="Dear Sir/Madam,"
           rows={3}
         />
@@ -256,7 +256,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
+                onDrop={(event) => handleDrop(event, index)}
                 onDragEnd={handleDragEnd}
                 className={cn(
                   'flex items-center gap-2 p-3 border rounded-lg bg-card',
@@ -267,7 +267,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
                 <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
                 <Input
                   value={section}
-                  onChange={(e) => handleSectionChange(index, e.target.value)}
+                  onChange={(event) => handleSectionChange(index, event.target.value)}
                   placeholder={`Section ${index + 1} name`}
                   className={cn(
                     'flex-1',
@@ -308,7 +308,7 @@ export function TemplateForm({ template, onSubmit, onCancel, isSubmitting = fals
         <Textarea
           id="closing"
           value={closingParagraph}
-          onChange={(e) => setClosingParagraph(e.target.value)}
+          onChange={(event) => setClosingParagraph(event.target.value)}
           placeholder="Sincerely,&#10;Attorney Name"
           rows={3}
         />

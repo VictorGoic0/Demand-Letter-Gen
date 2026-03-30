@@ -48,7 +48,7 @@ export function TemplateEdit() {
   };
 
   const handleCancel = () => {
-    navigate('/templates');
+    void navigate('/templates');
   };
 
   if (!isNewTemplate && loading) {
@@ -60,7 +60,7 @@ export function TemplateEdit() {
       <div className="space-y-8">
         <Button
           variant="ghost"
-          onClick={() => navigate('/templates')}
+          onClick={() => { void navigate('/templates'); }}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

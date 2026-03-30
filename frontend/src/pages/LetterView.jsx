@@ -59,7 +59,7 @@ export function LetterView() {
   };
 
   const handleFinalize = () => {
-    navigate(`/letters/${letter.id}/finalize`);
+    void navigate(`/letters/${letter.id}/finalize`);
   };
 
   if (loading) {
@@ -71,7 +71,7 @@ export function LetterView() {
       <div className="space-y-4">
         <Button
           variant="ghost"
-          onClick={() => navigate('/letters')}
+          onClick={() => { void navigate('/letters'); }}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -86,7 +86,7 @@ export function LetterView() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground mb-4">Letter not found</p>
-        <Button onClick={() => navigate('/letters')}>
+        <Button onClick={() => { void navigate('/letters'); }}>
           Back to Letters
         </Button>
       </div>
@@ -102,7 +102,7 @@ export function LetterView() {
       <div>
         <Button
           variant="ghost"
-          onClick={() => navigate('/letters')}
+          onClick={() => { void navigate('/letters'); }}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -154,7 +154,7 @@ export function LetterView() {
               </Button>
             )}
             <Button
-              onClick={() => navigate(`/letters/${letter.id}/edit`)}
+              onClick={() => { void navigate(`/letters/${letter.id}/edit`); }}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit

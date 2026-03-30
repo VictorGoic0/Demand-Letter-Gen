@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { LetterCard } from './LetterCard';
-import { cn } from '@/lib/utils';
 
 export function LetterList({ 
   letters, 
@@ -75,7 +73,7 @@ export function LetterList({
           <Input
             placeholder="Search letters by title or template..."
             value={searchQuery || ''}
-            onChange={(e) => onSearchChange?.(e.target.value)}
+            onChange={(event) => onSearchChange?.(event.target.value)}
             className="pl-10"
           />
         </div>

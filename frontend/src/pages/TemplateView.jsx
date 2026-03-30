@@ -2,7 +2,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Star, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useTemplate } from '@/hooks/useTemplates';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
@@ -22,7 +21,7 @@ export function TemplateView() {
       <div className="space-y-8">
         <Button
           variant="ghost"
-          onClick={() => navigate('/templates')}
+          onClick={() => { void navigate('/templates'); }}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -39,7 +38,7 @@ export function TemplateView() {
       <div>
         <Button
           variant="ghost"
-          onClick={() => navigate('/templates')}
+          onClick={() => { void navigate('/templates'); }}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -134,7 +133,7 @@ export function TemplateView() {
 
       {/* Edit Button */}
       <div className="flex justify-end max-w-4xl">
-        <Button onClick={() => navigate(`/templates/${templateId}/edit`)}>
+        <Button onClick={() => { void navigate(`/templates/${templateId}/edit`); }}>
           <Edit className="h-4 w-4 mr-2" />
           Edit Template
         </Button>

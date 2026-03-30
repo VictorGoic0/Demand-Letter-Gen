@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -9,7 +9,7 @@ export function useLetters(sortBy = null, sortOrder = 'desc', statusFilter = nul
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
 
-  const fetchLetters = async () => {
+  const fetchLetters = useCallback(async () => {
     if (!user?.firmId) {
       setLoading(false);
       return;
@@ -55,11 +55,11 @@ export function useLetters(sortBy = null, sortOrder = 'desc', statusFilter = nul
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.firmId, sortBy, sortOrder, statusFilter, searchQuery]);
 
   useEffect(() => {
-    fetchLetters();
-  }, [user?.firmId, sortBy, sortOrder, statusFilter, searchQuery]);
+    void fetchLetters();
+  }, [fetchLetters]);
 
   return { 
     letters, 

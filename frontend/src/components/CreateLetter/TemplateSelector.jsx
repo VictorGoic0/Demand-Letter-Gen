@@ -44,7 +44,7 @@ export function TemplateSelector({ selectedTemplateId, onTemplateChange, error }
     );
   }
 
-  const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+  const selectedTemplate = templates.find((template) => template.id === selectedTemplateId);
 
   return (
     <div className="space-y-2">

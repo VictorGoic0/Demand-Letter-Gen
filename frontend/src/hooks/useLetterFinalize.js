@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -8,7 +8,7 @@ export function useLetter(letterId) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchLetter = async () => {
+  const fetchLetter = useCallback(async () => {
     if (!user?.firmId || !letterId) {
       setLoading(false);
       return;
@@ -26,12 +26,11 @@ export function useLetter(letterId) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.firmId, letterId]);
 
   useEffect(() => {
-    fetchLetter();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [letterId, user?.firmId]);
+    void fetchLetter();
+  }, [fetchLetter]);
 
   return { letter, loading, error, refetch: fetchLetter };
 }

@@ -26,7 +26,7 @@ export function Navigation() {
   return (
     <nav className="flex items-center gap-6">
       {navigationItems.map((item) => {
-        const Icon = item.icon;
+        
         const isActive = location.pathname === item.href;
         
         return (

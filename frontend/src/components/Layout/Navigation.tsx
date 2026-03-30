@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FileText, LayoutTemplate, FileEdit, Mail, Upload } from 'lucide-react';
+import { FileText, LayoutTemplate, Mail, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
@@ -31,7 +31,7 @@ export function Navigation() {
   return (
     <nav className="flex items-center gap-6">
       {navigationItems.map((item) => {
-        const Icon = item.icon;
+        
         const isActive = location.pathname === item.href || 
                         (item.href === '/documents' && location.pathname.startsWith('/documents'));
         

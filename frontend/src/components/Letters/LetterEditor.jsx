@@ -9,8 +9,8 @@ export function LetterEditor({ content, onChange }) {
     setLocalContent(content || '');
   }, [content]);
 
-  const handleChange = (e) => {
-    const newContent = e.target.value;
+  const handleChange = (event) => {
+    const newContent = event.target.value;
     setLocalContent(newContent);
     if (onChange) {
       onChange(newContent);

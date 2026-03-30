@@ -1,4 +1,4 @@
-import { Edit, Download, Trash2, FileText, Eye } from 'lucide-react';
+import { Edit, Download, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ export function LetterCard({ letter, onView, onEdit, onDownload, onDelete }) {
     });
   };
 
-  const isFinalized = letter.status === 'created';
+  
   const hasDocx = !!letter.docx_url;
 
   return (

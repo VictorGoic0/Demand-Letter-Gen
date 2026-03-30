@@ -60,7 +60,7 @@ export function FinalizeLetter() {
     setUpdateError(null);
 
     try {
-      const updatedLetter = await updateLetter(letter.id, null, editedContent);
+      await updateLetter(letter.id, null, editedContent);
       setIsEditMode(false);
       // Refetch to get latest data
       await refetch();
@@ -92,7 +92,7 @@ export function FinalizeLetter() {
 
   const handleSuccessConfirm = () => {
     setShowSuccessDialog(false);
-    navigate('/letters');
+    void navigate('/letters');
   };
 
   if (loading) {
@@ -111,7 +111,7 @@ export function FinalizeLetter() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Letter not found</p>
-        <Button onClick={() => navigate('/letters')} className="mt-4">
+        <Button onClick={() => { void navigate('/letters'); }} className="mt-4">
           Back to Letters
         </Button>
       </div>

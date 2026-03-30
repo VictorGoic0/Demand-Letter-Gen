@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { File } from 'lucide-react';
 import { DocumentUpload } from '@/components/Documents/DocumentUpload';
 import { DocumentList } from '@/components/Documents/DocumentList';
 import { useDocuments } from '@/hooks/useDocuments';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { EmptyState } from '@/components/ui/EmptyState';
 
 export function Documents() {
   const [sortBy, setSortBy] = useState('uploaded_at');

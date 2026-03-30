@@ -65,32 +65,32 @@ export function DocumentUpload({ onUploadSuccess }) {
     }
   }, []);
 
-  const handleDrag = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+  const handleDrag = useCallback((event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === 'dragenter' || event.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (event.type === 'dragleave') {
       setDragActive(false);
     }
   }, []);
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDrop = useCallback((event) => {
+    event.preventDefault();
+    event.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFiles(e.dataTransfer.files);
+    if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      handleFiles(event.dataTransfer.files);
     }
   }, [handleFiles]);
 
-  const handleChange = useCallback((e) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files.length > 0) {
-      handleFiles(e.target.files);
+  const handleChange = useCallback((event) => {
+    event.preventDefault();
+    if (event.target.files && event.target.files.length > 0) {
+      handleFiles(event.target.files);
       // Reset input to allow selecting same file again
-      e.target.value = '';
+      event.target.value = '';
     }
   }, [handleFiles]);
 
@@ -165,7 +165,7 @@ export function DocumentUpload({ onUploadSuccess }) {
         }));
 
         // Start upload
-        uploadSingleFile(item);
+        void uploadSingleFile(item);
       }
     });
   }, [uploadQueue, uploadSingleFile]);
@@ -182,10 +182,10 @@ export function DocumentUpload({ onUploadSuccess }) {
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
-    const k = 1024;
+    const kilo = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    const i = Math.floor(Math.log(bytes) / Math.log(kilo));
+    return Math.round(bytes / Math.pow(kilo, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   const hasActiveUploads = uploadQueue.length > 0;
@@ -238,8 +238,8 @@ export function DocumentUpload({ onUploadSuccess }) {
               type="button"
               variant="outline"
               size="lg"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 fileInputRef.current?.click();
               }}
               disabled={isUploading}

@@ -27,15 +27,15 @@ export function Letters() {
   const { deleteLetter, deleting } = useDeleteLetter();
 
   const handleCreateClick = () => {
-    navigate('/letters/new');
+    void navigate('/letters/new');
   };
 
   const handleViewClick = (letter) => {
-    navigate(`/letters/${letter.id}/view`);
+    void navigate(`/letters/${letter.id}/view`);
   };
 
   const handleEditClick = (letter) => {
-    navigate(`/letters/${letter.id}/edit`);
+    void navigate(`/letters/${letter.id}/edit`);
   };
 
   const handleDownloadClick = (letter) => {
@@ -69,7 +69,7 @@ export function Letters() {
       await deleteLetter(letterToDelete.id);
       setDeleteDialogOpen(false);
       setLetterToDelete(null);
-      refetch();
+      void refetch();
     } catch (error) {
       console.error('Failed to delete letter:', error);
     }

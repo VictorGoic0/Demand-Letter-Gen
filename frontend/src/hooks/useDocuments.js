@@ -39,7 +39,7 @@ export function useDocuments(sortBy = null, sortOrder = 'desc') {
       }
     };
 
-    fetchDocuments();
+    void fetchDocuments();
   }, [user?.firmId, sortBy, sortOrder]);
 
   return { documents, loading, error, refetch: () => {
@@ -67,7 +67,7 @@ export function useDocuments(sortBy = null, sortOrder = 'desc') {
           setLoading(false);
         }
       };
-      fetchDocuments();
+      void fetchDocuments();
     }
   } };
 }

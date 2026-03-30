@@ -36,7 +36,7 @@ export function useTemplates(sortBy = null, sortOrder = 'asc') {
       }
     };
 
-    fetchTemplates();
+    void fetchTemplates();
   }, [user?.firmId, sortBy, sortOrder]);
 
   return { 
@@ -65,7 +65,7 @@ export function useTemplates(sortBy = null, sortOrder = 'asc') {
             setLoading(false);
           }
         };
-        fetchTemplates();
+        void fetchTemplates();
       }
     }
   };
@@ -102,7 +102,7 @@ export function useDefaultTemplate() {
       }
     };
 
-    fetchDefaultTemplate();
+    void fetchDefaultTemplate();
   }, [user?.firmId]);
 
   return { template, loading, error };
@@ -231,7 +231,7 @@ export function useTemplate(templateId) {
       }
     };
 
-    fetchTemplate();
+    void fetchTemplate();
   }, [user?.firmId, templateId]);
 
   return { template, loading, error, refetch: () => {
@@ -249,7 +249,7 @@ export function useTemplate(templateId) {
           setLoading(false);
         }
       };
-      fetchTemplate();
+      void fetchTemplate();
     }
   }};
 }

@@ -14,8 +14,8 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setLoading(true);
 
@@ -36,7 +36,7 @@ export function Login() {
     try {
       const userData = await loginAPI(email, password);
       login(userData);
-      navigate('/letters');
+      void navigate('/letters');
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -77,7 +77,7 @@ export function Login() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 disabled={loading}
                 required
               />
@@ -92,7 +92,7 @@ export function Login() {
                 type="password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 disabled={loading}
                 required
               />

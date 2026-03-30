@@ -38,10 +38,10 @@ export function EditLetter() {
 
   // Handle browser navigation (closing tab/window)
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
+    const handleBeforeUnload = (event) => {
       if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
+        event.preventDefault();
+        event.returnValue = '';
       }
     };
 
@@ -59,10 +59,12 @@ export function EditLetter() {
 
   const handleCancel = () => {
     if (hasUnsavedChanges) {
-      setPendingNavigation(() => () => navigate(`/letters/${letter.id}/view`));
+      setPendingNavigation(() => () => {
+        void navigate(`/letters/${letter.id}/view`);
+      });
       setShowUnsavedDialog(true);
     } else {
-      navigate(`/letters/${letter.id}/view`);
+      void navigate(`/letters/${letter.id}/view`);
     }
   };
 
@@ -75,7 +77,7 @@ export function EditLetter() {
       await updateLetter(letter.id, null, editedContent);
       setOriginalContent(editedContent);
       // Navigate to view page on success
-      navigate(`/letters/${letter.id}/view`);
+      void navigate(`/letters/${letter.id}/view`);
     } catch (err) {
       // Stay on edit page if save fails
       console.error('Failed to save letter:', err);
@@ -87,10 +89,12 @@ export function EditLetter() {
 
   const handleBack = () => {
     if (hasUnsavedChanges) {
-      setPendingNavigation(() => () => navigate('/letters'));
+      setPendingNavigation(() => () => {
+        void navigate('/letters');
+      });
       setShowUnsavedDialog(true);
     } else {
-      navigate('/letters');
+      void navigate('/letters');
     }
   };
 
@@ -116,7 +120,7 @@ export function EditLetter() {
       <div className="space-y-4">
         <Button
           variant="ghost"
-          onClick={() => navigate('/letters')}
+          onClick={() => { void navigate('/letters'); }}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -131,7 +135,7 @@ export function EditLetter() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground mb-4">Letter not found</p>
-        <Button onClick={() => navigate('/letters')}>
+        <Button onClick={() => { void navigate('/letters'); }}>
           Back to Letters
         </Button>
       </div>

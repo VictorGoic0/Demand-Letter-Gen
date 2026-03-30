@@ -20,7 +20,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useDocumentDelete, useDocumentDownload } from '@/hooks/useDocuments';
-import { cn } from '@/lib/utils';
 
 export function DocumentList({ documents, loading, onRefresh, sortBy, sortOrder, onSort }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -30,10 +29,10 @@ export function DocumentList({ documents, loading, onRefresh, sortBy, sortOrder,
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
-    const k = 1024;
+    const kilo = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    const i = Math.floor(Math.log(bytes) / Math.log(kilo));
+    return Math.round(bytes / Math.pow(kilo, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   const formatDate = (dateString) => {

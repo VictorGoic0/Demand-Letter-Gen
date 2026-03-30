@@ -20,10 +20,10 @@ export function DocumentSelector({ selectedDocuments, onSelectionChange }) {
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
-    const k = 1024;
+    const kilo = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    const i = Math.floor(Math.log(bytes) / Math.log(kilo));
+    return Math.round(bytes / Math.pow(kilo, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   const formatDate = (dateString) => {
@@ -94,7 +94,7 @@ export function DocumentSelector({ selectedDocuments, onSelectionChange }) {
           <Input
             placeholder="Search documents..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="pl-9"
           />
         </div>

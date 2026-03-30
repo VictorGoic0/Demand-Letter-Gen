@@ -53,7 +53,7 @@ export function CreateLetter() {
       );
       
       // Redirect to finalize page
-      navigate(`/letters/${result.letter_id}/finalize`);
+      void navigate(`/letters/${result.letter_id}/finalize`);
     } catch (err) {
       // Error is already set in the hook
       console.error('Failed to generate letter:', err);
@@ -62,7 +62,7 @@ export function CreateLetter() {
 
   const handleRetry = () => {
     setError(null);
-    handleGenerate();
+    void handleGenerate();
   };
 
   return (
@@ -96,7 +96,7 @@ export function CreateLetter() {
             <Input
               id="letter-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="e.g., Demand Letter - Case #2024-001"
               maxLength={255}
             />
