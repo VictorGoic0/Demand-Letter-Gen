@@ -93,7 +93,7 @@
   - [x] Add depends_on for postgres
 
 ### Backend Dockerfile (Development)
-- [x] 4. Create backend/Dockerfile
+- [x] 4. Create api/Dockerfile
 - [x] 5. Use python:3.11-slim as base image
 - [x] 6. Set working directory to /app
 - [x] 7. Copy requirements.txt
@@ -102,7 +102,7 @@
 - [x] 10. Set CMD for uvicorn with reload
 
 ### Lambda Build Dockerfile (Production)
-- [x] 11. Create backend/Dockerfile.lambda
+- [x] 11. Create api/Dockerfile.lambda
 - [x] 12. Create multi-stage build with builder stage
 - [x] 13. Use public.ecr.aws/lambda/python:3.11 as base
 - [x] 14. Install dependencies in builder stage
@@ -115,7 +115,7 @@
 - [x] 21. Set default CMD (will be overridden per function)
 
 ### Docker Documentation
-- [x] 22. Create docker/README.md with setup instructions
+- [x] 22. Create docs/docker-local-setup.md (Docker local setup; moved from docker/README.md)
 - [x] 23. Document how to start services
 - [x] 24. Document how to stop services
 - [x] 25. Document how to view logs

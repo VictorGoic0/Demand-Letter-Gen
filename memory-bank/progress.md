@@ -186,7 +186,7 @@
   - Detailed health checks on startup (database connection test, S3 bucket checks)
   - Enhanced /health endpoint with database and S3 status
   - Created Docker management scripts (server_start.sh, server_end.sh, server_restart.sh)
-  - Created migration scripts (migrate-up.sh, migrate-down.sh, migrate-create.sh)
+  - Created migration scripts in `scripts/` (migrate-up.sh, migrate-down.sh, migrate-create.sh)
   - Created check scripts for all tables (check_letter_table.py, check_letter_document_table.py)
   - All service routers integrated
   - CORS configured for development
@@ -306,13 +306,13 @@
 - [x] .docx export to S3 - Backend complete (PR #13), Frontend complete (PR #20)
 
 ### Letter Management (100% - Complete)
-- [x] Letter listing (backend) - PR #12 Complete
-- [x] Letter retrieval (backend) - PR #12 Complete
-- [x] Letter updating (backend) - PR #12 Complete
-- [x] Letter deletion (backend) - PR #12 Complete
-- [x] Letter finalization (backend) - PR #13 Complete
-- [x] Letter export (backend) - PR #13 Complete
-- [x] Generated letters library (frontend) - PR #20 Complete
+- [x] Letter listing (API) - PR #12 Complete
+- [x] Letter retrieval (API) - PR #12 Complete
+- [x] Letter updating (API) - PR #12 Complete
+- [x] Letter deletion (API) - PR #12 Complete
+- [x] Letter finalization (API) - PR #13 Complete
+- [x] Letter export (API) - PR #13 Complete
+- [x] Generated letters library (webapp) - PR #20 Complete
 - [x] Status indicators (draft/created) - PR #20 Complete
 - [x] Letter editing (post-finalization) - PR #21 Complete
 

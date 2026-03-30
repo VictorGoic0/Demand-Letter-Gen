@@ -345,7 +345,7 @@ pypdf>=3.0.0  # PDF parsing
 **Architecture - Service Breakdown:**
 
 ```
-backend/
+api/
   shared/
     database.py          # SQLAlchemy models, session management
     auth.py             # Authentication middleware
@@ -599,11 +599,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
   
-  backend:
-    build: ./backend
+  api:
+    build: ./api
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./backend:/app
+      - ./api:/app
     ports:
       - "8000:8000"
     environment:
@@ -618,11 +618,11 @@ services:
     depends_on:
       - postgres
   
-  frontend:
-    build: ./frontend
+  webapp:
+    build: ./webapp
     command: npm run dev
     volumes:
-      - ./frontend:/app
+      - ./webapp:/app
       - /app/node_modules
     ports:
       - "5173:5173"

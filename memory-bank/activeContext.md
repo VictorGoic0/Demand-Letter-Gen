@@ -5,7 +5,7 @@
 **Phase:** Production Deployment (Phase 6)
 **Last Updated:** November 13, 2025
 
-The project has completed all 23 PRs from the development phase (foundation through authentication). Backend is deployed to AWS Lambda + API Gateway, frontend is deployed to Netlify. Most endpoints working, but document uploads failing.
+The project has completed all 23 PRs from the development phase (foundation through authentication). The API is deployed to AWS Lambda + API Gateway; the webapp is deployed to Netlify. Most endpoints working, but document uploads failing.
 
 ## Current Work Focus
 
@@ -33,7 +33,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 
 **Files Modified in Deployment Session:**
 
-1. **backend/serverless.yml**
+1. **api/serverless.yml**
    - Changed `ENVIRONMENT: ${self:provider.stage}` → `ENVIRONMENT: production` (line 27)
    - Changed `slim: true` → `slim: false` (line 416) to preserve package metadata
    - Replaced all `cors: true` with explicit CORS configuration:
@@ -49,37 +49,37 @@ The project has completed all 23 PRs from the development phase (foundation thro
      ```
    - Added `authService` function for /login endpoint
 
-2. **backend/shared/config.py**
+2. **api/shared/config.py**
    - Added `extra="ignore"` to `AWSConfig.model_config` (line 54) to allow Lambda's built-in AWS_* environment variables
 
-3. **backend/services/auth_service/schemas.py**
+3. **api/services/auth_service/schemas.py**
    - Changed `email: EmailStr` → `email: str` to avoid email-validator dependency
 
-4. **backend/requirements.txt**
+4. **api/requirements.txt**
    - Removed `email-validator>=2.0.0` (causing metadata import errors)
 
-5. **backend/handlers/base.py**
+5. **api/handlers/base.py**
    - Hardcoded Netlify domain in default CORS origins (lines 40-45)
    - Updated error response headers to use Netlify domain instead of `*`
 
-6. **backend/main.py**
+6. **api/main.py**
    - Added Netlify domain to local dev CORS origins
    - Updated health handler to return Netlify domain in CORS header
 
-7. **backend/handlers/auth_handler.py** (NEW)
+7. **api/handlers/auth_handler.py** (NEW)
    - Created Lambda handler for authentication service
 
-8. **frontend/src/lib/api.ts**
+8. **webapp/src/lib/api.ts**
    - Removed `withCredentials: true` (not needed for localStorage-based auth)
 
-9. **backend/services/template_service/router.py**
+9. **api/services/template_service/router.py**
    - Fixed page_size validation: `page_size=len(templates) if len(templates) > 0 else 1` (line 120)
 
-10. **backend/package.json**
+10. **api/package.json**
     - Updated all deployment scripts to use `npx serverless` with proper env loading
     - Added `logs:prod`, `logs:function`, `info:prod`, `remove:prod` scripts
 
-11. **backend/shared/s3_client.py**
+11. **api/shared/s3_client.py**
     - Updated `__init__` method to detect Lambda environment using `AWS_EXECUTION_ENV`
     - Lambda: Initialize boto3 client with only `region_name` (uses IAM role automatically)
     - Local dev: Use explicit credentials from environment variables or parameters
@@ -105,7 +105,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 
 3. **CORS Issues**
    - Problem: Wildcard `*` CORS breaks when credentials included
-   - Fix: Removed `withCredentials` from frontend, added explicit Netlify origin in backend
+   - Fix: Removed `withCredentials` from the webapp, added explicit Netlify origin in the API
 
 4. **Missing Auth Endpoint**
    - Problem: /login endpoint not deployed
@@ -122,7 +122,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 7. **S3 Upload Failures** ✅ FIXED
    - Problem: Document uploads failing with `InvalidAccessKeyId` error
    - Root Cause: S3 client was checking for AWS credentials from environment variables even when running in Lambda. Lambda execution role provides S3 access automatically via IAM, but the code was still trying to read `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` from environment.
-   - Fix: Updated `backend/shared/s3_client.py` to detect Lambda environment using `AWS_EXECUTION_ENV` environment variable. When in Lambda, initialize boto3 client with only `region_name` (no credentials) - uses IAM role automatically. When in local dev, use explicit credentials from environment variables.
+   - Fix: Updated `api/shared/s3_client.py` to detect Lambda environment using `AWS_EXECUTION_ENV` environment variable. When in Lambda, initialize boto3 client with only `region_name` (no credentials) - uses IAM role automatically. When in local dev, use explicit credentials from environment variables.
    - Status: ✅ Fixed - S3 uploads now work in Lambda using IAM role
 
 ## Deployment Architecture
@@ -160,7 +160,7 @@ The project has completed all 23 PRs from the development phase (foundation thro
 
 **Backend:**
 ```bash
-cd backend
+cd api
 npm run deploy:prod         # Deploy all functions
 npm run logs:prod           # View all logs
 npm run logs:function       # View specific function logs

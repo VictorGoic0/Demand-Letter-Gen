@@ -2,7 +2,7 @@
 
 ## Technology Stack
 
-### Frontend
+### Webapp
 
 **Core Framework:**
 - React 18.3.1
@@ -34,7 +34,7 @@
 - PostCSS 8.4.47
 - @vitejs/plugin-react 5.0.4
 
-### Backend
+### API
 
 **Core:**
 - Python 3.11
@@ -73,24 +73,26 @@ alembic>=1.12.0  # Database migrations
 
 ## Development Environment
 
+**Documentation:** Guides, PRD, task lists, S3 docs, Docker local setup (`docs/docker-local-setup.md`), and Lambda deployment guide live under **`docs/`**. The Cursor memory bank stays at **`memory-bank/`** (repository root).
+
 ### Prerequisites
 - Docker & Docker Compose
-- Python 3.11+ (local venv under `backend/.venv` — create with `python3 -m venv .venv`, install `requirements.txt` + `requirements-dev.txt`; not committed, listed in `.gitignore`; full backend setup in `backend/README.md`)
-- Node.js 18+ (for frontend)
+- Python 3.11+ (local venv under `api/.venv` — create with `python3 -m venv .venv`, install `requirements.txt` + `requirements-dev.txt`; not committed, listed in `.gitignore`; full API setup in `api/README.md`)
+- Node.js 18+ (for webapp)
 
 ### Local Development Setup
 
 **Docker Compose Services:**
 - PostgreSQL 15 (port 5432)
-- Backend FastAPI (port 8000)
-- Frontend Vite dev server (port 5173)
+- API FastAPI (port 8000)
+- Webapp Vite dev server (port 5173)
 
 **Utility Scripts:**
-- Located in `backend/scripts/` directory:
+- Located in `api/scripts/` directory:
   - `check_*.py` - Table check scripts (firm, user, document, template, letter, letter_document) - returns first 5 results
   - `seed_*.py` - Seed scripts (test_firm, test_users)
   - `test_*.py` - Test scripts (db_connection, upload_document_api)
-- Migration scripts in `backend/migration_scripts/`:
+- Alembic shell wrappers in `api/scripts/`:
   - `migrate-up.sh` - Run `alembic upgrade head`
   - `migrate-down.sh` - Run `alembic downgrade -1`
   - `migrate-create.sh` - Create new migration with message
@@ -102,7 +104,7 @@ alembic>=1.12.0  # Database migrations
 
 **Environment Variables:**
 
-Backend (.env):
+API (.env):
 ```
 # Application
 ENVIRONMENT=development
@@ -135,7 +137,7 @@ CORS_ALLOW_METHODS=*
 CORS_ALLOW_HEADERS=*
 ```
 
-Frontend (.env):
+Webapp (.env):
 ```
 VITE_API_URL=http://localhost:8000
 ```
@@ -168,7 +170,7 @@ VITE_API_URL=http://localhost:8000
 
 ### Serverless Framework
 
-**Configuration:** `serverless.yml` in backend directory
+**Configuration:** `serverless.yml` in `api/` directory
 
 **Key Settings:**
 - Service name: demand-letter-generator
@@ -213,13 +215,13 @@ VITE_API_URL=http://localhost:8000
 - Region: us-east-2
 
 **S3 Client:**
-- Location: `backend/shared/s3_client.py`
+- Location: `api/shared/s3_client.py`
 - Features: Upload, download, delete, presigned URL generation, bucket existence check, file listing
 - Singleton pattern: `get_s3_client()` for easy access
 - Error handling: Comprehensive exception handling for all operations
 
 **Shared Utilities:**
-- Location: `backend/shared/`
+- Location: `api/shared/`
 - `config.py`: Pydantic BaseSettings with nested configs (Database, AWS, OpenAI, CORS)
 - `exceptions.py`: Custom exception classes and FastAPI exception handlers
 - `schemas/common.py`: Common API response schemas (SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse)
@@ -235,10 +237,10 @@ VITE_API_URL=http://localhost:8000
 
 ## Build & Deployment
 
-### Frontend Build
+### Webapp build
 
 ```bash
-cd frontend
+cd webapp
 npm install
 npm run build
 # Output: dist/ directory
@@ -246,18 +248,18 @@ npm run build
 
 **Deployment:** Static files to S3 + CloudFront
 
-### Backend Build
+### API build
 
 **Local Development:**
 ```bash
 # Start Docker services
-cd backend
+cd api
 npm run start
 
 # Run migrations (if needed)
-./migration_scripts/migrate-up.sh
+./scripts/migrate-up.sh
 
-# Backend auto-reloads via docker-compose (uvicorn --reload)
+# API auto-reloads via docker-compose (uvicorn --reload)
 # Or run manually:
 pip install -r requirements.txt
 uvicorn main:app --reload
@@ -266,7 +268,7 @@ uvicorn main:app --reload
 **Lambda Deployment:**
 ```bash
 # Using Serverless Framework
-cd backend
+cd api
 serverless deploy
 ```
 
@@ -318,12 +320,12 @@ serverless deploy
 ### Local Development
 
 1. Start Docker Compose: `npm run start` (or `docker-compose up -d`)
-2. Run migrations: `./migration_scripts/migrate-up.sh` (or `alembic upgrade head`)
-3. Backend auto-reloads on code changes (via docker-compose uvicorn --reload)
-4. Frontend hot-reloads on code changes
+2. Run migrations: `./scripts/migrate-up.sh` (or `alembic upgrade head`)
+3. API auto-reloads on code changes (via docker-compose uvicorn --reload)
+4. Webapp hot-reloads on code changes
 5. Access:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
+   - Webapp: http://localhost:5173
+   - API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
    - Health Check: http://localhost:8000/health (returns database and S3 status)
 6. Check database tables: `python scripts/check_*.py` (returns first 5 results)
@@ -332,13 +334,13 @@ serverless deploy
 
 ### Testing
 
-**Backend:**
+**API:**
 - pytest for unit and integration tests
 - Test database with transactions
 - Mocked S3 and OpenAI for tests
 - Target: >80% code coverage
 
-**Frontend:**
+**Webapp:**
 - Vitest for unit tests
 - React Testing Library for component tests
 - Mocked API calls
@@ -346,8 +348,8 @@ serverless deploy
 
 ### Code Quality
 
-**Backend:**
-- Ruff (`ruff check`, `ruff format`) per `backend/pyproject.toml`; run from activated `backend/.venv` or use `npm run lint` / `lint:fix` / `format` in `backend/`
+**API:**
+- Ruff (`ruff check`, `ruff format`) per `api/pyproject.toml`; run from activated `api/.venv` or use `npm run lint` / `lint:fix` / `format` in `api/`
 - Type hints (Python)
 - Pydantic v2 models for validation (field_validator, json_schema_extra)
 - Pydantic BaseSettings (from pydantic-settings) for configuration
@@ -356,7 +358,7 @@ serverless deploy
 - Common schemas for API responses (SuccessResponse, ErrorResponse, PaginatedResponse)
 - Utility functions for common operations (UUID generation, datetime formatting, file size, sanitization)
 
-**Frontend:**
+**Webapp:**
 - TypeScript (optional but recommended)
 - oxlint for linting (`npm run lint`, `npm run lint:fix`)
 - Component-based architecture
@@ -364,13 +366,13 @@ serverless deploy
 
 ## Performance Considerations
 
-### Backend
+### API
 - Database query optimization (indexes)
 - Connection pooling
 - Lambda cold start mitigation (provisioned concurrency if needed)
 - S3 upload/download optimization
 
-### Frontend
+### Webapp
 - Code splitting
 - Lazy loading for routes
 - Image optimization

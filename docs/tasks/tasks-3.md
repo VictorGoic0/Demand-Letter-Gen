@@ -251,7 +251,7 @@
 ## PR #14: Local Development Main Application
 
 ### Main FastAPI Application
-- [x] 1. Update backend/main.py
+- [x] 1. Update api/main.py
 - [x] 2. Create FastAPI app instance
 - [x] 3. Configure CORS middleware:
   - [x] Allow frontend origin
@@ -283,7 +283,7 @@
 - [ ] 19. Create scripts/run_local.sh (SKIPPED - Using docker-compose directly with start_server.sh, end_server.sh, restart_server.sh)
 - [ ] 20. Add commands to start Docker Compose (SKIPPED - Handled by start_server.sh)
 - [ ] 21. Add commands to wait for database (SKIPPED - Handled by docker-compose healthchecks)
-- [ ] 22. Add commands to run migrations (COMPLETE - Created migration_scripts/migrate-up.sh, migrate-down.sh, migrate-create.sh)
+- [ ] 22. Add commands to run migrations (COMPLETE - Created scripts/migrate-up.sh, migrate-down.sh, migrate-create.sh)
 - [ ] 23. Add commands to start uvicorn (SKIPPED - Handled by docker-compose)
 - [ ] 24. Create scripts/seed_data.py for test data (SKIPPED - seed_test_firm.py and seed_test_users.py already exist)
 - [ ] 25. Add function to create test firm (SKIPPED - seed_test_firm.py exists)
@@ -302,8 +302,8 @@
 - [ ] 36. Create requirements-dev.txt with test dependencies (SKIPPED - Optional for MVP)
 
 ### Additional Scripts Created
-- [x] Created start_server.sh, end_server.sh, restart_server.sh in /backend for docker-compose management
-- [x] Created migration_scripts/migrate-up.sh, migrate-down.sh, migrate-create.sh for alembic migrations
+- [x] Created start_server.sh, end_server.sh, restart_server.sh in /api for docker-compose management
+- [x] Created scripts/migrate-up.sh, migrate-down.sh, migrate-create.sh for alembic migrations
 - [x] Created scripts/check_letter_table.py for checking generated_letters table (first 5 results)
 
 **PR #14 Status: ✅ COMPLETE** (Core functionality complete, testing setup deferred to MVP+)

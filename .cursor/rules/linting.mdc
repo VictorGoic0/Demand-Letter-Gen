@@ -1,6 +1,6 @@
 ---
 
-description: Linting standards and auto-fix workflow for frontend (oxlint) and backend (ruff)
+description: Linting standards and auto-fix workflow for webapp (oxlint) and api (ruff)
 
 globs: **/*.{js,jsx,ts,tsx,py}
 
@@ -10,21 +10,21 @@ alwaysApply: false
 
 # Linting Workflow
 
-## Frontend (`frontend/`)
+## Frontend (`webapp/`)
 
 After any substantive edit to a `.js`, `.jsx`, `.ts`, or `.tsx` file:
 
-1. Run `npm run lint:fix` in `frontend/` — runs `oxlint --fix --fix-suggestions --fix-dangerously`
+1. Run `npm run lint:fix` in `webapp/` — runs `oxlint --fix --fix-suggestions --fix-dangerously`
 2. Use `ReadLints` on edited files to catch anything oxlint can't auto-fix
 3. Fix remaining errors manually
 4. Never leave a task marked complete with outstanding lint errors
 
-## Backend (`backend/`)
+## Backend (`api/`)
 
 After any substantive edit to a `.py` file:
 
-1. Run `npm run lint:fix` in `backend/` — runs `ruff check --fix .`
-2. Run `npm run format` in `backend/` — runs `ruff format .`
+1. Run `npm run lint:fix` in `api/` — runs `ruff check --fix .`
+2. Run `npm run format` in `api/` — runs `ruff format .`
 3. Use `ReadLints` on edited files to catch anything ruff can't auto-fix
 4. Fix remaining errors manually
 5. Never leave a task marked complete with outstanding lint errors

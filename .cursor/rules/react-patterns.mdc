@@ -1,8 +1,8 @@
 ---
 
-description: React component structure and data-fetching conventions for the Demand Letter Generator frontend
+description: React component structure and data-fetching conventions for the Demand Letter Generator webapp
 
-globs: frontend/src/**/*.{js,jsx,ts,tsx}
+globs: webapp/src/**/*.{js,jsx,ts,tsx}
 
 alwaysApply: false
 

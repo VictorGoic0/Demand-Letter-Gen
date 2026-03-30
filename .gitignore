@@ -13,8 +13,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-# Python lib directories (but not frontend/src/lib/)
-backend/lib/
+# Python lib directories (but not webapp/src/lib/)
+api/lib/
 lib64/
 parts/
 sdist/
@@ -27,8 +27,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Explicitly allow frontend lib folder
-!frontend/src/lib/
+# Explicitly allow webapp lib folder
+!webapp/src/lib/
 
 # Virtual Environment
 .venv/

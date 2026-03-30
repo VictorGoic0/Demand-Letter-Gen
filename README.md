@@ -60,51 +60,57 @@ The Demand Letter Generator is an AI-driven solution designed to streamline the 
 
 2. **Set up environment variables**
 
-   Backend: create `backend/.env` (full variable list and examples: **[backend/README.md](backend/README.md)**).
+   API: create `api/.env` (full variable list and examples: **[api/README.md](api/README.md)**).
 
-   Frontend (create `frontend/.env`):
+   Webapp (create `webapp/.env`):
    ```env
    VITE_API_URL=http://localhost:8000
    ```
 
-3. **Backend: Docker, database, migrations, venv, and API**
+3. **API: Docker, database, migrations, venv, and server**
 
-   Follow **[backend/README.md](backend/README.md)** — virtualenv, `docker-compose`, `alembic upgrade head`, optional `test_db.py`, and `uvicorn` for local API.
+   Follow **[api/README.md](api/README.md)** — virtualenv, `docker-compose`, `alembic upgrade head`, optional `test_db.py`, and `uvicorn` for local API.
 
 4. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
+   - Webapp: http://localhost:5173
+   - API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
 ### Development Workflow
 
-**Frontend:**
+**Webapp:**
 ```bash
-cd frontend
+cd webapp
 npm install
 npm run dev
 ```
 
-**Backend:** venv, install, run API, lint — see **[backend/README.md](backend/README.md)**.
+**API:** venv, install, run server, lint — see **[api/README.md](api/README.md)**.
 
 ## Project Structure
 
 ```
 .
-├── backend/              # Python FastAPI backend (see backend/README.md)
+├── api/              # Python FastAPI API (see api/README.md)
 │   ├── services/         # Service modules (document, template, parser, AI, letter)
 │   ├── shared/           # Shared utilities (database, S3, config)
 │   ├── main.py           # Local development entry point
 │   ├── docker-compose.yml
 │   └── requirements.txt
-├── frontend/             # React frontend
+├── webapp/             # React webapp
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
 │   │   ├── hooks/
 │   │   └── utils/
 │   └── package.json
-└── memory-bank/          # Project documentation and context
+├── docs/                 # Guides, PRD, tasks, S3, Docker local setup, lambda deployment
+│   ├── tasks/
+│   ├── PRD.md
+│   ├── docker-local-setup.md
+│   ├── lambda-deployment.md
+│   └── s3-*.md
+└── memory-bank/          # Cursor memory bank (project state for AI)
 ```
 
 ## Architecture
@@ -131,7 +137,7 @@ The application uses PostgreSQL with the following main tables:
 
 ## Database Migrations
 
-Alembic commands, autogenerate workflow, and scripts live in **[backend/README.md](backend/README.md)**.
+Alembic commands, autogenerate workflow, and scripts live in **[api/README.md](api/README.md)**.
 
 ## S3 Bucket Setup
 
@@ -156,7 +162,7 @@ The application uses AWS S3 for document storage. You need to create two S3 buck
    ```
 
 2. **Update Environment Variables:**
-   Add to your `backend/.env` file:
+   Add to your `api/.env` file:
    ```env
    AWS_REGION=us-east-2
    S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
@@ -167,7 +173,7 @@ For detailed S3 bucket setup instructions, including bucket configuration (versi
 
 ## Deployment
 
-Production backend deploy (Serverless, env loading): **[backend/README.md](backend/README.md)** and `backend/serverless.yml`.
+Production API deploy (Serverless, env loading): **[api/README.md](api/README.md)** and `api/serverless.yml`.
 
 ## Contributing
 

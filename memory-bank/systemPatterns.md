@@ -15,7 +15,7 @@ This provides clean separation of concerns without full microservices complexity
 ### Service Breakdown
 
 ```
-backend/
+api/
   shared/              # Common code and dependencies
     database.py        # SQLAlchemy models, session management
     auth.py           # Authentication middleware
@@ -31,14 +31,11 @@ backend/
     parser_service/   # PDF text extraction
     ai_service/       # Letter generation orchestration
     letter_service/   # Letter CRUD, finalize, export
-  scripts/            # Utility scripts (testing, check scripts)
+  scripts/            # Utility scripts (testing, check scripts, Alembic wrappers)
     check_*.py        # Table check scripts (firm, user, document, template, letter, letter_document)
     seed_*.py         # Seed scripts (test_firm, test_users)
     test_*.py         # Test scripts (db_connection, upload_document_api)
-  migration_scripts/ # Alembic migration scripts
-    migrate-up.sh     # Upgrade to latest migration
-    migrate-down.sh   # Rollback one migration
-    migrate-create.sh # Create new migration
+    migrate-*.sh      # migrate-up.sh, migrate-down.sh, migrate-create.sh
   package.json        # npm scripts (start, restart, end, serverless commands)
   main.py             # Local dev: combines all routers with health checks
 ```
@@ -305,11 +302,11 @@ App
 
 ### Local Development
 - Docker Compose for full stack
-- Hot reload for both frontend and backend
+- Hot reload for both webapp and API
 - Local PostgreSQL database
 - Direct service imports (no API calls between services)
 - Docker management via npm scripts: `npm run start`, `npm run end`, `npm run restart`
-- Migration scripts: `migration_scripts/migrate-up.sh`, `migrate-down.sh`, `migrate-create.sh`
+- Migration scripts: `scripts/migrate-up.sh`, `migrate-down.sh`, `migrate-create.sh`
 - Check scripts: `scripts/check_*.py` for all database tables (first 5 results)
 - Main application with startup/shutdown events and detailed health checks
 
@@ -376,7 +373,7 @@ npm run info:prod           # Get deployment info
    ```
 2. **handlers/base.py** - Hardcoded Netlify domain in default CORS origins
 3. **main.py** - Health handler returns Netlify domain in CORS header
-4. **frontend/api.ts** - No `withCredentials` (uses localStorage, not cookies)
+4. **`webapp/src/lib/api.ts`** - No `withCredentials` (uses localStorage, not cookies)
 
 ### Environment Variables (Production Lambda)
 
@@ -398,8 +395,7 @@ npm run info:prod           # Get deployment info
 5. **Service Separation:** Clear boundaries but shared codebase for development speed
 6. **Environment Configuration:** `.env` files are source of truth for most configuration. OpenAI model and temperature are in `shared/config.py` for easier development iteration.
 7. **Scripts Organization:** 
-   - Utility scripts in `backend/scripts/` directory (check, seed, test scripts)
-   - Migration scripts in `backend/migration_scripts/` directory (alembic commands)
+   - Utility and migration wrapper scripts in `api/scripts/` (check, seed, test scripts, and `migrate-*.sh` for Alembic)
    - Docker management via npm scripts in `package.json` (npm run start, end, restart)
 8. **Port Standardization:** Use 5432 for PostgreSQL in all environments (local matches production)
 9. **HTML to DOCX Conversion:** Custom HTML parser built using Python's `html.parser` module, converting to python-docx Document objects. Supports common tags with nested formatting support. Filename generation with sanitization (50 char limit).
