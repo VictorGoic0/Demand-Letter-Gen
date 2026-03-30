@@ -1,0 +1,281 @@
+---
+description: Backend architecture, folder responsibilities, and conventions for the Demand Letter Generator API
+globs: api/**/*.py
+alwaysApply: false
+---
+
+# API Patterns
+
+## Folder Responsibilities
+
+```
+api/
+  shared/                  ← Code used by two or more services. Nothing service-specific lives here.
+    base.py                ← SQLAlchemy declarative Base — imported by all models and alembic/env.py
+    database.py            ← Engine, SessionLocal, get_db() dependency — the only place DB sessions are created
+    config.py              ← get_settings() singleton — the only place env vars are read
+    auth.py                ← Authentication middleware and helpers
+    s3_client.py           ← S3 operations wrapper; get_s3_client() singleton
+    exceptions.py          ← All custom exception classes + register_exception_handlers()
+    utils.py               ← Stateless utility functions (UUID, datetime, file size, sanitization)
+    models/                ← SQLAlchemy ORM models (one file per table)
+    schemas/               ← Shared Pydantic schemas
+      common.py            ← SuccessResponse, ErrorResponse, PaginatedResponse, PaginationParams
+
+  services/                ← One folder per service.
+    <service_name>/
+      router.py            ← FastAPI APIRouter. Thin: validate input, call logic, return response.
+      logic.py             ← All business logic. Receives a db Session; returns data or raises exceptions.
+      schemas.py           ← Pydantic request/response models specific to this service.
+      __init__.py
+
+  alembic/                 ← Database migrations only. No business logic.
+    versions/              ← One file per migration, auto-named by Alembic.
+    env.py                 ← Migration runner. Reads DB config from .env directly via os.getenv.
+
+  scripts/                 ← Utility scripts: check_*.py, seed_*.py, test_*.py, migrate-*.sh (Alembic wrappers)
+  main.py                  ← Real application entrypoint. Combines all routers. Run with uvicorn.
+  Dockerfile               ← Container entrypoint for deployment.
+```
+
+**Hard rules:**
+- `shared/` never imports from `services/`
+- `router.py` never contains business logic — it calls `logic.py` functions only
+- `logic.py` never imports from `router.py`
+- There is no `handler.py` — Lambda was removed; deployment is a standard uvicorn/Docker process
+- Models are only imported directly in `services/` and `alembic/` — all other callers go through a service function (enforced by ruff `TID251`)
+
+---
+
+## Environment Variables — Always via `get_settings()`
+
+Never read `os.getenv()` directly in service code. All configuration flows through the `get_settings()` singleton from `shared/config.py`. The one exception is `alembic/env.py`, which reads `os.getenv()` directly because it runs outside the FastAPI app context.
+
+```python
+# ❌ BAD — reading env vars directly in service code
+import os
+bucket = os.getenv("AWS_S3_BUCKET_DOCUMENTS")
+
+# ✅ GOOD — use the settings singleton
+from shared.config import get_settings
+
+settings = get_settings()
+bucket = settings.aws.s3_bucket_documents
+```
+
+### Settings Structure
+
+```python
+settings = get_settings()
+
+settings.environment          # "development" | "staging" | "production"
+settings.is_production        # bool
+settings.is_development       # bool
+
+settings.database.url         # full PostgreSQL connection string
+settings.database.host/port/name/user/password
+
+settings.aws.region
+settings.aws.s3_bucket_documents
+settings.aws.s3_bucket_exports
+settings.aws.access_key_id    # Optional — omit to use boto3 default credential chain (instance profile, ECS role, ~/.aws/credentials)
+settings.aws.secret_access_key
+
+settings.openai.api_key
+settings.openai.model         # "gpt-4" — change here, not in env
+settings.openai.temperature   # 0.7 — change here, not in env
+
+settings.cors.allow_origins
+```
+
+---
+
+## Database Sessions — Always via `get_db()` Dependency
+
+Never instantiate `SessionLocal` directly in service code. FastAPI injects the session via `Depends(get_db)`. Pass the session down to logic functions.
+
+```python
+# ❌ BAD — creating sessions manually
+from shared.database import SessionLocal
+db = SessionLocal()
+
+# ✅ GOOD — injected by FastAPI
+from shared.database import get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+@router.get("/")
+async def list_endpoint(db: Session = Depends(get_db)):
+    return logic_function(db, ...)
+```
+
+Logic functions always receive `db: Session` as their first argument — they never create their own sessions.
+
+```python
+# ✅ GOOD — logic.py function signature
+def get_letters(
+    db: Session,
+    firm_id: UUID,
+    page: int = 1,
+    page_size: int = 20,
+) -> Tuple[List[LetterResponse], int]:
+    ...
+```
+
+---
+
+## Firm-Level Isolation — Enforced on Every Query
+
+Every query against a firm-scoped table **must** filter by `firm_id`. No exceptions. All create operations must include `firm_id` in the record.
+
+```python
+# ❌ BAD — missing firm_id filter
+letters = db.query(GeneratedLetter).all()
+
+# ✅ GOOD — always filter by firm_id
+letters = db.query(GeneratedLetter).filter(GeneratedLetter.firm_id == firm_id).all()
+```
+
+`firm_id` always comes from the URL path parameter (`/{firm_id}/...`), never from a request body or query string for security-sensitive operations.
+
+---
+
+## Router Pattern — Thin, No Logic
+
+Routers live in `router.py`. They validate input via FastAPI/Pydantic, inject dependencies, call one or more `logic.py` functions, and return a response. No SQLAlchemy queries, no S3 calls, no business decisions belong here.
+
+```python
+# ✅ GOOD — thin router
+@router.get("/", response_model=LetterListResponse)
+async def list_letters_endpoint(
+    firm_id: UUID,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    letters, total = get_letters(db, firm_id, page, page_size)
+    return LetterListResponse(items=letters, total=total, page=page, page_size=page_size)
+```
+
+All routers use the `/{firm_id}/<resource>` path prefix. The `firm_id` is a `UUID` path parameter — let FastAPI validate the type automatically.
+
+---
+
+## Exception Handling — Use Typed Exceptions, Never Raw HTTPException
+
+All expected failure modes raise a typed exception from `shared/exceptions.py`. Never raise `HTTPException` directly in logic code.
+
+```python
+# ❌ BAD — raw HTTPException in logic
+from fastapi import HTTPException
+raise HTTPException(status_code=404, detail="Letter not found")
+
+# ✅ GOOD — typed exception
+from shared.exceptions import LetterNotFoundException
+raise LetterNotFoundException(letter_id=str(letter_id))
+```
+
+### Available Exception Classes
+
+| Exception | Status | When to use |
+|---|---|---|
+| `NotFoundException` | 404 | Generic not-found |
+| `DocumentNotFoundException` | 404 | Document not found |
+| `TemplateNotFoundException` | 404 | Template not found |
+| `LetterNotFoundException` | 404 | Letter not found |
+| `ValidationException` | 422 | Business rule validation failure |
+| `ForbiddenException` | 403 | firm_id mismatch / access denied |
+| `UnauthorizedException` | 401 | Missing or invalid auth |
+| `S3UploadException` | 500 | S3 upload failure |
+| `S3DownloadException` | 500 | S3 download failure |
+| `OpenAIException` | 500 | OpenAI API failure |
+| `ParserException` | 500 | PDF parsing failure |
+
+All handlers are registered via `register_exception_handlers(app)` in `main.py` only. Do not add new `app.add_exception_handler()` calls anywhere else.
+
+---
+
+## Pydantic Schemas — Service-Local vs. Shared
+
+Schemas that are specific to one service live in `services/<service>/schemas.py`. Schemas used across two or more services live in `shared/schemas/common.py`.
+
+**Shared schemas (always import from `shared.schemas`):**
+- `SuccessResponse` — `{ success, message, data }`
+- `ErrorResponse` — `{ success, error, detail, code }`
+- `PaginatedResponse[T]` — use `.create(items, total, page, page_size)` class method
+- `PaginationParams` — pagination query params with `.offset` and `.limit` properties
+
+```python
+# ✅ GOOD — paginated list response
+from shared.schemas import PaginatedResponse
+
+return PaginatedResponse.create(
+    items=letter_responses,
+    total=total_count,
+    page=page,
+    page_size=page_size,
+)
+```
+
+---
+
+## Migrations — Alembic Only, Always Auto-Generated
+
+Never modify database schema by hand or via raw SQL in application code. All schema changes go through Alembic migrations.
+
+### Workflow
+
+```bash
+# 1. Make changes to the SQLAlchemy model in shared/models/
+# 2. Create a new migration (auto-detects changes)
+./scripts/migrate-create.sh "describe what changed"
+
+# 3. Review the generated file in alembic/versions/ before applying
+# 4. Apply the migration
+./scripts/migrate-up.sh
+
+# Rollback one step if needed
+./scripts/migrate-down.sh
+```
+
+### Rules
+
+- Migration files are auto-named by Alembic — **never rename them**
+- Every migration must be reversible — always implement both `upgrade()` and `downgrade()`
+- `alembic/env.py` reads DB config from `.env` directly via `os.getenv()` — this is the one sanctioned exception to the `get_settings()` rule
+- When adding a new model, import it in `alembic/env.py` so `target_metadata` includes it for autogenerate
+
+---
+
+## S3 Access — Always via `get_s3_client()`
+
+Never instantiate a boto3 client directly. Use the `get_s3_client()` singleton from `shared/s3_client.py`, which handles credentials automatically: uses explicit credentials from `get_settings().aws` if set, otherwise falls back to boto3's default credential chain (instance profile, ECS task role, `~/.aws/credentials`).
+
+```python
+# ❌ BAD
+import boto3
+s3 = boto3.client("s3")
+
+# ✅ GOOD
+from shared.s3_client import get_s3_client
+s3 = get_s3_client()
+```
+
+---
+
+## OpenAI — Always via `ai_service`
+
+All OpenAI API calls live in `services/ai_service/`. No other service calls OpenAI directly. If a service needs AI-generated content, it calls the AI service via HTTP (in production) or imports from `ai_service` (in local dev).
+
+Model and temperature are set in `shared/config.py` (`settings.openai.model`, `settings.openai.temperature`) — not in `.env`. Change them in code, not in environment variables.
+
+---
+
+## Adding a New Service
+
+1. Create `services/<name>/` with `router.py`, `logic.py`, `schemas.py`, `__init__.py`
+2. Router prefix: `/{firm_id}/<resource_plural>`
+3. Register the router in `main.py` with `app.include_router(...)`
+4. Add service-specific dependencies to `requirements.txt` if needed
+
+No `handler.py`. No `serverless.yml` entry. The service is live the moment its router is registered in `main.py`.

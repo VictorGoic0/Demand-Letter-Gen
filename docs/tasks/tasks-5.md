@@ -386,7 +386,7 @@
 - [ ] 14. Add troubleshooting section
 
 ### Backend Documentation
-- [ ] 15. Create backend/README.md
+- [ ] 15. Create api/README.md
 - [ ] 16. Document project structure
 - [ ] 17. Document each service's purpose
 - [ ] 18. Document database schema
@@ -395,7 +395,7 @@
 - [ ] 21. Document testing approach
 
 ### Frontend Documentation
-- [ ] 22. Create frontend/README.md
+- [ ] 22. Create webapp/README.md
 - [ ] 23. Document project structure
 - [ ] 24. Document component hierarchy
 - [ ] 25. Document routing structure

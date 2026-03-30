@@ -103,7 +103,7 @@ aws s3api put-public-access-block \
 
 ## Environment Variables
 
-Add these to your `backend/.env` file:
+Add these to your `api/.env` file:
 
 ```env
 AWS_REGION=us-east-2
@@ -200,7 +200,7 @@ If you get "BucketAlreadyExists" error, the bucket name is already taken. Try:
 ## Next Steps
 
 Once buckets are created:
-1. Update `backend/.env` with bucket names
+1. Update `api/.env` with bucket names
 2. Test S3 client with the verification script above
 3. Start using S3 client in your application code
 

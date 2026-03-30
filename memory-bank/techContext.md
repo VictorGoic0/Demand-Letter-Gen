@@ -2,7 +2,7 @@
 
 ## Technology Stack
 
-### Frontend
+### Webapp
 
 **Core Framework:**
 - React 18.3.1
@@ -29,12 +29,12 @@
 
 **Development Tools:**
 - TypeScript (recommended but optional)
-- ESLint 9.36.0
+- oxlint (with `oxlint-plugin-eslint`, type-aware via `oxlint-tsgolint` when `typeAware` is enabled in `.oxlintrc.json`)
 - Autoprefixer 10.4.20
 - PostCSS 8.4.47
 - @vitejs/plugin-react 5.0.4
 
-### Backend
+### API
 
 **Core:**
 - Python 3.11
@@ -44,8 +44,7 @@
 **Key Dependencies:**
 ```python
 fastapi>=0.104.1
-uvicorn[standard]>=0.24.0  # Local development only
-mangum>=0.17.0  # FastAPI to Lambda adapter
+uvicorn[standard]>=0.24.0
 sqlalchemy>=2.0.23
 pydantic>=2.5.0
 pydantic-settings>=2.1.0  # BaseSettings for configuration management
@@ -60,49 +59,48 @@ alembic>=1.12.0  # Database migrations
 
 ### Infrastructure
 
-**AWS Services:**
-- **Lambda:** Python 3.11 runtime, serverless compute
-- **API Gateway:** HTTP endpoints for Lambda functions
+**Local / deployment:**
+- **Docker Compose** (`api/docker-compose.yml`): PostgreSQL 15 + API (uvicorn with reload in dev)
+- **Dockerfile** (`api/Dockerfile`): production-style API image (uvicorn, no reload by default)
+
+**AWS (optional for app features):**
 - **S3:** Document storage (PDFs and .docx files)
-- **RDS:** PostgreSQL 15 for relational database
-- **CloudWatch:** Logging and monitoring
-- **IAM:** Access control and permissions
+- **IAM / credentials:** Explicit keys via env or instance/task role via boto3 default chain
 
 **External APIs:**
 - **OpenAI API:** GPT-4 or GPT-3.5-turbo for letter generation
 
 ## Development Environment
 
+**Documentation:** Guides, PRD, task lists, S3 docs, Docker local setup (`docs/docker-local-setup.md`), and Lambda deployment guide live under **`docs/`**. The Cursor memory bank stays at **`memory-bank/`** (repository root).
+
 ### Prerequisites
 - Docker & Docker Compose
-- Python 3.11
-- Node.js 18+ (for frontend)
+- Python 3.11+ (local venv under `api/.venv` — create with `python3 -m venv .venv`, install `requirements.txt` + `requirements-dev.txt`; not committed, listed in `.gitignore`; full API setup in `api/README.md`)
+- Node.js 18+ (for webapp)
 
 ### Local Development Setup
 
 **Docker Compose Services:**
 - PostgreSQL 15 (port 5432)
-- Backend FastAPI (port 8000)
-- Frontend Vite dev server (port 5173)
+- API FastAPI (port 8000)
+- Webapp Vite dev server (port 5173)
 
 **Utility Scripts:**
-- Located in `backend/scripts/` directory:
+- Located in `api/scripts/` directory:
   - `check_*.py` - Table check scripts (firm, user, document, template, letter, letter_document) - returns first 5 results
   - `seed_*.py` - Seed scripts (test_firm, test_users)
   - `test_*.py` - Test scripts (db_connection, upload_document_api)
-- Migration scripts in `backend/migration_scripts/`:
+- Alembic shell wrappers in `api/scripts/`:
   - `migrate-up.sh` - Run `alembic upgrade head`
   - `migrate-down.sh` - Run `alembic downgrade -1`
   - `migrate-create.sh` - Create new migration with message
-- Docker management via npm scripts in `package.json`:
-  - `npm run start` - Start docker-compose services
-  - `npm run end` - Stop docker-compose services
-  - `npm run restart` - Restart docker-compose services
+- Start stack: `cd api && docker compose up` (see `api/README.md`, `docs/docker-local-setup.md`); stop with `docker compose down`
 - All scripts use `.env` for configuration
 
 **Environment Variables:**
 
-Backend (.env):
+API (.env):
 ```
 # Application
 ENVIRONMENT=development
@@ -120,8 +118,8 @@ DB_PASSWORD=dev_password
 AWS_ACCESS_KEY_ID=<key>
 AWS_SECRET_ACCESS_KEY=<key>
 AWS_REGION=us-east-2
-S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
-S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
+AWS_S3_BUCKET_DOCUMENTS=goico-demand-letters-documents-dev
+AWS_S3_BUCKET_EXPORTS=goico-demand-letters-exports-dev
 
 # OpenAI
 OPENAI_API_KEY=<key>
@@ -135,7 +133,7 @@ CORS_ALLOW_METHODS=*
 CORS_ALLOW_HEADERS=*
 ```
 
-Frontend (.env):
+Webapp (.env):
 ```
 VITE_API_URL=http://localhost:8000
 ```
@@ -168,7 +166,7 @@ VITE_API_URL=http://localhost:8000
 
 ### Serverless Framework
 
-**Configuration:** `serverless.yml` in backend directory
+**Configuration:** Environment variables and `api/.env` (see `api/.env.example`, `shared/config.py`)
 
 **Key Settings:**
 - Service name: demand-letter-generator
@@ -213,13 +211,13 @@ VITE_API_URL=http://localhost:8000
 - Region: us-east-2
 
 **S3 Client:**
-- Location: `backend/shared/s3_client.py`
+- Location: `api/shared/s3_client.py`
 - Features: Upload, download, delete, presigned URL generation, bucket existence check, file listing
 - Singleton pattern: `get_s3_client()` for easy access
 - Error handling: Comprehensive exception handling for all operations
 
 **Shared Utilities:**
-- Location: `backend/shared/`
+- Location: `api/shared/`
 - `config.py`: Pydantic BaseSettings with nested configs (Database, AWS, OpenAI, CORS)
 - `exceptions.py`: Custom exception classes and FastAPI exception handlers
 - `schemas/common.py`: Common API response schemas (SuccessResponse, ErrorResponse, PaginationParams, PaginatedResponse)
@@ -235,10 +233,10 @@ VITE_API_URL=http://localhost:8000
 
 ## Build & Deployment
 
-### Frontend Build
+### Webapp build
 
 ```bash
-cd frontend
+cd webapp
 npm install
 npm run build
 # Output: dist/ directory
@@ -246,18 +244,18 @@ npm run build
 
 **Deployment:** Static files to S3 + CloudFront
 
-### Backend Build
+### API build
 
 **Local Development:**
 ```bash
 # Start Docker services
-cd backend
+cd api
 npm run start
 
 # Run migrations (if needed)
-./migration_scripts/migrate-up.sh
+./scripts/migrate-up.sh
 
-# Backend auto-reloads via docker-compose (uvicorn --reload)
+# API auto-reloads via docker-compose (uvicorn --reload)
 # Or run manually:
 pip install -r requirements.txt
 uvicorn main:app --reload
@@ -266,7 +264,7 @@ uvicorn main:app --reload
 **Lambda Deployment:**
 ```bash
 # Using Serverless Framework
-cd backend
+cd api
 serverless deploy
 ```
 
@@ -318,12 +316,12 @@ serverless deploy
 ### Local Development
 
 1. Start Docker Compose: `npm run start` (or `docker-compose up -d`)
-2. Run migrations: `./migration_scripts/migrate-up.sh` (or `alembic upgrade head`)
-3. Backend auto-reloads on code changes (via docker-compose uvicorn --reload)
-4. Frontend hot-reloads on code changes
+2. Run migrations: `./scripts/migrate-up.sh` (or `alembic upgrade head`)
+3. API auto-reloads on code changes (via docker-compose uvicorn --reload)
+4. Webapp hot-reloads on code changes
 5. Access:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
+   - Webapp: http://localhost:5173
+   - API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
    - Health Check: http://localhost:8000/health (returns database and S3 status)
 6. Check database tables: `python scripts/check_*.py` (returns first 5 results)
@@ -332,13 +330,13 @@ serverless deploy
 
 ### Testing
 
-**Backend:**
+**API:**
 - pytest for unit and integration tests
 - Test database with transactions
 - Mocked S3 and OpenAI for tests
 - Target: >80% code coverage
 
-**Frontend:**
+**Webapp:**
 - Vitest for unit tests
 - React Testing Library for component tests
 - Mocked API calls
@@ -346,7 +344,8 @@ serverless deploy
 
 ### Code Quality
 
-**Backend:**
+**API:**
+- Ruff (`ruff check`, `ruff format`) per `api/pyproject.toml`; run from activated `api/.venv` or use `npm run lint` / `lint:fix` / `format` in `api/`
 - Type hints (Python)
 - Pydantic v2 models for validation (field_validator, json_schema_extra)
 - Pydantic BaseSettings (from pydantic-settings) for configuration
@@ -355,21 +354,21 @@ serverless deploy
 - Common schemas for API responses (SuccessResponse, ErrorResponse, PaginatedResponse)
 - Utility functions for common operations (UUID generation, datetime formatting, file size, sanitization)
 
-**Frontend:**
+**Webapp:**
 - TypeScript (optional but recommended)
-- ESLint for linting
+- oxlint for linting (`npm run lint`, `npm run lint:fix`)
 - Component-based architecture
 - Custom hooks for API calls
 
 ## Performance Considerations
 
-### Backend
+### API
 - Database query optimization (indexes)
 - Connection pooling
 - Lambda cold start mitigation (provisioned concurrency if needed)
 - S3 upload/download optimization
 
-### Frontend
+### Webapp
 - Code splitting
 - Lazy loading for routes
 - Image optimization

@@ -3,9 +3,13 @@
 ## Project Status
 
 **Overall Progress:** ~79% - Foundation Phase Complete, Document Service Complete, Template Service Complete, Parser Service Complete, AI Service Complete (OpenAI Integration + Generation Logic), Letter Service Complete (CRUD + DOCX Export + Re-export Improvements), Local Development Main Application Complete, Frontend Foundation Complete, Document Library Page Complete, Template Management Page Complete, Create Letter Page Complete, Finalize Letter Page Complete, Generated Letters Library Page Complete, Edit Letter Page Complete (Frontend + Backend Improvements), Error Handling and Loading States Complete, Authentication Flow Complete (23/29 PRs Complete)  
-**Last Updated:** November 2025
+**Last Updated:** March 2026
 
 ## What Works
+
+### Recent (2026)
+
+- ✅ Backend runtime migration: Lambda / Serverless / Mangum removed; single FastAPI app + Docker Compose + `Dockerfile` per **`docs/remove-lambda.md`**.
 
 ### Completed
 - ✅ PRD finalized and approved
@@ -186,7 +190,7 @@
   - Detailed health checks on startup (database connection test, S3 bucket checks)
   - Enhanced /health endpoint with database and S3 status
   - Created Docker management scripts (server_start.sh, server_end.sh, server_restart.sh)
-  - Created migration scripts (migrate-up.sh, migrate-down.sh, migrate-create.sh)
+  - Created migration scripts in `scripts/` (migrate-up.sh, migrate-down.sh, migrate-create.sh)
   - Created check scripts for all tables (check_letter_table.py, check_letter_document_table.py)
   - All service routers integrated
   - CORS configured for development
@@ -306,13 +310,13 @@
 - [x] .docx export to S3 - Backend complete (PR #13), Frontend complete (PR #20)
 
 ### Letter Management (100% - Complete)
-- [x] Letter listing (backend) - PR #12 Complete
-- [x] Letter retrieval (backend) - PR #12 Complete
-- [x] Letter updating (backend) - PR #12 Complete
-- [x] Letter deletion (backend) - PR #12 Complete
-- [x] Letter finalization (backend) - PR #13 Complete
-- [x] Letter export (backend) - PR #13 Complete
-- [x] Generated letters library (frontend) - PR #20 Complete
+- [x] Letter listing (API) - PR #12 Complete
+- [x] Letter retrieval (API) - PR #12 Complete
+- [x] Letter updating (API) - PR #12 Complete
+- [x] Letter deletion (API) - PR #12 Complete
+- [x] Letter finalization (API) - PR #13 Complete
+- [x] Letter export (API) - PR #13 Complete
+- [x] Generated letters library (webapp) - PR #20 Complete
 - [x] Status indicators (draft/created) - PR #20 Complete
 - [x] Letter editing (post-finalization) - PR #21 Complete
 

@@ -66,13 +66,13 @@ Use conventional commit format:
 
 **Backend Testing:**
 ```bash
-cd backend
+cd api
 pytest
 ```
 
 **Frontend Testing:**
 ```bash
-cd frontend
+cd webapp
 npm test
 ```
 
@@ -106,7 +106,7 @@ Before submitting a pull request, ensure:
 ### Backend Structure
 
 ```
-backend/
+api/
 ├── services/           # Service modules
 │   ├── document_service/
 │   ├── template_service/
@@ -123,7 +123,7 @@ backend/
 ### Frontend Structure
 
 ```
-frontend/src/
+webapp/src/
 ├── components/       # Reusable React components
 ├── pages/            # Page components
 ├── hooks/            # Custom React hooks

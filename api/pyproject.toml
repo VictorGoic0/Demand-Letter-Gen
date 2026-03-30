@@ -1,0 +1,52 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["."]
+
+[tool.ruff.lint]
+select = [
+    "F",   # pyflakes — unused imports (F401), undefined names, unused variables (F841)
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "I",   # isort — import ordering
+    "N",   # pep8-naming — naming conventions
+    "UP",  # pyupgrade — modernize to Python 3.11 syntax
+    "B",   # flake8-bugbear — opinionated bug/design issues
+    "SIM", # flake8-simplify — prefer ternary (SIM108), simpler patterns
+    "TCH", # flake8-type-checking — consistent TYPE_CHECKING imports
+    "TID", # flake8-tidy-imports — restricted imports (architecture enforcement)
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501",   # line too long — handled by the formatter
+    "B008",   # function calls in default args — FastAPI Depends() pattern
+    "SIM117", # merge nested with statements — hurts readability
+]
+
+# Architecture enforcement: SQLAlchemy models and DB session are only accessible
+# from services/. All other callers must go through a service function.
+# Equivalent to no-restricted-imports on Prisma client in the JS project.
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"shared.models" = { msg = "SQLAlchemy models must only be imported from services/. Call a service function instead." }
+"shared.database" = { msg = "DB session must only be imported from services/. Call a service function instead." }
+"shared.db_utils" = { msg = "DB utilities must only be imported from services/. Call a service function instead." }
+
+# Move annotations to TYPE_CHECKING blocks — equivalent to consistent-type-imports
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+
+# Overrides: lift the DB restriction in files that legitimately need direct access.
+# Mirrors the overrides block in the JS oxlint config.
+[tool.ruff.lint.per-file-ignores]
+"services/**/*.py" = ["TID251"]
+"alembic/**/*.py" = ["TID251", "E402"]
+"scripts/**/*.py" = ["TID251", "E402"]
+"shared/models/**/*.py" = ["TID251"]
+"main.py" = ["TID251"]
+"shared/db_utils.py" = ["TID251"]
+"shared/exceptions.py" = ["N818"]
+"services/auth_service/schemas.py" = ["N815"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

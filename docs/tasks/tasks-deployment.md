@@ -43,7 +43,7 @@
   - [x] DO NOT block public access (needed for presigned URLs)
 
 ### S3 Configuration Script
-- [x] 4. Create `backend/scripts/create_prod_s3_buckets.sh`:
+- [x] 4. Create `api/scripts/create_prod_s3_buckets.sh`:
   - [x] Add shebang and error handling
   - [x] Set AWS_REGION variable
   - [x] Set ENV="prod" variable
@@ -52,7 +52,7 @@
   - [x] Add encryption configuration commands
   - [x] Add public access block for documents bucket
   - [x] Add verification commands to check bucket creation
-- [x] 5. Make script executable: `chmod +x backend/scripts/create_prod_s3_buckets.sh`
+- [x] 5. Make script executable: `chmod +x api/scripts/create_prod_s3_buckets.sh`
 - [x] 6. Run script to create production S3 buckets
 - [x] 7. Verify buckets created successfully in AWS Console
 - [x] 8. Delete script after successful creation (cleanup)
@@ -107,12 +107,12 @@
 
 ### Database Initialization
 - [x] 7. Run Alembic migrations on production database:
-  - [x] Ensure `backend/.env.production` exists with production DB credentials
-  - [x] Run: `cd backend && alembic upgrade head`
+  - [x] Ensure `api/.env.production` exists with production DB credentials
+  - [x] Run: `cd api && alembic upgrade head`
   - [x] Verify all tables created successfully
   - [x] Check tables: `\dt` in psql
 - [x] 8. Verify database setup:
-  - [x] Run database check scripts from `backend/scripts/`
+  - [x] Run database check scripts from `api/scripts/`
   - [x] Verify all tables exist (firms, users, documents, templates, letters, letter_source_documents)
 - [x] 9. Seed production database:
   - [x] Run seed scripts: `seed_test_firm.py` and `seed_test_users.py` (using `.env.production`)
@@ -130,7 +130,7 @@
 **Note**: For MVP speed, we're using AWS credentials directly in Lambda env vars instead of IAM roles/Secrets Manager. This is less secure but much faster to set up. Can migrate to IAM/Secrets Manager post-MVP.
 
 ### Create Production Environment Variables File
-- [x] 1. Create `backend/.env.production` (DO NOT commit):
+- [x] 1. Create `api/.env.production` (DO NOT commit):
   - [x] DB_HOST=[RDS endpoint from PR #2]
   - [x] DB_PORT=5432
   - [x] DB_NAME=postgres (or demand_letters_prod)
@@ -146,10 +146,10 @@
   - [x] DEBUG=false
   - [x] LOG_LEVEL=INFO
 - [x] 2. Ensure `.env.production` is in `.gitignore`
-- [x] 3. Create `backend/.env.example` with production placeholders
+- [x] 3. Create `api/.env.example` with production placeholders
 
 ### Update Serverless Configuration for MVP
-- [x] 4. Update `backend/serverless.yml` for simplified production:
+- [x] 4. Update `api/serverless.yml` for simplified production:
   - [x] No IAM role configuration needed (use default Lambda role)
   - [x] No VPC configuration (Lambda in default/public subnet)
   - [x] Environment variables read from environment (via .env.production)
@@ -172,7 +172,7 @@
 ## PR #4: Lambda Function Definitions and Deployment Configuration ✅
 
 ### Define Lambda Functions in serverless.yml
-- [x] 1. Add functions section to `backend/serverless.yml`
+- [x] 1. Add functions section to `api/serverless.yml`
 - [x] 2. Define health check function
 - [x] 3. Define document service function (handles all document routes):
   - [x] documentUpload (POST /{firm_id}/documents)
@@ -210,7 +210,7 @@
 - [x] 10. Add layers reference to all functions
 
 ### Create Lambda Handlers
-- [x] 11. Verify all handlers exist in `backend/handlers/`:
+- [x] 11. Verify all handlers exist in `api/handlers/`:
   - [x] document_handler.py (updated to use actual router)
   - [x] template_handler.py (updated to use actual router)
   - [x] letter_handler.py (updated to use actual router)
@@ -221,7 +221,7 @@
 - [x] 14. Update Mangum base path to be dynamic based on stage
 
 ### API Gateway Configuration
-- [x] 15. Configure API Gateway in `backend/serverless.yml`:
+- [x] 15. Configure API Gateway in `api/serverless.yml`:
   - [x] Binary media types configured (for file uploads)
   - [x] Minimum compression size set
   - [x] CloudWatch logging enabled (logRetentionInDays: 7)
@@ -230,7 +230,7 @@
 - [x] 18. API Gateway authorizer (optional - skipped for MVP)
 
 ### Deployment Scripts
-- [x] 19. Update `backend/package.json` scripts:
+- [x] 19. Update `api/package.json` scripts:
   - [x] deploy:prod script exists (from PR #3)
   - [x] Added deploy:prod:verbose script
   - [x] Added info:prod script (from PR #3)
@@ -261,9 +261,9 @@ This PR documents all the fixes required to get the application working in produ
 - `serverless-python-requirements` with `slim: true` was stripping metadata
 
 **Fixes**:
-- [x] Removed `EmailStr` from `backend/services/auth_service/schemas.py` (changed to plain `str`)
-- [x] Removed `email-validator>=2.0.0` from `backend/requirements.txt`
-- [x] Changed `slim: true` to `slim: false` in `backend/serverless.yml` (preserves package metadata)
+- [x] Removed `EmailStr` from `api/services/auth_service/schemas.py` (changed to plain `str`)
+- [x] Removed `email-validator>=2.0.0` from `api/requirements.txt`
+- [x] Changed `slim: true` to `slim: false` in `api/serverless.yml` (preserves package metadata)
 
 #### 2. Environment Variable Validation Issues
 **Problem**: Lambda crashing with Pydantic validation errors for environment variables
@@ -273,7 +273,7 @@ This PR documents all the fixes required to get the application working in produ
 - config.py only accepts `development`, `staging`, `production`
 
 **Fix**:
-- [x] Changed `backend/serverless.yml` line 27 to hardcode: `ENVIRONMENT: production`
+- [x] Changed `api/serverless.yml` line 27 to hardcode: `ENVIRONMENT: production`
 
 **Issue B - AWS Lambda environment variables rejected**:
 - AWS Lambda automatically sets many `AWS_*` environment variables (e.g., `AWS_LAMBDA_FUNCTION_NAME`)
@@ -281,7 +281,7 @@ This PR documents all the fixes required to get the application working in produ
 - Pydantic rejected Lambda's extra environment variables with `extra_forbidden` errors
 
 **Fix**:
-- [x] Added `extra="ignore"` to `AWSConfig.model_config` in `backend/shared/config.py` (line 54)
+- [x] Added `extra="ignore"` to `AWSConfig.model_config` in `api/shared/config.py` (line 54)
 
 #### 3. CORS Configuration Issues
 **Problem**: Browser blocking requests with CORS error - `Access-Control-Allow-Origin` cannot be wildcard `*` when credentials mode is `include`
@@ -292,8 +292,8 @@ This PR documents all the fixes required to get the application working in produ
 - Wildcard CORS breaks when credentials are included
 
 **Fixes**:
-- [x] Removed `withCredentials: true` from `frontend/src/lib/api.ts`
-- [x] Replaced all `cors: true` in `backend/serverless.yml` with explicit CORS configuration:
+- [x] Removed `withCredentials: true` from `webapp/src/lib/api.ts`
+- [x] Replaced all `cors: true` in `api/serverless.yml` with explicit CORS configuration:
   ```yaml
   cors:
     origin: https://demand-letter-generator.netlify.app
@@ -304,8 +304,8 @@ This PR documents all the fixes required to get the application working in produ
       - X-User-Id
     allowCredentials: false
   ```
-- [x] Updated `backend/handlers/base.py` to hardcode Netlify domain in CORS origins (lines 40-45)
-- [x] Updated `backend/main.py` health handler to use Netlify domain (line 210)
+- [x] Updated `api/handlers/base.py` to hardcode Netlify domain in CORS origins (lines 40-45)
+- [x] Updated `api/main.py` health handler to use Netlify domain (line 210)
 
 #### 4. Missing Auth Service Endpoint
 **Problem**: `/login` endpoint returning 403/404 - endpoint not deployed
@@ -313,8 +313,8 @@ This PR documents all the fixes required to get the application working in produ
 **Root Cause**: Auth service had router but no Lambda handler and wasn't configured in serverless.yml
 
 **Fixes**:
-- [x] Created `backend/handlers/auth_handler.py` (following pattern from other handlers)
-- [x] Added `authService` function to `backend/serverless.yml` with `/login` POST endpoint
+- [x] Created `api/handlers/auth_handler.py` (following pattern from other handlers)
+- [x] Added `authService` function to `api/serverless.yml` with `/login` POST endpoint
 
 #### 5. RDS Connection Timeout
 **Problem**: Lambda timing out when trying to connect to RDS PostgreSQL
@@ -331,7 +331,7 @@ This PR documents all the fixes required to get the application working in produ
 **Root Cause**: `TemplateListResponse` has Pydantic validation `page_size >= 1`, but code was setting `page_size=len(templates)` which is 0 when empty
 
 **Fix**:
-- [x] Changed `backend/services/template_service/router.py` line 120 to: `page_size=len(templates) if len(templates) > 0 else 1`
+- [x] Changed `api/services/template_service/router.py` line 120 to: `page_size=len(templates) if len(templates) > 0 else 1`
 
 #### 7. S3 Upload Failures ✅ FIXED
 **Problem**: Document uploads failing with `InvalidAccessKeyId` error
@@ -342,7 +342,7 @@ This PR documents all the fixes required to get the application working in produ
 - When these env vars were missing or invalid, boto3 would fail with `InvalidAccessKeyId`
 
 **Fix**:
-- [x] Updated `backend/shared/s3_client.py` to detect Lambda environment using `AWS_EXECUTION_ENV` environment variable
+- [x] Updated `api/shared/s3_client.py` to detect Lambda environment using `AWS_EXECUTION_ENV` environment variable
 - [x] When in Lambda: Initialize boto3 client with only `region_name` (no credentials) - uses IAM role automatically
 - [x] When in local dev: Use explicit credentials from environment variables or parameters
 - [x] Lambda no longer reads or checks `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` - relies entirely on IAM role
@@ -368,7 +368,7 @@ else:
 **Status**: ✅ Fixed - S3 uploads now work in Lambda using IAM role
 
 ### Deployment Scripts
-- [x] Updated `backend/package.json` scripts to use `npx serverless` and proper env var loading:
+- [x] Updated `api/package.json` scripts to use `npx serverless` and proper env var loading:
   - `npm run deploy:prod` - Deploy to production
   - `npm run logs:prod` - View all prod logs  
   - `npm run logs:function` - View specific function logs
@@ -395,7 +395,7 @@ else:
 ## PR #8: Frontend Production Configuration (Netlify)
 
 ### Netlify Configuration
-- [x] 1. Create `frontend/netlify.toml`:
+- [x] 1. Create `webapp/netlify.toml`:
   - [x] Build command: `npm run build`
   - [x] Publish directory: `dist`
   - [x] SPA redirect rules (redirect all routes to index.html)
@@ -404,8 +404,8 @@ else:
   - [x] No changes needed - Netlify will work with current CORS settings
 
 ### Auth Service Deployment
-- [x] 3. Add auth service Lambda function to `backend/serverless.yml`:
-  - [x] Create `backend/handlers/auth_handler.py` (following pattern from other handlers)
+- [x] 3. Add auth service Lambda function to `api/serverless.yml`:
+  - [x] Create `api/handlers/auth_handler.py` (following pattern from other handlers)
   - [x] Add `authService` function definition with `/login` POST endpoint
   - [x] Configure CORS for auth endpoints
   - [x] Set appropriate timeout and memory size
@@ -416,8 +416,8 @@ else:
 
 ### CORS Configuration for Production
 - [x] 5. Update CORS to explicitly allow Netlify origin:
-  - [x] Hardcode `https://demand-letter-generator.netlify.app` in `backend/handlers/base.py` default CORS origins
-  - [x] Update `backend/main.py` to include Netlify domain in local dev CORS origins
+  - [x] Hardcode `https://demand-letter-generator.netlify.app` in `api/handlers/base.py` default CORS origins
+  - [x] Update `api/main.py` to include Netlify domain in local dev CORS origins
   - [x] Update error response headers to use Netlify domain
   - [ ] Verify CORS headers are present in API Gateway responses after deployment
   - [ ] Test preflight (OPTIONS) requests work correctly from Netlify frontend
@@ -484,7 +484,7 @@ Ready to deploy? Start with PR #1:
 aws sts get-caller-identity
 
 # Run the bucket creation script
-cd backend/scripts
+cd api/scripts
 ./create_prod_s3_buckets.sh
 
 # Verify buckets created
@@ -525,7 +525,7 @@ psql -h [rds-endpoint] -U postgres -d postgres
 ### 3. Run Database Migrations
 
 ```bash
-cd backend
+cd api
 
 # Ensure .env.production exists with RDS endpoint and credentials
 # Then run migrations (alembic will automatically load .env.production)
@@ -535,7 +535,7 @@ alembic upgrade head
 ### 4. Deploy to Lambda
 
 ```bash
-cd backend
+cd api
 
 # Install dependencies
 npm install
@@ -549,7 +549,7 @@ serverless deploy --stage prod
 ### 5. Deploy Frontend to Netlify
 
 ```bash
-cd frontend
+cd webapp
 
 # Create netlify.toml (see PR #8)
 # Create .env.production with API Gateway URL
